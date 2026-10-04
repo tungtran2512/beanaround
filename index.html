@@ -189262,7 +189262,7 @@ function replyReview(s,id,index){
 }
 function ownerCompletionTip(s,o,g,baseTip){
  const ledger=s.stats.ownerTipOrders||(s.stats.ownerTipOrders={});
- if(!o.uid||!o.ownerTipEligible||!o.ownerManual||!(o.ownerManualSteps>0)||o.channel==="online"||!g.correct||g.stars<4||o.recovery||ledger[o.uid]||Object.keys(ledger).length>=10)return 0;
+ if(o.managerHandled||!o.uid||!o.ownerTipEligible||!o.ownerManual||!(o.ownerManualSteps>0)||o.channel==="online"||!g.correct||g.stars<4||o.recovery||ledger[o.uid]||Object.keys(ledger).length>=10)return 0;
  const bonus=g.stars===5?Math.max(15,baseTip):8;ledger[o.uid]=bonus;s.stats.ownerBonusTips=roundK((s.stats.ownerBonusTips||0)+bonus);s.stats.ownerBonusOrders=(s.stats.ownerBonusOrders||0)+1;return bonus;
 }
 function recordSaleV7(s,o,g,cost){
@@ -193734,7 +193734,7 @@ function cleanShop(s){
  pay(s,Math.min(12,s.cash),"maintenance");s.cleanliness=100;
 }
 function repairShopV7(s){prepOnly(s);if(!s.events.broken&&s.condition>=100)throw Error("Máy đang tốt.");pay(s,Math.min(80,s.cash*.08),"repair");s.events.broken=null;s.condition=100}
-function advertise(s){prepOnly(s);if(s.events.advertising)throw Error("Đã quảng cáo hôm nay.");pay(s,80,"advertising");s.events.advertising=1;s.events.traffic*=1.15;gainRep(s,.3)}
+function advertise(s){prepOnly(s);if(s.events.advertising)throw Error("Đã quảng cáo hôm nay.");pay(s,1000,"advertising");s.events.advertising=1;s.events.traffic*=1.15;gainRep(s,.3)}
 
 
 
@@ -197864,19 +197864,20 @@ function buyStock(s,k){
  s.stock[k].push(storageLot(s,k,n,price/n));
 }
 function cartCost(s,items){return roundK(Object.entries(items).reduce((n,[k,q])=>n+(cartItem(s,k)?cartUnitPrice(s,k)*q:0),0))}
-function stockPlan(s){
- const menu=activeMenu(s),total=plannedTraffic(s)+forecastOnlineCups(s);
+function stockPlan(s,totalOverride=null){
+ const menu=activeMenu(s),total=totalOverride??(plannedTraffic(s)+forecastOnlineCups(s));
  if(!menu.length||!total)return {};
- const reserve=1.15,need={cup:Math.ceil(total*reserve),lid:Math.ceil(total*reserve),
+ const reserve=1.4,need={cup:Math.ceil(total*reserve),lid:Math.ceil(total*reserve),
  sugar:Math.ceil(total*.65*reserve),ice:Math.ceil(total*1.25*reserve)};
  const weights=menu.map(r=>demandFactor(s.menu[r.id].playerPrice,r.price)*(s.events.viralDrink===r.id?2:1));
  const sum=weights.reduce((a,b)=>a+b,0)||1;
  const offer=ownerState(s).offer,group=offer?.status==="accepted"&&menu.some(r=>r.id===offer.drink)?Math.min(offer.accepted,opportunityCapacity(s)):0;
  menu.forEach((r,i)=>{
-  const count=(total-group)*weights[i]/sum+(r.id===offer?.drink?group:0);
-  for(const step of r.steps){const k=A[step]?.[1];if(k)need[k]=(need[k]||0)+count*1.45*reserve}
+  const expected=(total-group)*weights[i]/sum+(r.id===offer?.drink?group:0),count=expected+Math.max(3,Math.ceil(2.5*Math.sqrt(expected)));
+  for(const step of r.steps){const k=A[step]?.[1];if(k)need[k]=(need[k]||0)+count*1.6*reserve}
   const tops=eligibleToppings(s,r);
-  for(const k of tops)need[k]=(need[k]||0)+count*.5*reserve/tops.length;
+  for(const k of tops)need[k]=(need[k]||0)+Math.max(3,count*.65*reserve/tops.length);
+  if(r.category==="coffee")need.bean=(need.bean||0)+count*.15;
  });
  for(const k of Object.keys(need))need[k]=Math.ceil(need[k]);
  return need;
@@ -197895,7 +197896,7 @@ function buyCartV7(s,items){
  for(const [k,q]of Object.entries(items))for(let i=0;i<q;i++)buyStock(s,k);
 }
 function operatingForecast(s){
- return {rent:s.isBranch?700+(s.upgrades.flagship?300:0):s.day<=10?0:1000,utilities:(s.isBranch?250+(s.upgrades.tabletPro?100:0)+(s.upgrades.espresso?150:0):500)+storageUtilities(s),salary:Object.keys(STAFF).reduce((n,k)=>n+((working(s,k)&&s.employees[k].tempDay!==s.day&&s.employees[k].coverDay!==s.day)||s.employees[k].transferDay===s.day?STAFF[k].dailySalary:0),0),maintenance:s.upgrades.insurance?5:0};
+ return {rent:!s.isBranch&&s.day<=10?0:2000,utilities:(s.isBranch?250+(s.upgrades.tabletPro?100:0)+(s.upgrades.espresso?150:0):500)+storageUtilities(s),salary:Object.keys(STAFF).reduce((n,k)=>n+((working(s,k)&&s.employees[k].tempDay!==s.day&&s.employees[k].coverDay!==s.day)||s.employees[k].transferDay===s.day?STAFF[k].dailySalary:0),0),maintenance:s.upgrades.insurance?5:0};
 }
 function chargeOperating(s){
  if(s.stats.operatingCharged)return;const costs=operatingForecast(s),due=Object.values(costs).reduce((a,b)=>a+b,0);
@@ -197909,7 +197910,7 @@ function openDayV7(s){
  s.online.dayQuota=onlineVolume(s);s.online.remaining=s.online.dayQuota;s.online.issued=0;s.online.queue=[];s.online.ticks=0;beginOnlinePacing(s);issueOnline(s);
 }
 function expenseToday(s){
- const d=s.stats;return roundK(d.ingredientsUsed+d.expiryCost+d.unlockExpense+d.decorExpense+d.upgradeExpense+d.staffExpense+d.rent+d.utilities+d.salary+d.maintenance+d.advertising+d.repair+d.onlineFees+d.eventLoss+(d.supplyPremium||0));
+ const d=s.stats;return roundK(d.ingredientsUsed+d.expiryCost+d.unlockExpense+d.decorExpense+d.upgradeExpense+d.staffExpense+d.rent+d.utilities+d.salary+d.maintenance+d.advertising+d.repair+d.onlineFees+d.eventLoss+(d.supplyPremium||0)+(d.managerService||0));
 }
 function profitToday(s){return roundK(s.stats.grossRevenue+s.stats.tips-expenseToday(s))}
 function finalizeDay(s){
@@ -210267,7 +210268,7 @@ function stockMarkupV7(){
  const g=G[k],q=quantity(state,k),lots=state.stock[k].filter(b=>b.expiry>=state.day),expiry=lots.length?Math.min(...lots.map(b=>b.expiry))-state.day+1:0;
  return '<article class="stock-line">'+icon(g.icon)+'<div><b>'+g.name+'</b><p class="small">Có '+q+' / dự kiến '+(needed[k]||0)+' · '+(g.life>=999?"Không hỏng":q?"Còn "+expiry+" ngày":"Hết hàng")+'</p><small>'+g.pack+' phần/gói · '+MONEY(packPrice(state,k))+' · Lô mới: '+(storageLife(state,k)>=999?'không hỏng':storageLife(state,k)+' ngày')+'</small></div><div class="quantity-control">'+(k==="brew"?btn("Ủ","brew"):btn("−","cartRemove",k)+'<input id="cartQty-'+k+'" class="stock-quantity-input" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" autocomplete="off" data-stock-quantity="'+k+'" aria-label="Số gói '+escapeHTML(g.name)+' (0 đến '+stockPackLimit(state)+')" value="'+(cart[k]||0)+'">'+btn("+","cartAdd",k))+'</div></article>';
  }).join("")+'</div><div class="cart-footer"><b id="stockCartTotal">Giỏ hàng: '+MONEY(price)+'</b><span>Ví '+MONEY(state.cash)+'</span>'+btn("Xem & nhập hàng","cartConfirm","","primary")+'</div>'+
- '<div class="flex">'+btn("Vệ sinh · tối đa 12k","clean")+btn("Bảo trì máy","repair")+btn("Quảng cáo · 80k","advertise")+'</div>';
+ '<div class="flex">'+btn("Vệ sinh · tối đa 12k","clean")+btn("Bảo trì máy","repair")+btn("Quảng cáo · 1.000k","advertise")+'</div>';
 }
 
 
@@ -218719,7 +218720,7 @@ function managementStatsMarkup(){
  '<small>Tháng game có 30 ngày, bắt đầu tháng 11. Tháng 12 là Giáng sinh, tháng 2 là mùa Tết mô phỏng. Qua ngày 30 vẫn chơi tiếp, tiền và tiến trình được giữ. Mục tiêu không phải mức trần hay khoản thưởng tiền.</small>'+
  (b.historyStartDay>1?'<p>Save cũ: sổ tháng chỉ cộng những ngày có báo cáo lưu được, không tự tạo doanh thu còn thiếu.</p>':'')+
  '<details><summary>Các tháng đã ghi sổ</summary>'+b.months.slice(-6).reverse().map(m=>row("Tháng chơi "+(m.index+1)+" · "+m.days.length+" ngày",money(m.revenue))).join("")+'</details></section>'+
- '<section class="business-card"><h3>CHĂM QUÁN</h3><p>Sạch '+Math.round(s.cleanliness)+'% · Tình trạng máy '+Math.round(s.condition)+'%</p><div class="business-links">'+btn("🧹 Vệ sinh","clean")+btn("🔧 Bảo trì","repair")+btn("📣 Quảng cáo 80k","advertise")+btn("⭐ Xem đánh giá","businessNav","reviews")+'</div><small>Vệ sinh, sửa chữa và quảng cáo có chi phí thật, theo điều kiện hiện có.</small></section>';
+ '<section class="business-card"><h3>CHĂM QUÁN</h3><p>Sạch '+Math.round(s.cleanliness)+'% · Tình trạng máy '+Math.round(s.condition)+'%</p><div class="business-links">'+btn("🧹 Vệ sinh","clean")+btn("🔧 Bảo trì","repair")+btn("📣 Quảng cáo 1.000k","advertise")+btn("⭐ Xem đánh giá","businessNav","reviews")+'</div><small>Vệ sinh, sửa chữa và quảng cáo có chi phí thật, theo điều kiện hiện có.</small></section>';
 }
 
 
@@ -218756,7 +218757,7 @@ function equipmentMarkupV9(){
  state.upgrades[id]?"":'<small>Mở từ ngày '+u.day+(state.day>=u.day?" · ✓ Đủ ngày":"")+'</small>')).join("");
  html+=upgradeRow("plant","Cây xanh trên quầy","+2k tip cho ly phục vụ hoàn hảo.",state.flowers?'<span class="owned-mark">✓</span>':btn("120k<br>MUA","decorBuy","flowers"));
  html+=upgradeRow("store","Góc ngồi thư thái","+20% thời gian chờ.",state.chairs?'<span class="owned-mark">✓</span>':btn("180k<br>MUA","decorBuy","chairs"));
- html+=upgradeRow("book","Quảng cáo mạng xã hội","Chiến dịch trong ngày: +15% sức hút quầy, +25% nhu cầu Shopee Food; đội ngũ, máy móc và đào tạo mở dần trần 350 → 400 → 450 → 500 đơn. Không vượt 60 khách tại quầy.",state.events.advertising?'<span class="owned-mark">✓</span>':btn("80k<br>CHẠY","advertise"));
+ html+=upgradeRow("book","Quảng cáo mạng xã hội","Chiến dịch trong ngày: +15% sức hút quầy, +25% nhu cầu Shopee Food; đội ngũ, máy móc và đào tạo mở dần trần 350 → 400 → 450 → 500 đơn. Không vượt 60 khách tại quầy.",state.events.advertising?'<span class="owned-mark">✓</span>':btn("1.000k<br>CHẠY","advertise"));
  html+=upgradeRow("book","Tablet Shopee Food","Nhận đơn giao hàng; yêu cầu mở khóa xem trong Online.",state.online.tablet?'<span class="owned-mark">✓</span>':btn("XEM<br>ĐIỀU KIỆN","upgradeTab","online"));
  return html;
 }
@@ -218800,14 +218801,14 @@ function deliveryGrowthMarkup(s,branch=false){
  return contestPromoMarkup(s)+'<section class="business-card"><h3>PHÁT TRIỂN SHOPEE FOOD</h3><p>Trần đội ngũ: <b>'+onlineCapacity(s)+' đơn/ca</b>. Cần đủ các bậc trước; nhu cầu thực tế còn tùy rating, giá và thời tiết.</p><p>Giá Shopee Food +15% so với giá quầy; phí 18% tính trên doanh thu online thực thu, trước giá vốn.</p>'+
  rows.map(([name,ok,cap])=>'<div class="financial-row"><span>'+(ok?"✓ ":"○ ")+name+'</span><b>'+cap+' đơn</b></div>').join("")+
  '<p>Quầy tối đa 60 khách/ngày, kể cả cuối tuần và lễ. Ngày đầu 20; chưa có barista tối đa 30. Thời tiết và rating vẫn ảnh hưởng lượng khách thực tế. Chi nhánh hoàn thiện hướng tới 90% quán chính trong điều kiện tương đương.</p>'+
- (deliveryCampaign(s)?'<p class="owned-mark">✓ Đã chạy quảng cáo ca này</p>':btn("📣 QUẢNG CÁO SHOPEE FOOD · 80k",branch?"branchAdvertise":"advertise","","wide primary"))+
- '<small>Ngân sách 80k/ca ghi vào Marketing. Tăng nhu cầu 25%; không bảo đảm bán hết. Thuê người một lần, trả lương khi đi làm. Đào tạo chỉ trả học phí một lần.</small></section>';
+ (deliveryCampaign(s)?'<p class="owned-mark">✓ Đã chạy quảng cáo ca này</p>':btn("📣 QUẢNG CÁO SHOPEE FOOD · 1.000k",branch?"branchAdvertise":"advertise","","wide primary"))+
+ '<small>Ngân sách 1.000k/ca ghi vào Marketing. Tăng nhu cầu 25%; không bảo đảm bán hết. Lượng đơn thay đổi theo ngày: quán phát triển đầy đủ thường dự kiến khoảng 800–1.000 ly, chia thành đơn một ly và đơn nhóm. Thuê người một lần, trả lương khi đi làm. Đào tạo chỉ trả học phí một lần.</small></section>';
 }
 function branchAdvertise(s,no=2){
  prepOnly(s);const b=getBranch(s,no);if(!b)throw Error("Chưa mở chi nhánh.");
  prepOnly(b);if(!b.upgrades.tabletPro||!working(b,"online"))throw Error("Cần quầy online và nhân viên Shopee Food đi làm.");
  if(deliveryCampaign(b))throw Error("Quán này đã chạy quảng cáo hôm nay.");
- pay(b,80,"advertising");b.events.deliveryAdDay=b.day;
+ pay(b,1000,"advertising");b.events.deliveryAdDay=b.day;
 }
 function onlineMarkup(){
  const entries=[["Ngày hoạt động",state.day,4],["Doanh thu đồ uống",state.lifetimeRevenue,1500],["Khách đã phục vụ",state.customersServed,35],["Điểm phục vụ",ratingValue(state),4]];
@@ -264667,7 +264668,7 @@ window.BeanAroundExpansionChecks={run(){
  test("opening uses 150m, separate cash/staff/stocks and no duplicate",()=>{const s=branchShop(),cash=s.cash,b=openBranch(s);a(s.cash===cash-150000&&b.cash===30000&&s.stats.upgradeExpense===120000);a(!s.employees.barista.hired&&b.employees.barista.hired&&trained(b,"leader")&&!trained(s,"leader"));a(quantity(b,"bean")===0&&b.branchAge===0&&activeMenu(b).length===6&&validCore(s));fails(()=>openBranch(s))});
  test("transfers do not create revenue",()=>{const s=branchShop(),b=openBranch(s),total=s.cash+b.cash;branchTransfer(s,5000);branchTransfer(s,-2000);a(s.cash+b.cash===total&&s.stats.grossRevenue===0&&b.stats.grossRevenue===0);fails(()=>branchTransfer(s,Infinity))});
  test("branch missing stock does not charge unopened shift",()=>{const s=branchShop(),b=openBranch(s),cash=b.cash;startBranchDay(s);a(b.phase==="prep"&&b.cash===cash&&!b.stats.operatingCharged)});
- test("branch orders consume stock, cost salary and earn actual sales",()=>{const s=branchShop(),b=openBranch(s);stockBranch(s);const before=quantity(b,"cup");startBranchDay(s);a(b.phase==="open"&&b.stats.rent===700&&b.stats.salary===600);const cash=b.cash;startBranchDay(s);a(b.cash===cash);let guard=20000;while(b.phase==="open"&&guard--)branchTick(s,.2);a(guard>0&&b.stats.orders>0&&quantity(b,"cup")<before&&b.stats.grossRevenue>0);a(b.stats.ingredientsUsed>0&&b.reviews.length===b.stats.orders+b.stats.lost);a(s.stats.grossRevenue===0)});
+ test("branch orders consume stock, cost salary and earn actual sales",()=>{const s=branchShop(),b=openBranch(s);stockBranch(s);const before=quantity(b,"cup");startBranchDay(s);a(b.phase==="open"&&b.stats.rent===2000&&b.stats.salary===600);const cash=b.cash;startBranchDay(s);a(b.cash===cash);let guard=20000;while(b.phase==="open"&&guard--)branchTick(s,.2);a(guard>0&&b.stats.orders>0&&quantity(b,"cup")<before&&b.stats.grossRevenue>0);a(b.stats.ingredientsUsed>0&&b.reviews.length===b.stats.orders+b.stats.lost);a(s.stats.grossRevenue===0)});
  test("in-flight branch save resumes without duplicate consumption",()=>{const s=branchShop(),b=openBranch(s);stockBranch(s);startBranchDay(s);branchTick(s,.2);const q=quantity(b,"cup"),m=migrateSave(s);a(m.chain.branch.branchControl.job.started&&quantity(m.chain.branch,"cup")===q);branchTick(m,.2);a(quantity(m.chain.branch,"cup")===q)});
  test("branch upgrades require its own active shifts and wallet",()=>{const s=branchShop(),b=openBranch(s);fails(()=>upgradeBranch(s,"counter"));b.branchAge=3;const cap=branchCapacity(b),cash=b.cash;upgradeBranch(s,"counter");a(branchCapacity(b)===cap+20&&b.cash===cash-4500);fails(()=>upgradeBranch(s,"counter"))});
  test("branch closes outstanding order fairly and next day ages once",()=>{const s=branchShop(),b=openBranch(s);stockBranch(s);startBranchDay(s);branchTick(s,.2);closeBranchDay(s);a(b.phase==="report"&&b.stats.lost===1);s.phase="report";nextDay(s,()=>.5);a(s.day===32&&b.day===32&&b.phase==="prep"&&b.branchAge===1&&b.financialHistory.length===1&&validCore(s))});
@@ -264714,7 +264715,7 @@ window.BeanAroundThreeShopChecks={run(){
  test("max development targets90 percent channel demand, not cash",()=>{const s=ready(),b=s.chain.branch;s.events.weather="sun";b.events={...b.events,...s.events};a(branchProgress(b)===1);const f=branchForecast(s,2);a(Math.abs(f.counter-Math.min(branchCapacity(b),Math.round(trafficDemand(b)*.9)))<=1);a(Math.abs(f.online-Math.round(onlineVolume(b)*.9))<=1);const cash=b.cash;branchForecast(s,2);a(b.cash===cash)});
  test("untrained online staff has lower throughput and missing staff disables online",()=>{const s=ready(),b=s.chain.branch,full=branchForecast(s,2).online;delete b.training.courses.delivery;a(branchForecast(s,2).online<full);b.employees.online.workingToday=false;a(branchForecast(s,2).online===0)});
  test("rain and pricing affect branch demand",()=>{const s=ready();s.events.traffic=.2;const normal=branchForecast(s,2).counter;s.events.weather="rain";a(branchForecast(s,2).counter<normal);s.events.weather="sun";for(const m of Object.values(s.chain.branch.menu))m.playerPrice*=1.3;a(branchForecast(s,2).counter<normal)});
- test("second and third run real parallel orders including online and bakery",()=>{const s=ready(),b3=openBranch(s,3);maxTestBranch(s,b3);for(const b of branches(s)){b.financialHistory=[];stockBranch(s,branchNumber(b));a(quantity(b,"cup")>0&&bakeryQuantity(b,"croissant")>0)}startBranchDay(s);a(branches(s).every(b=>b.phase==="open"));let guard=30000;while(branches(s).some(b=>b.phase==="open")&&guard--)branchTick(s,.2);a(guard>0);for(const b of branches(s)){a(b.stats.orders>100&&b.stats.onlineOrders>0&&b.stats.onlineFees>0&&b.stats.bakeryRevenue>0);a(b.reviews.length===Math.min(200,b.stats.orders+b.stats.lost));a(b.stats.ingredientsUsed>0&&b.cash>0)}a(s.stats.grossRevenue===0&&validCore(s))});
+ test("second and third run real parallel orders including online and bakery",()=>{const s=ready(),b3=openBranch(s,3);maxTestBranch(s,b3);for(const b of branches(s)){b.financialHistory=[];stockBranch(s,branchNumber(b));a(quantity(b,"cup")>0&&bakeryQuantity(b,"croissant")>0)}startBranchDay(s);a(branches(s).every(b=>b.phase==="open"));let guard=30000;while(branches(s).some(b=>b.phase==="open")&&guard--)branchTick(s,.2);a(guard>0);for(const b of branches(s)){a(b.stats.orders>100&&b.stats.onlineOrders>0&&b.stats.onlineFees>0&&b.stats.bakeryRevenue>0);a(b.reviews.length===Math.min(200,receiptCount(b.stats)+b.stats.lost));a(b.stats.ingredientsUsed>0&&b.cash>0)}a(s.stats.grossRevenue===0&&validCore(s))});
  test("in-flight two lanes resume once after reload",()=>{const s=ready();openBranch(s,3);stockBranch(s,2);stockBranch(s,3);startBranchDay(s);branchTick(s,.2);const q=branches(s).map(b=>quantity(b,"cup")),m=migrateSave(s);branchTick(m,.2);a(branches(m).every((b,i)=>quantity(b,"cup")===q[i]));a(m.chain.branch.branchControl.job.started&&m.chain.branch.branchControl.onlineJob.started)});
  test("closing records pending orders once; next day preserves both locations",()=>{const s=ready();openBranch(s,3);stockBranch(s,2);stockBranch(s,3);startBranchDay(s);branchTick(s,.2);closeBranchDay(s);const lost=branches(s).map(b=>b.stats.lost);closeBranchDay(s);a(branches(s).every((b,i)=>b.stats.lost===lost[i]));s.phase="report";nextDay(s,()=>.5);a(branches(s).every(b=>b.day===62&&b.phase==="prep")&&validCore(s))});
  return rows;
@@ -281214,11 +281215,11 @@ function complaintSheet(){
 let stockSuggestionNotice="";
 function fillSuggestedCart(){
  const full=suggestedCartUncapped(state),limited=cartCost(state,full)>affordableStockBudget(state);
- cart=suggestedCart(state);stockFilter="all";
+ cart=full;stockFilter="all";
  const packs=Object.values(cart).reduce((a,b)=>a+b,0);
- stockSuggestionNotice=limited?"Ngân sách chưa đủ: đã điền giỏ trong khả năng chi trả. Giảm số đơn hoặc tạm tắt bớt món.":packs?"Đã điền "+packs+" gói cho "+plannedTraffic(state)+" cốc tại quầy + "+onlineVolume(state)+" đơn online ≈ "+forecastOnlineCups(state)+" ly. Xem số gói và xác nhận để nhập.":"Kho còn đủ theo dự kiến. Không cần nhập thêm.";
+ stockSuggestionNotice=limited?"Ngân sách chưa đủ: giỏ giữ đầy đủ lượng dự phòng, chưa trừ tiền. Cần thêm "+MONEY(Math.max(0,cartCost(state,full)-affordableStockBudget(state)))+". Giảm số đơn hoặc tạm tắt bớt món rồi gợi ý lại.":packs?"Đã điền "+packs+" gói, đã có dự phòng 40% và biên dao động từng món, cho "+plannedTraffic(state)+" cốc tại quầy + "+onlineVolume(state)+" đơn online ≈ "+forecastOnlineCups(state)+" ly. Xem số gói và xác nhận để nhập.":"Kho đủ theo dự kiến và mức dự phòng hiện tại. Không cần nhập thêm.";
  if((stockPlan(state).brew||0)>quantity(state,"brew"))stockSuggestionNotice+=" Cold brew: nhớ bấm Ủ trước khi mở cửa.";
- toast(limited?"Đã điền giỏ trong ngân sách · còn thiếu, xem thông báo trong kho.":packs?"Đã tự điền "+packs+" gói · chưa trừ tiền.":"Kho hiện đủ cho lượng khách dự kiến.");
+ toast(limited?"Đã điền đủ dự phòng · thiếu vốn, xem số tiền trong kho.":packs?"Đã tự điền "+packs+" gói · chưa trừ tiền.":"Kho đủ cho dự kiến và dự phòng.");
 }
 function ownerOpportunityMarkup(){
  const offer=ownerState(state).offer;if(!offer)return "";
@@ -281269,7 +281270,7 @@ function ownerAlertSheet(){
 
 
 function stockMarkup(){
- return ownerOpportunityMarkup()+(stockSuggestionNotice?'<div class="notice" role="status">'+escapeHTML(stockSuggestionNotice)+'</div>':"")+'<div class="opening-budget">Nhu cầu '+trafficDemand(state)+' · Nhận tối đa '+plannedTraffic(state)+' lượt quầy · Công suất '+frontCapacity(state)+'. '+(trafficDemand(state)>frontCapacity(state)?"Thêm barista, phụ quầy hoặc mở rộng quầy để tăng công suất.":"")+'</div>'+ (state.capitalNotice?'<div class="capital-note">Đã bổ sung vốn mở quán +'+MONEY(state.capitalNotice)+' một lần. Tiền mua hàng và tiến trình cũ được giữ.</div>':"")+'<div class="opening-budget"><strong>Ngân sách nhập: '+MONEY(affordableStockBudget(state))+'</strong><p>Giữ lại '+MONEY(openingReserve(state))+' cho chi phí ca và dự phòng. '+(state.day<=10?'Miễn mặt bằng đến hết ngày 10 (còn '+(11-state.day)+' ngày); điện nước 500k/ngày. ':'Mặt bằng 1.000k + điện nước 500k/ngày. ')+' Chạm Gợi ý nhập hàng để tự điền số gói theo khách dự kiến, menu và kho hiện có. Chưa trừ tiền cho đến khi xác nhận mua.</p><small>Chạm ô số để nhập số gói (0–'+stockPackLimit(state)+'), hoặc nhấn giữ + / −.</small></div>'+ (state.ops.incoming?'<div class="notice"><b>🚚 Đơn nhập đang giao · '+MONEY(state.ops.incoming.cost)+'</b><p>Đã trả tiền, chưa vào kho. Còn '+Math.max(0,state.ops.incoming.arrival-state.ops.tick)+' giây mô phỏng khi mở quán.</p>'+btn("Nhận nguồn dự phòng +"+MONEY(roundK(state.ops.incoming.cost*.25)),"expedite")+btn("Hủy đơn nhập · hoàn tiền","cancelDelivery")+'<p>Hoặc chờ và tạm tắt món thiếu nguyên liệu trong Menu.</p></div>':state.ops.deliveryDelay?'<div class="notice">Nhà cung cấp giao trễ: giỏ nhập tiếp theo đến sau 45 giây mô phỏng khi mở quán. Có thể chọn nguồn dự phòng sau khi đặt.</div>':"")+stockMarkupV7();
+ return ownerOpportunityMarkup()+(stockSuggestionNotice?'<div class="notice" role="status">'+escapeHTML(stockSuggestionNotice)+'</div>':"")+'<div class="opening-budget">Nhu cầu '+trafficDemand(state)+' · Nhận tối đa '+plannedTraffic(state)+' lượt quầy · Công suất '+frontCapacity(state)+'. '+(trafficDemand(state)>frontCapacity(state)?"Thêm barista, phụ quầy hoặc mở rộng quầy để tăng công suất.":"")+'</div>'+ (state.capitalNotice?'<div class="capital-note">Đã bổ sung vốn mở quán +'+MONEY(state.capitalNotice)+' một lần. Tiền mua hàng và tiến trình cũ được giữ.</div>':"")+'<div class="opening-budget"><strong>Ngân sách nhập: '+MONEY(affordableStockBudget(state))+'</strong><p>Giữ lại '+MONEY(openingReserve(state))+' cho chi phí ca và dự phòng. '+(state.day<=10?'Miễn mặt bằng đến hết ngày 10 (còn '+(11-state.day)+' ngày); điện nước 500k/ngày. ':'Mặt bằng 2.000k + điện nước 500k/ngày. ')+' Gợi ý nhập hàng gồm dự phòng 40%, thêm biên dao động từng món và bánh. Nhu cầu Shopee thay đổi theo ngày; giỏ trừ lượng kho còn hạn.  Chưa trừ tiền cho đến khi xác nhận mua.</p><small>Chạm ô số để nhập số gói (0–'+stockPackLimit(state)+'), hoặc nhấn giữ + / −.</small></div>'+ (state.ops.incoming?'<div class="notice"><b>🚚 Đơn nhập đang giao · '+MONEY(state.ops.incoming.cost)+'</b><p>Đã trả tiền, chưa vào kho. Còn '+Math.max(0,state.ops.incoming.arrival-state.ops.tick)+' giây mô phỏng khi mở quán.</p>'+btn("Nhận nguồn dự phòng +"+MONEY(roundK(state.ops.incoming.cost*.25)),"expedite")+btn("Hủy đơn nhập · hoàn tiền","cancelDelivery")+'<p>Hoặc chờ và tạm tắt món thiếu nguyên liệu trong Menu.</p></div>':state.ops.deliveryDelay?'<div class="notice">Nhà cung cấp giao trễ: giỏ nhập tiếp theo đến sau 45 giây mô phỏng khi mở quán. Có thể chọn nguồn dự phòng sau khi đặt.</div>':"")+stockMarkupV7();
 }
 function staffMarkup(){
  return '<p class="notice">Thuê một lần · 300k/người/ca đi làm. Barista 4 và đóng gói 2 mở ngày 12; Barista 5 và đóng gói 3 mở ngày 16. Đủ máy và đào tạo có thể đạt 500 đơn từ ngày 19. Ca mới lên lịch 10 lượt chủ quán pha tiếp, chia đều trong tối đa 60 khách; sự cố lớn có thể làm giảm số lượt. Đội hỗ trợ hiện giảm '+Math.round((1-automaticWorkFactor(state))*100)+'% thời gian tự động, cộng thêm tác dụng máy và khóa Tổ chức quầy. Pha tay vẫn giữ thanh căn vị.</p>'+trainingMarkup()+(state.ops.active?btn("Xử lý sự cố nhân sự","operation","","wide primary"):"")+staffMarkupV7()+'<p class="panel-help">Độ chính xác lượt pha tự động hiện tại: '+(staffAccuracy(state)*100).toLocaleString("vi-VN",{maximumFractionDigits:1})+'%. Rating vẫn phụ thuộc món, thời gian chờ, vệ sinh và giá.</p><p class="panel-help">Vắng ca không tính lương; nghỉ việc sau khi đã nhận ca giữ lương ca đó. Thời vụ 180k/ca, điều chuyển không thu lương lần hai.</p>';
@@ -281505,8 +281506,8 @@ function tickUI(){
  if(modal==="stockClose")return;
  if(document.hidden||state.phase!=="open")return;
  const bakeBadge=document.querySelector(".bakery-service-bar .selected .stock-badge");if(bakeBadge&&state.order?.bakery?.status==="preparing")bakeBadge.textContent=Math.ceil(state.order.bakery.remaining)+"s";
- textIfChanged("shopClock",shopTime(state));textIfChanged("teamMessage",state.frontStatus);const bakeLabel=document.querySelector(".bakery-service .art-label");if(bakeLabel&&state.order?.bakery?.status==="preparing")bakeLabel.textContent=Math.ceil(state.order.bakery.remaining)+"s";
- if(state.ops.active){if(modal!=="operation")operationSheet();return}
+ textIfChanged("shopClock",shopTime(state));textIfChanged("teamMessage",(managerActive(state)?"👔 Quản lý · ":"")+state.frontStatus);const bakeLabel=document.querySelector(".bakery-service .art-label");if(bakeLabel&&state.order?.bakery?.status==="preparing")bakeLabel.textContent=Math.ceil(state.order.bakery.remaining)+"s";
+ if(state.ops.active&&!managerActive(state)){if(modal!=="operation")operationSheet();return}
  const recovery=state.order?.recovery;
  if(recovery){
   const uid=state.order.uid,before=[state.cash,state.stats.orders,state.cup?.steps.length,state.cup?.sealed,!!state.job,state.frontJob?.complete,state.frontStatus].join("|");clockStep(state,.2);save();
@@ -281516,7 +281517,7 @@ function tickUI(){
   if(before!==after)paint();else{paintTimer();refreshWorkDisplay()}return;
  }
  if(modal==="ownerAlert"){clockStep(state,.2);save();if(!ownerState(state).active||ownerState(state).active.uid!==state.order?.uid){closeSheet();paint()}return}
- const waiting=state.complaintQueue.length;tickUIV7();if(state.complaintQueue.length!==waiting){paint();if(state.complaintQueue.length>waiting)toast("Có phản ánh mới. Chạm chuông để xử lý.");}if(state.ops.active)operationSheet();
+ const waiting=state.complaintQueue.length;tickUIV7();if(state.complaintQueue.length!==waiting){paint();if(state.complaintQueue.length>waiting)toast("Có phản ánh mới. Chạm chuông để xử lý.");}if(state.ops.active&&!managerActive(state))operationSheet();
 }
 
 
@@ -318593,6 +318594,7 @@ function expandState(s){
  s.holiday=s.holiday||{start:0,end:0,kind:null,claimed:[]};
  s.shift=s.shift||{elapsed:0,minute:s.phase==="report"?1320:420,closing:false};
  ensurePlay(s);businessDefaults(s);financeDefaults(s);ownerState(s);expansionDefaults(s);contestDefaults(s);
+ managerDuty(s);
  for(const row of s.financialHistory)recordBusinessMonth(s,row);
  s.counterWaiting=s.counterWaiting||[];s.stats.stockCancelled=s.stats.stockCancelled||0;
  s.stats.cashierBonus=s.stats.cashierBonus||0;s.stats.qcRemakes=s.stats.qcRemakes||0;
@@ -318692,6 +318694,7 @@ function scheduledOwnerRoom(s){
  const c=ownerState(s);return ownerTeamReady(s)&&s.day>=2&&s.served-c.lastOrder>=2&&!c.active&&!s.order?.recovery&&!s.ops.active&&!s.events.active&&!s.complaintQueue.length&&!s.events.history.some(e=>e.day===s.day&&["theft","bike","resign","machine","power","water"].includes(e.id));
 }
 function offerTakeover(s,random=gameRandom){
+ if(managerActive(s))return false;
  const c=ownerState(s),o=s.order,job=s.frontJob,plan=ensureTakeoverPlan(s);
  if(!o||!job||o.ownerManual||o.ownerReviewed||s.job||job.waiting||job.extraRemaining>0||!s.cup||(!s.cup.steps.length&&job.plan.length!==1)||s.cup.sealed||job.complete||job.cursor>=job.plan.length||o.recovery)return false;
  if(!plan||plan.index>=plan.marks.length||s.served<plan.marks[plan.index]||plan.warnedUids.includes(o.uid)||!scheduledOwnerRoom(s))return false;
@@ -319048,6 +319051,7 @@ function plannedTraffic(s){const offer=ownerState(s).offer,extra=offer?.status==
 
 
 
+function onlineDailyFactor(s){const key=((Math.floor(s.day)+(s.isBranch?s.branchNo||1:0))%7+7)%7;return [1,.8,.9,.8,.9,.9,1][key]}
 function onlineVolume(s){
  if(!s.online.tablet||!s.online.enabled||ratingValue(s)<2.5)return 0;
  const menu=activeMenu(s);if(!menu.length)return 0;
@@ -319058,7 +319062,7 @@ function onlineVolume(s){
  const multiplier=(s.upgrades.counter?1.25:1)*(s.upgrades.branding?1.15:1)*(s.upgrades.tabletPro?1.3:1)*(s.events.weather==="rain"?1.15:1)*(deliveryCampaign(s)?1.25:1)*(trained(s,"deliveryBasics")?1.15:1)*(trained(s,"delivery")?1.2:1);
  const capacity=onlineCapacity(s);
  const demand=Math.max(0,marketDemand(attraction*multiplier*seasonalDemand(s)*(trainedWorking(s,"speedBrew")?1.1:1)*(trainedWorking(s,"packingLine")?1.08:1)*(trainedWorking(s,"dispatchLead")?1.08:1)*(s.upgrades.packingCounter?1.12:1)*(s.upgrades.dualGroup?1.12:1)*(s.upgrades.multiStation?1.12:1),500,s));
- return Math.min(capacity,Math.floor(demand*contestBoost(s)),s.business?.onlineLimit??capacity);
+ return Math.min(Math.floor(Math.min(capacity,demand*contestBoost(s))*onlineDailyFactor(s)),s.business?.onlineLimit??capacity);
 }
 function applyBusinessPlan(s,counter,online){
  prepOnly(s);const b=businessDefaults(s);
@@ -319588,6 +319592,7 @@ function cashierStep(s){
  s.order.qcApproved=true;s.frontStatus="✓ Thu ngân đã kiểm · Anh chạm Giao khách";
 }
 function clockStep(s,delta=1){
+ managerStep(s,delta);
  const care=ownerState(s);if(care.active?.mode==="alert"&&care.active.reading>0){care.active.reading=Math.max(0,roundTime(care.active.reading-delta));return false}
  s.timed=true;
  if(s.phase!=="open"||s.events.active||s.ops.active)return false;
@@ -320642,7 +320647,7 @@ function clockStep(s,delta=1){
  return lost||waitingLost;
 }
 function openDayV112(s){openDayV9(s);s.shift={elapsed:0,minute:420,closing:false};s.frontJob=null}
-function nextDayV112(s,random=gameRandom){nextDayV9(s,random);s.frontJob=null;s.frontStatus="";s.shift={elapsed:0,minute:420,closing:false}}
+function nextDayV112(s,random=gameRandom){nextDayV9(s,random);managerDuty(s);s.frontJob=null;s.frontStatus="";s.shift={elapsed:0,minute:420,closing:false}}
 function shopTime(s){
  const min=s.phase==="prep"?420:s.phase==="report"?(s.stats.closedAt??1320):Math.floor(s.shift.minute);
  return String(Math.floor(min/60)).padStart(2,"0")+":"+String(min%60).padStart(2,"0");
@@ -341410,8 +341415,63 @@ function ownerSupportMarkup(){
 }
 
 
+/* ==================== OPTIONAL SHIFT DELEGATION ==================== */
+function managerDuty(s){
+ if(!s.managerDuty||s.managerDuty.day!==s.day)s.managerDuty={day:s.day,enabled:false,paid:false,actions:0,status:"",cooldown:0};
+ s.stats.managerService=s.stats.managerService||0;return s.managerDuty;
+}
+function managerActive(s){return s.phase==="open"&&managerDuty(s).enabled&&working(s,"manager")&&!s.contest?.active}
+function setManagerDuty(s,on){
+ const d=managerDuty(s);if(s.phase!=="open")throw Error("Chỉ bật ủy quyền tại quầy trong ca đang mở.");
+ if(on&&!working(s,"manager"))throw Error("Cần thuê và xếp Quản lý đi làm trong ca này.");
+ if(on&&!d.paid){pay(s,550,"managerService");d.paid=true}
+ d.enabled=!!on;d.status=on?"Quản lý nhận lấy ly, hoàn thiện đồ, kiểm đơn, giao khách và xử lý phản ánh.":"Anh đã nhận lại quầy.";
+ d.cooldown=0;return d;
+}
+function managerDutyMarkup(){
+ const d=managerDuty(state),available=working(state,"manager");
+ return '<section class="business-card"><h3>ỦY QUYỀN QUẢN LÝ '+(d.enabled?(available?"· ĐANG BẬT":"· TẠM DỪNG"):"· ĐANG TẮT")+'</h3><p>Quản lý lấy ly, hoàn thiện và giao đồ; kiểm tra, làm lại khi cần, xử lý phản ánh và sự cố trong ca. Nguyên liệu và thời gian pha vẫn tính thật.</p><p>550k/ca ngoài lương. Thu một lần khi bật; tắt/bật lại không thu thêm. Ngày mới tự tắt. Giữ nguyên kế hoạch bán hàng, giá và nâng cấp.</p><small>Không tự mua hàng vượt giỏ đã duyệt. Thiếu kho hoặc thiếu người: hiện cảnh báo để anh xử lý.</small><p>'+escapeHTML(d.status||(!available?"Cần Quản lý đang đi làm.":"Chủ quán đang tự điều hành."))+'</p>'+btn(d.enabled?"TẮT · TÔI TIẾP QUẢN":d.paid?"BẬT LẠI · ĐÃ TRẢ PHÍ":"BẬT · 550k","managerDelegate","",d.enabled?"wide":"primary wide")+'</section>';
+}
+function managerStep(s,dt){
+ if(!managerActive(s))return false;
+ const d=managerDuty(s);d.cooldown=Math.max(0,(d.cooldown||0)-dt);if(d.cooldown>0)return false;d.cooldown=.4;
+ try{
+  if(s.ops.active){const choices=operationChoices(s),preferred={absence:"temp",resign:"temp",acFault:"urgent",lidFault:"fix",onlineSurge:"limit"}[s.ops.active.id];const choice=choices.find(x=>x.id===preferred&&x.cost<=Math.min(s.cash*.05,200))||choices.find(x=>x.cost===0);if(choice){resolveOperation(s,choice.id);d.status="Đã xử lý sự cố: "+choice.label;d.actions++;return true}}
+  if(s.events.active?.id==="bike"){resolveBike(s,s.cash>=1000?"part":"none");d.status="Đã xử lý phản ánh gửi xe theo khả năng tiền mặt.";d.actions++;return true}
+  if(s.events.active)return false;
+  if(s.ops.incoming&&s.cash>s.ops.incoming.cost*.25+500){expediteDelivery(s);d.status="Đã nhận nguồn hàng dự phòng có ghi chi phí.";return true}
+  if(s.complaintQueue.length&&!s.cup&&!s.job&&!s.manualComplaint&&!s.manualOnline){takeComplaint(s);return true}
+  if(!s.order&&!working(s,"online")&&s.online.queue.length&&!s.supervisedOnline){takeOnline(s);return true}
+  const o=s.order;if(!o)return false;
+  o.managerHandled=true;o.ownerTipEligible=false;
+  if(o.needsClarification){confirmOrder(s);d.actions++;return true}
+  if(o.recovery?.status==="complaint"){const q=recoveryQuote(s);if(q.allowed){beginRecovery(s);d.status="Đang làm lại theo đúng phản ánh."}else{cancelRecovery(s);d.status="Đã hủy/hoàn tiền: "+q.reason}d.actions++;return true}
+  if(ownerState(s).active?.mode==="alert"){dismissOwnerAlert(s);d.actions++;return true}
+  if(s.job)return false;
+  if(o.ownerManual){o.ownerManual=false;o.ownerReviewed=true;s.frontJob=null}
+  if(o.bakery?.status==="waiting"){startBake(s);d.actions++;return true}
+  if(!s.cup){chooseCup(s,o.size);d.actions++;d.status="Đã lấy ly "+o.size+" · "+o.customerName;return true}
+  if(s.cup.sealed){
+   if(!gradeOrder(s).correct){discardCup(s);s.frontJob=null;o.qcCorrected=true;s.stats.qcRemakes++;s.stats.remakes++;d.status="Phát hiện ly lỗi · bỏ ly, dùng nguyên liệu mới để làm lại.";d.actions++;return true}
+   if(o.bakery&&o.bakery.status!=="ready")return false;
+   deliver(s);d.actions++;d.status="Đã kiểm tra và giao đồ cho khách.";return true;
+  }
+  if(teamEnabled(s)&&s.frontJob&&!s.frontJob.complete)return false;
+  const next=expectedStep(s);
+  if(next==="book"){discardCup(s);o.qcCorrected=true;s.frontJob=null;s.stats.qcRemakes++;s.stats.remakes++;d.status="Ly sai thành phần · đang làm lại.";return true}
+  if(teamEnabled(s)&&!s.frontJob&&beginFrontJob(s))return false;
+  if(next==="lid")closeCup(s);
+  else if(next==="extraShot")extraShot(s);
+  else if(next.startsWith("topping-"))topping(s,next.slice(8));
+  else if(A[next]){s.nextIceMode=o.iceMode||"normal";startIngredient(s,next);s.job.staffOwned=true;s.job.staffOwner="manager"}
+  else return false;
+  d.actions++;d.status="Quản lý đang hoàn thiện đồ uống.";return true;
+ }catch(e){d.status="Cần hỗ trợ: "+e.message;s.frontStatus=d.status;return false}
+}
+
+
 function serviceToolsSheet(){
- showSheet("serviceTools","Ca bán hàng · "+shopTime(state),teamMarkup()+
+ showSheet("serviceTools","Ca bán hàng · "+shopTime(state),managerDutyMarkup()+teamMarkup()+
  '<p>'+state.served+'/'+state.dayGoal+' lượt tại quầy · Đồng hồ chạy cho cả hàng chờ. Nhãn VỘI / SẮP ĐI giúp chọn khách ưu tiên.</p>'+
  btn("Xem đầy đủ đơn / chuyện khách","orderDetail","","wide")+btn("Sổ khách quen","regulars","","wide")+
  ownerSupportMarkup()+btn("Barista "+(state.baristaAuto?"đang bật":"đang tắt"),"baristaToggle","","wide")+
@@ -341423,6 +341483,7 @@ function serviceToolsSheet(){
 }
 async function actV8(action,key){
  try{
+  if(action==="managerDelegate"){if(modal!=="serviceTools"||managementVisible)throw Error("Mở Hỗ trợ tại quầy để bật ủy quyền.");setManagerDuty(state,!managerDuty(state).enabled);save();paint();serviceToolsSheet();return}
   if(contestAction(action,key)||bakeryRetailAction(action,key))return;
   if(await expansionAction(action,key))return;
   if(ownerState(state).active?.mode==="alert"&&["cup","ingredient","iceMode","topping","extraShot","lid","serve"].includes(action))throw Error("Chạm ❗ rồi chọn Tự tiếp quản hoặc để barista tiếp tục.");
@@ -355178,7 +355239,7 @@ function breakCombo(s){if(s.order?.channel==="online")return;ensurePlay(s).strea
 
 
 /* FINANCIAL REPORTS — ACTUAL LEDGER DATA */
-const FIN_COSTS=[["rent","Mặt bằng"],["utilities","Điện nước"],["salary","Lương nhân viên"],["ingredientsUsed","Nguyên liệu tiêu hao"],["expiryCost","Hàng hỏng / hết hạn"],["unlockExpense","Mở món / topping"],["upgradeExpense","Mua trang bị"],["decorExpense","Trang trí"],["staffExpense","Tuyển dụng"],["advertising","Quảng cáo"],["onlineFees","Phí Shopee Food"],["maintenance","Vệ sinh / bảo trì / bảo hiểm"],["repair","Sửa chữa"],["supplyPremium","Nguồn hàng dự phòng"],["eventLoss","Tổn thất sự kiện"]];
+const FIN_COSTS=[["managerService","Ủy quyền quản lý"],["rent","Mặt bằng"],["utilities","Điện nước"],["salary","Lương nhân viên"],["ingredientsUsed","Nguyên liệu tiêu hao"],["expiryCost","Hàng hỏng / hết hạn"],["unlockExpense","Mở món / topping"],["upgradeExpense","Mua trang bị"],["decorExpense","Trang trí"],["staffExpense","Tuyển dụng"],["advertising","Quảng cáo"],["onlineFees","Phí Shopee Food"],["maintenance","Vệ sinh / bảo trì / bảo hiểm"],["repair","Sửa chữa"],["supplyPremium","Nguồn hàng dự phòng"],["eventLoss","Tổn thất sự kiện"]];
 const FIN_FIELDS=["ownerClosedOrders","ownerBonusTips","ownerBonusOrders","onlineBakeryQuantity","receiptOrders","onlineReceipts","failedReceipts","partialReceipts","groupReceipts","onlineBakeryOrders","counterBakeryOrders","onlineBakeryRevenue","onlineBakeryFees","bakeryRevenue","bakeryWaste","ownerInterventions","opportunityOrders","opportunityRevenue",...FIN_COSTS.map(x=>x[0]),"grossRevenue","tips","orders","lost","onlineRevenue","onlineOrders","onlineFailed","refunds","waste","wasteCost","remakeCost","comboTips","complaints","recovered","cancelled","cashierBonus"];
 function financeDefaults(s){
  if(!s.stats.finance)s.stats.finance={openingCash:s.cash,partial:!!(s.stats.spent||s.stats.income||s.stats.orders||s.served),stockPurchases:0,stockRefunds:0};
@@ -355579,9 +355640,9 @@ function buyBakes(s,id,n){
 }
 function bakerySuggestions(s){
  const ids=Object.keys(BAKES).filter(k=>bakeryAvailable(s,k)),out={};
- const target=Math.ceil((plannedTraffic(s)*bakeryRate(s)+forecastOnlineCakes(s))*1.2);
+ const target=Math.ceil((plannedTraffic(s)*bakeryRate(s)+forecastOnlineCakes(s))*1.4);
  const past=s.financialHistory.slice(-5),counts=Object.fromEntries(ids.map(k=>[k,past.reduce((n,r)=>n+(r.detail?.bakerySales?.[k]?.quantity||0),0)])),total=Object.values(counts).reduce((a,b)=>a+b,0);
- for(const k of ids){const weight=trainedWorking(s,"forecast")&&total?(.2/ids.length+.8*counts[k]/total):1/ids.length;out[k]=Math.max(0,Math.ceil(target*weight)-bakeryQuantity(s,k))}
+ for(const k of ids){const weight=trainedWorking(s,"forecast")&&total?(.2/ids.length+.8*counts[k]/total):1/ids.length;out[k]=Math.max(0,Math.ceil(target*weight+Math.max(3,2.5*Math.sqrt(target*weight)))-bakeryQuantity(s,k))}
  return out;
 }
 function attachBake(s,o,random,guaranteed=false){
@@ -355711,13 +355772,13 @@ function upgradeBranch(s,id,no=2){
 function stockBranch(s,no=2){
  prepOnly(s);const b=getBranch(s,no);if(!b)throw Error("Chưa mở chi nhánh.");
  const forecast=branchForecast(s,no),volume=forecast.counter+forecastOnlineCups(b,forecast.online);if(!volume)throw Error("Xếp barista, quản lý đi làm và bật nhận ca trước.");
- b.dayGoal=Math.max(1,forecast.counter);const menu=activeMenu(b),needs={cup:Math.ceil(volume*1.15),lid:Math.ceil(volume*1.15)};
- for(const r of menu){const o={id:r.id,size:"L",sweet:1,iced:true};for(const[k,n]of Object.entries(needsFor(o)))if(!["cup","lid"].includes(k))needs[k]=(needs[k]||0)+Math.ceil(volume/menu.length*n*1.15)}
- for(const k of menuToppings(b))needs[k]=Math.ceil(volume*.15);
+ b.dayGoal=Math.max(1,forecast.counter);const menu=activeMenu(b),needs=stockPlan(b,volume);
+ // Branches use the same demand-weighted, per-recipe reserve as the main shop.
+ // Topping reserves are included in stockPlan, according to compatible recipes.
  if(needs.brew){const batches=Math.ceil(Math.max(0,needs.brew-quantity(b,"brew"))/4);needs.bean=(needs.bean||0)+batches*2;needs.water=(needs.water||0)+batches*2}
  const cart={};for(const[k,n]of Object.entries(needs))if(k!=="brew"&&quantity(b,k)<n)cart[k]=Math.min(stockPackLimit(b),Math.ceil((n-quantity(b,k))/G[k].pack));
- const breads={};if(b.bakery.owned){const ids=Object.keys(BAKES).filter(k=>bakeryAvailable(b,k)),n=Math.ceil(((trainedWorking(b,"bakery")?forecast.counter:0)*bakeryRate(b)+forecastOnlineCakes(b,forecast.online))*1.2);
- for(const k of ids)breads[k]=Math.max(0,Math.ceil(n/ids.length)-bakeryQuantity(b,k))}
+ const breads={};if(b.bakery.owned){const ids=Object.keys(BAKES).filter(k=>bakeryAvailable(b,k)),n=Math.ceil(((trainedWorking(b,"bakery")?forecast.counter:0)*bakeryRate(b)+forecastOnlineCakes(b,forecast.online))*1.4);
+ for(const k of ids)breads[k]=Math.max(0,Math.ceil(n/ids.length+Math.max(3,2.5*Math.sqrt(n/ids.length)))-bakeryQuantity(b,k))}
  const cost=cartCost(b,cart)+Object.entries(breads).reduce((n,[k,q])=>n+q*BAKES[k].cost,0),reserve=Object.values(operatingForecast(b)).reduce((a,x)=>a+x,0);
  if(cost>b.cash-reserve)throw Error("Chi nhánh thiếu vốn nhập đủ hàng và trả ca; chuyển vốn hoặc giảm menu.");
  if(Object.keys(cart).length)buyCart(b,cart);for(const[k,n]of Object.entries(breads))if(n)buyBakes(b,k,n);
@@ -355985,14 +356046,14 @@ window.BeanAroundTrafficChecks={run(){
  test("online tiers require actual roster and courses",()=>{const s=full();s.training.courses={};s.upgrades.tabletPro=false;s.employees.helper2.workingToday=false;a(onlineCapacity(s)===80);s.employees.helper2.workingToday=true;a(onlineCapacity(s)===120);s.upgrades.tabletPro=true;a(onlineCapacity(s)===160);s.training.courses.deliveryBasics={done:true,progress:2,enrolledDay:10};a(onlineCapacity(s)===200);s.training.courses.delivery={done:true,progress:3,enrolledDay:35};a(onlineCapacity(s)===200);advertise(s);a(onlineCapacity(s)===250)});
  test("staff absence and day off remove capacity",()=>{const s=full();advertise(s);s.employees.helper2.absentDay=s.day;a(onlineCapacity(s)===80);s.employees.online.workingToday=false;a(onlineCapacity(s)===6)});
  test("max demand reaches500 only with campaign",()=>{const s=full(63);s.events.traffic=5;advertise(s);a(onlineVolume(s)===500);s.events.advertising=0;a(onlineVolume(s)<=200)});
- test("advertising costs once and survives reload",()=>{const s=full(),cash=s.cash;advertise(s);const m=migrateSave(s);let blocked=false;try{advertise(m)}catch(e){blocked=true}a(blocked&&m.cash===cash-80&&m.stats.advertising===80&&deliveryCampaign(m))});
+ test("advertising costs once and survives reload",()=>{const s=full(),cash=s.cash;advertise(s);const m=migrateSave(s);let blocked=false;try{advertise(m)}catch(e){blocked=true}a(blocked&&m.cash===cash-1000&&m.stats.advertising===1000&&deliveryCampaign(m))});
  test("surge cannot exceed500 or available capacity",()=>{const s=full();advertise(s);s.phase="open";s.online.dayQuota=498;s.online.remaining=20;activateOperation(s,{id:"onlineSurge"});resolveOperation(s,"accept");a(s.online.dayQuota===500&&s.online.remaining===22);a(additionalOnlineSlots(s)===0)});
  test("campaign does not carry to next day",()=>{const s=full();advertise(s);s.day++;prepareMorning(s,()=>.9);a(!deliveryCampaign(s)&&onlineCapacity(s)===200)});
  test("plan limits checked atomically",()=>{const s=full();applyBusinessPlan(s,"50","230");for(const args of [["61","200"],["60","501"]]){let blocked=false;try{applyBusinessPlan(s,...args)}catch(e){blocked=true}a(blocked&&s.business.counterLimit===50&&s.business.onlineLimit===230)}});
  test("old limits are safely capped without deleting save",()=>{const s=full();s.business.counterLimit=300;s.business.onlineLimit=600;advertise(s);const m=migrateSave(s);a(validCore(m)&&plannedTraffic(m)<=60&&m.business.counterLimit===60&&onlineVolume(m)<=500)});
  test("old in-flight quotas preserved",()=>{const s=full();openDay(s);s.dayGoal=220;s.online.dayQuota=280;s.online.remaining=270;const m=migrateSave(s);a(m.dayGoal===220&&m.online.dayQuota===280&&m.online.remaining===270&&m.order.uid===s.order.uid)});
  test("regular group stays within daily cap",()=>{const s=full();s.storyPending=[{from:REGULARS[0].id,count:5,groupId:"cap-test"}];s.storyQueue=[];openDay(s);a(s.dayGoal<=60)});
- test("branch campaign charged from own cash only",()=>{const s=full(),b=openBranch(s,2);maxTestBranch(s,b);const cash=s.cash,own=b.cash;branchAdvertise(s,2);a(s.cash===cash&&b.cash===own-80&&b.stats.advertising===80&&deliveryCampaign(b)&&!deliveryCampaign(s));let blocked=false;try{branchAdvertise(s,2)}catch(e){blocked=true}a(blocked);b.day++;a(!deliveryCampaign(b))});
+ test("branch campaign charged from own cash only",()=>{const s=full(),b=openBranch(s,2);maxTestBranch(s,b);const cash=s.cash,own=b.cash;branchAdvertise(s,2);a(s.cash===cash&&b.cash===own-1000&&b.stats.advertising===1000&&deliveryCampaign(b)&&!deliveryCampaign(s));let blocked=false;try{branchAdvertise(s,2)}catch(e){blocked=true}a(blocked);b.day++;a(!deliveryCampaign(b))});
  test("main campaign not copied to branch",()=>{const s=full(),b=openBranch(s,2);maxTestBranch(s,b);advertise(s);a(!deliveryCampaign(b)&&onlineCapacity(b)===200)});
  test("branch capped and own investment controls online",()=>{const s=full(63),b=openBranch(s,2);maxTestBranch(s,b);branchAdvertise(s,2);let f=branchForecast(s,2);a(f.counter<=60&&f.online<=450&&f.online>0);b.employees.helper2.workingToday=false;a(branchForecast(s,2).online< f.online)});
  test("training enrollment charges once, survives reload",()=>{const s=full(12);s.training.courses={};const cash=s.cash;enrollCourse(s,"deliveryBasics");const m=migrateSave(s);let blocked=false;try{enrollCourse(m,"deliveryBasics")}catch(e){blocked=true}a(blocked&&m.cash===cash-900&&!trained(m,"deliveryBasics"))});
@@ -356154,12 +356215,12 @@ window.BeanAroundContestChecks={run(){
  test("bonus has no effect on counter cap",()=>{const s=shop(),before=plannedTraffic(s);contestBegin(s);finish(s);a(plannedTraffic(s)===before&&plannedTraffic(s)<=60)});
  test("additional surge slots respect850",()=>{const s=shop();contestBegin(s);finish(s);s.online.dayQuota=848;a(additionalOnlineSlots(s)===2);s.online.dayQuota=850;a(additionalOnlineSlots(s)===0)});
  test("stock suggestion increases after victory",()=>{const s=shop(),before=stockPlan(s);contestBegin(s);finish(s);a(stockPlan(s).cup>before.cup&&stockPlan(s).milk>before.milk)});
- test("full850 fulfilled with actual consumption fees and closing",()=>{const s=shop();contestBegin(s);finish(s);s.business.counterLimit=1;const rng=gameRandom;gameRandom=()=>.2;try{openDay(s);s.order.needsClarification=false;simulationFill(s);deliver(s);a(s.online.dayQuota===850);let guard=50000;while(s.phase==="open"&&guard--){s.cleanliness=100;clockStep(s,.2)}a(guard>0&&s.stats.onlineOrders===850&&s.stats.onlineFees>0&&quantity(s,"cup")<50000&&s.phase==="report")}finally{gameRandom=rng}});
- test("saved accepted bonus orders survive later cap change",()=>{const s=shop();contestBegin(s);finish(s);openDay(s);const quota=s.online.dayQuota,remaining=s.online.remaining,m=migrateSave(s);a(quota===850&&m.online.dayQuota===quota&&m.online.remaining===remaining&&validCore(m))});
+ test("full850 fulfilled with actual consumption fees and closing",()=>{const s=shop();contestBegin(s);finish(s);s.business.counterLimit=1;const rng=gameRandom;gameRandom=()=>.2;try{openDay(s);s.order.needsClarification=false;simulationFill(s);deliver(s);const expected=Math.floor(850*onlineDailyFactor(s));a(s.online.dayQuota===expected);let guard=50000;while(s.phase==="open"&&guard--){s.cleanliness=100;clockStep(s,.2)}a(guard>0&&s.stats.onlineOrders===expected&&s.stats.onlineFees>0&&quantity(s,"cup")<50000&&s.phase==="report")}finally{gameRandom=rng}});
+ test("saved accepted bonus orders survive later cap change",()=>{const s=shop();contestBegin(s);finish(s);openDay(s);const quota=s.online.dayQuota,remaining=s.online.remaining,m=migrateSave(s);a(quota===Math.floor(850*onlineDailyFactor(s))&&m.online.dayQuota===quota&&m.online.remaining===remaining&&validCore(m))});
  test("branches cannot enter and do not inherit main promotional capacity",()=>{const s=shop(63),b=maxTestBranch(s,openBranch(s,2));a(!contestAvailable(b));fails(()=>contestBegin(b));contestBegin(s);finish(s);a(contestBoost(b)===1&&onlineCapacity(b)===200)});
  test("winning stock allowance supports single juice menu without100pack truncation",()=>{const s=shop();contestBegin(s);finish(s);for(const m of Object.values(s.menu))m.enabled=m.id==="orange";for(const k of Object.keys(G))s.stock[k]=[];const needed=stockPlan(s),basket=suggestedCart(s);a(basket.orange>100&&basket.orange<=stockPackLimit(s));buyCart(s,basket);a(quantity(s,"orange")>=needed.orange&&validCore(s))});
  test("small online shop retains100pack cap",()=>{const s=shop();s.business.onlineLimit=100;a(stockPackLimit(s)===100);fails(()=>buyCart(s,{milk:101}));contestBegin(s);finish(s);a(stockPackLimit(s)===1000);fails(()=>buyCart(s,{milk:1001}))});
- test("new accepted quota falls normally after promotional end",()=>{const s=shop(44);s.contest.promoStart=30;s.contest.promoEnd=44;openDay(s);const accepted=s.online.dayQuota;s.day=45;const remaining=s.online.remaining;a(accepted===850&&onlineCapacity(s)===500&&s.online.dayQuota===850&&s.online.remaining===remaining)});
+ test("new accepted quota falls normally after promotional end",()=>{const s=shop(44);s.contest.promoStart=30;s.contest.promoEnd=44;openDay(s);const accepted=s.online.dayQuota,expected=Math.floor(850*onlineDailyFactor(s));s.day=45;const remaining=s.online.remaining;a(accepted===expected&&onlineCapacity(s)===500&&s.online.dayQuota===accepted&&s.online.remaining===remaining)});
  test("all good course results preserve save validity each step",()=>{const s=shop(60);contestBegin(s);while(s.contest.active){const a=s.contest.active,o=a.plan[a.index];contestChooseCup(s,o.size);for(const k of o.steps){contestStartPour(s,k);a.current.pour.elapsed=.8;if(!validCore(s))throw Error("pour state");contestStopPour(s);if(!validCore(s))throw Error("completed step")}contestSeal(s);contestSubmit(s);if(!validCore(s))throw Error("submitted state")}});
  test("longterm cup history bounded while wins accumulate",()=>{const s=shop();for(let i=1;i<=14;i++){s.day=i*30;contestBegin(s);finish(s)}a(s.contest.wins===14&&s.contest.history.length===12&&validCore(s))});
  return rows;
@@ -356198,7 +356259,7 @@ window.BeanAroundStorageGrowthChecks={run(){
  test("poor quality loses demand despite full equipment",()=>{const s=full(),good=onlineVolume(s);s.playerQuality={sum:2000,count:1000};s.ratingSummary={sum:3000,count:1000};a(onlineVolume(s)<good)});
  test("online queue bounded at ten and validates after refresh",()=>{const s=full();s.business.counterLimit=1;openDay(s);a(s.online.queue.length<=10);const m=migrateSave(s);a(validCore(m)&&m.online.dayQuota===s.online.dayQuota&&m.online.queue.length===s.online.queue.length)});
  test("branch refrigeration paid independently and old stock protected",()=>{const s=full(),b=openBranch(s,2);b.branchAge=2;b.cash=20000;b.stock.ice=[{n:2,expiry:s.day,unitCost:1}];const cash=s.cash;upgradeBranch(s,"iceFreezer",2);a(s.cash===cash&&b.cash===18500&&b.stock.ice[0].expiry===s.day+4&&!b.upgrades.fruitChiller)});
- test("mature branch reaches450 online independently",()=>{const s=full();s.events.traffic=1;const b=maxTestBranch(s,openBranch(s,2));branchAdvertise(s,2);a(branchForecast(s,2).online===450)});
+ test("mature branch reaches450 online independently",()=>{const s=full();s.events.traffic=1;const b=maxTestBranch(s,openBranch(s,2));branchAdvertise(s,2);a(branchForecast(s,2).online===Math.floor(450*onlineDailyFactor(b)))});
  return rows;
 }};
 
@@ -416140,6 +416201,41 @@ else if(state.phase==="prep"){intro();if(state.events.notice||state.events.activ
 
 
 /* ==================== REGRESSION CHECKS (ISOLATED STATES) ==================== */
+window.BeanAroundOperationsChecks={run(){
+ const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{try{f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}},fails=f=>{let hit=false;try{f()}catch(e){hit=true}a(hit,"expected rejection")};
+ const shop=(day=63)=>{const s=chainTestShop(day);for(const k of Object.keys(EQUIPMENT))s.upgrades[k]=true;s.online.tablet=s.online.enabled=true;Object.assign(s.events,{weather:"sun",traffic:1.2,advertising:1,preparedDay:day});s.ops.active=s.ops.scheduled=null;return s};
+ test("new and old saves default delegation off",()=>{const s=newGame(()=>.5);a(!managerDuty(s).enabled);delete s.managerDuty;s.v=3;const m=migrateSave(s);a(!managerDuty(m).enabled&&m.cash===s.cash)});
+ test("delegation only enabled in service",()=>{const s=shop();fails(()=>setManagerDuty(s,true));a(!managerDuty(s).paid)});
+ test("requires working manager",()=>{const s=shop();openDay(s);s.employees.manager.workingToday=false;const cash=s.cash;fails(()=>setManagerDuty(s,true));a(s.cash===cash&&!managerActive(s))});
+ test("insufficient cash never enables or charges",()=>{const s=shop();openDay(s);s.cash=549;fails(()=>setManagerDuty(s,true));a(s.cash===549&&!managerDuty(s).enabled&&!managerDuty(s).paid)});
+ test("550 fee charged once across toggles and reload",()=>{const s=shop();openDay(s);const cash=s.cash;setManagerDuty(s,true);setManagerDuty(s,false);setManagerDuty(s,true);const m=migrateSave(s);setManagerDuty(m,true);a(m.cash===cash-550&&m.stats.managerService===550&&managerActive(m))});
+ test("fee belongs to daily and monthly financial report",()=>{const s=shop();openDay(s);const cost=expenseToday(s);setManagerDuty(s,true);a(expenseToday(s)===cost+550);closeShop(s);nextDay(s,()=>.9);const row=s.financialHistory.find(x=>x.day===63);a(row.detail.managerService===550&&row.costs>=550);a(financeReport(s,"month",2).detail.managerService===550)});
+ test("next day resets off with no daily fee",()=>{const s=shop();openDay(s);setManagerDuty(s,true);closeShop(s);nextDay(s,()=>.9);a(!managerDuty(s).enabled&&!managerDuty(s).paid&&!s.stats.managerService)});
+ test("off leaves cups and handover to player",()=>{const s=shop();openDay(s);for(let i=0;i<5;i++)clockStep(s,.2);a(!s.cup&&s.served===0)});
+ test("enabled picks cup and consumes real stock",()=>{const s=shop();openDay(s);setManagerDuty(s,true);s.order.needsClarification=false;const n=quantity(s,"cup");managerStep(s,.4);a(s.cup&&quantity(s,"cup")===n-1)});
+ test("enabled waits for real production timers",()=>{const s=shop();openDay(s);setManagerDuty(s,true);for(let i=0;i<3;i++)clockStep(s,.2);a(s.cup&&s.stats.orders===0&&s.job)});
+ test("disabled cancels delegation without cancelling drink",()=>{const s=shop();openDay(s);setManagerDuty(s,true);managerStep(s,.4);const uid=s.order.uid,cup=s.cup;setManagerDuty(s,false);managerStep(s,2);a(!managerActive(s)&&s.order.uid===uid&&s.cup===cup)});
+ test("absence suspends delegation and preserves payment",()=>{const s=shop();openDay(s);setManagerDuty(s,true);s.employees.manager.workingToday=false;a(!managerActive(s)&&managerDuty(s).paid);s.employees.manager.workingToday=true;a(managerActive(s)&&s.stats.managerService===550)});
+ test("manager receives no owner manual intervention tip",()=>{const s=shop(),o={uid:"manager-tip",managerHandled:true,ownerTipEligible:true,ownerManual:true,ownerManualSteps:5};a(ownerCompletionTip(s,o,{correct:true,stars:5},8)===0&&!s.stats.ownerBonusTips)});
+ test("manager suppresses new manual-only alerts",()=>{const s=shop();openDay(s);setManagerDuty(s,true);a(!offerTakeover(s))});
+ test("manager resolves operation once with actual fee",()=>{const s=shop();openDay(s);setManagerDuty(s,true);s.ops.active={id:"lidFault"};s.ops.lidBroken=true;const cash=s.cash;managerStep(s,.4);a(!s.ops.active&&s.cash===cash-20&&s.stats.repair===20);managerStep(s,.4);a(s.stats.repair===20)});
+ test("manager confirms unclear order without penalty",()=>{const s=shop();openDay(s);setManagerDuty(s,true);s.order.needsClarification=true;const time=s.order.time;managerStep(s,.4);a(!s.order.needsClarification&&s.order.time===time)});
+ test("manager consumes failed cup without refund",()=>{const s=shop();openDay(s);setManagerDuty(s,true);s.order.needsClarification=false;chooseCup(s,s.order.size);s.cup.steps=["sugar","water"];s.cup.sealed=true;s.frontJob=null;const n=quantity(s,"cup"),waste=s.stats.waste;managerStep(s,.4);a(!s.cup&&quantity(s,"cup")===n&&s.stats.waste===waste+1)});
+ test("manager completes a real complaint remake with one result",()=>{const s=shop();s.online.enabled=false;openDay(s);s.order.needsClarification=false;simulationFill(s);s.cup.size=s.order.size==="M"?"L":"M";s.frontJob=null;const uid=s.order.uid,cost=s.stats.ingredientsUsed;s.order.ownerReviewed=true;s.employees.cashier.workingToday=false;s.employees.cashier2.workingToday=false;deliver(s);a(s.order.recovery?.status==="complaint");setManagerDuty(s,true);let guard=1000;while(s.order?.uid===uid&&guard--)clockStep(s,.2);a(guard>0&&s.finalizedOrders[uid]&&s.stats.ingredientsUsed>cost&&s.stats.remakes>=1);a(s.reviews.filter(r=>r.orderUid===uid).length<=1)});
+ test("manager can resume an already highlighted partial cup",()=>{const s=shop();s.online.enabled=false;openDay(s);s.order.needsClarification=false;chooseCup(s,s.order.size);const r=recipeForOrder(s.order);ingredient(s,r.steps[0]);const n=quantity(s,A[r.steps[0]][1]||"cup");s.order.ownerManual=true;s.order.ownerTipEligible=true;s.order.ownerReviewed=true;ownerState(s).active={uid:s.order.uid,mode:"alert",reading:12};setManagerDuty(s,true);managerStep(s,.4);a(!ownerState(s).active&&quantity(s,A[r.steps[0]][1]||"cup")===n&&!s.order.ownerTipEligible)});
+ test("day1 suggestions fundable including reserve",()=>{const s=newGame(()=>.5),cart=suggestedCartUncapped(s);a(cartCost(s,cart)<=affordableStockBudget(s));buyCart(s,cart);a(quantity(s,"cup")>=Math.ceil(plannedTraffic(s)*1.4))});
+ test("recommendation covers every enabled recipe",()=>{const s=shop(),need=stockPlan(s);for(const r of activeMenu(s))for(const step of r.steps){const k=A[step]?.[1];if(k)a(need[k]>0,"missing "+k)}});
+ test("existing stock subtracted, expired stock excluded",()=>{const s=newGame(()=>.5);s.stock.cup=[];const n=suggestedCartUncapped(s).cup;s.stock.cup=[{n:10000,expiry:0,unitCost:1}];a(suggestedCartUncapped(s).cup===n);s.stock.cup[0].expiry=20;a(!suggestedCartUncapped(s).cup)});
+ test("full recommendation does not shrink with low cash",()=>{const s=shop();for(const k of Object.keys(G))s.stock[k]=[];const full=JSON.stringify(suggestedCartUncapped(s));s.cash=1;a(JSON.stringify(suggestedCartUncapped(s))===full);fails(()=>buyCart(s,suggestedCartUncapped(s)))});
+ test("Shopee varies 800 900 1000 forecast cups",()=>{const volumes=[64,65,63].map(day=>forecastOnlineCups(shop(day)));a(JSON.stringify(volumes)==="[800,900,1000]")});
+ test("Shopee forecast stable through repeat reads and reload",()=>{const s=shop(64),n=onlineVolume(s);a(n===400&&onlineVolume(s)===n&&onlineVolume(migrateSave(s))===n)});
+ test("accepted parcels do not disappear after reload",()=>{const s=shop(64);openDay(s);const m=migrateSave(s);a(m.online.dayQuota===400&&m.online.remaining===s.online.remaining)});
+ test("business order limit remains respected",()=>{const s=shop(64);s.business.onlineLimit=100;a(onlineVolume(s)===100)});
+ test("first ten days rent waived, day11 is2000",()=>{for(const day of [1,10,11,30]){const s=newGame(()=>.5);s.day=day;a(operatingForecast(s).rent===(day<=10?0:2000))}});
+ test("advertising1000 charged once",()=>{const s=shop();s.events.advertising=0;const cash=s.cash;advertise(s);fails(()=>advertise(s));a(s.cash===cash-1000&&s.stats.advertising===1000)});
+ test("full stocked service finishes with real revenue and one fee",()=>{const s=shop();openDay(s);setManagerDuty(s,true);const cups=quantity(s,"cup");let guard=30000;while(s.phase==="open"&&guard--)clockStep(s,.2);a(guard>0&&s.phase==="report"&&s.stats.onlineReceipts===500&&s.served===60);a(s.stats.managerService===550&&s.stats.grossRevenue>0&&quantity(s,"cup")<cups&&!s.stats.ownerBonusTips)});
+ return rows;
+}};
 window.BeanAroundCloseShopChecks={run(){
  const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{try{f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}},fails=f=>{let caught=false;try{f()}catch(e){caught=true}a(caught)};
  const shop=()=>{const s=chainTestShop(19);for(const[k,g]of Object.entries(G))s.stock[k]=[{n:5000,expiry:99,unitCost:g.unitCost}];s.events.preparedDay=19;s.online.enabled=false;s.ops.active=s.ops.scheduled=null;openDay(s);s.ops.active=s.ops.scheduled=null;return s};
@@ -417355,8 +417451,8 @@ function runFullChecks(){
 
 
 
- check("business rent and utilities charged exactly once",()=>{const s=fixture();s.cash=100000;const before=s.cash;chargeOperating(s);assert(s.stats.rent===1000&&s.stats.utilities===500&&s.cash===before-1500);chargeOperating(s);assert(s.cash===before-1500)});
- check("business forecasts preserve paid legacy day",()=>{const s=fixture();openDay(s);s.stats.rent=80;s.stats.utilities=20;const m=migrateSave(s),cash=m.cash;chargeOperating(m);assert(m.cash===cash&&m.stats.rent===80&&operatingForecast(m).rent===1000)});
+ check("business rent and utilities charged exactly once",()=>{const s=fixture();s.cash=100000;const before=s.cash;chargeOperating(s);assert(s.stats.rent===2000&&s.stats.utilities===500&&s.cash===before-2500);chargeOperating(s);assert(s.cash===before-2500)});
+ check("business forecasts preserve paid legacy day",()=>{const s=fixture();openDay(s);s.stats.rent=80;s.stats.utilities=20;const m=migrateSave(s),cash=m.cash;chargeOperating(m);assert(m.cash===cash&&m.stats.rent===80&&operatingForecast(m).rent===2000)});
  check("business rating increases demand from day two",()=>{const s=newGame(()=>.5);s.day=2;s.events.weather="sun";s.ratingSummary={sum:40,count:20};const low=plannedTraffic(s);s.ratingSummary={sum:100,count:20};assert(plannedTraffic(s)>low&&plannedTraffic(s)>20)});
  check("business limits change accepted traffic, not cash",()=>{const s=fixture();hireStaff(s,"barista");buyTablet(s);hireStaff(s,"online");const cash=s.cash;applyBusinessPlan(s,"12","0");assert(plannedTraffic(s)===12&&onlineVolume(s)===0&&s.cash===cash);applyBusinessPlan(s,"","");assert(plannedTraffic(s)>12&&onlineVolume(s)>0)});
  check("business invalid plan is atomic",()=>{const s=fixture();applyBusinessPlan(s,"25","10");let caught=false;try{applyBusinessPlan(s,"30","-1")}catch(e){caught=true}assert(caught&&s.business.counterLimit===25&&s.business.onlineLimit===10)});
