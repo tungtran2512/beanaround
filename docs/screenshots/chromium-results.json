@@ -1,0 +1,53 @@
+{
+  "commit": "30f8310ab9fed93aec355e2b2573a5c2d507135d",
+  "run": 37345070554,
+  "baseline": "578ef270",
+  "screenshots": [
+    "autumn-390x844.png",
+    "spring-390x844.png",
+    "summer-390x844.png",
+    "winter-390x844.png",
+    "equipment-latte-idle.png",
+    "equipment-latte-working.png",
+    "equipment-apple-idle.png",
+    "equipment-apple-working.png",
+    "equipment-mangoCoconut-idle.png",
+    "equipment-mangoCoconut-working.png",
+    "autumn-375x812.png",
+    "spring-375x812.png",
+    "summer-375x812.png",
+    "winter-375x812.png",
+    "autumn-430x932.png",
+    "spring-430x932.png",
+    "summer-430x932.png",
+    "winter-430x932.png"
+  ],
+  "viewports": [
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "geometry": "unchanged",
+      "touch": "passed"
+    },
+    {
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "geometry": "unchanged",
+      "touch": "passed"
+    },
+    {
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "geometry": "unchanged",
+      "touch": "passed"
+    }
+  ],
+  "errors": [],
+  "status": "passed"
+}

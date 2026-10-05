@@ -136,3 +136,17 @@ and inspected. No decoration obscures the machine, cup, order or controls. A fin
 paint-only contact shadow strengthens the device/worktop relationship. Real
 contact sheets are committed under docs/screenshots; full-resolution individual
 screens and other viewport captures are in the CI artifacts.
+
+## Final review evidence
+- Game/style commit: 30f8310ab9fed93aec355e2b2573a5c2d507135d.
+- Final browser run: https://github.com/tungtran2512/beanaround/actions/runs/37345070554
+- Chromium screenshots: https://github.com/tungtran2512/beanaround/actions/runs/37345070554/artifacts/11360041914
+- docs/screenshots/four-seasons-390.jpg: actual four-season game captures, assembled for review.
+- docs/screenshots/equipment-stages.jpg: actual bench captures for three devices, idle and working.
+- docs/screenshots/chromium-results.json: recorded browser run results.
+
+These final contact sheets were opened and visually inspected. Machines/cups are
+sharp; subdued shelf/window details stay behind them; all four order cards remain
+readable; no botanical art covers buttons. Sparse seasonal artwork is intentional.
+The 375px/430px variants were checked automatically, not individually eyeballed.
+The code is on feat/cozy-season-themes and PR #2; main is unchanged.
