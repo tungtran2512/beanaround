@@ -124,6 +124,20 @@ function sameRects(before,after,label){
     const logic=await page.evaluate(()=>window.BeanAroundBranchLaunchChecks.run());
     assert(logic.every(x=>x.ok),"branch launch regression "+JSON.stringify(logic.filter(x=>!x.ok)));
     report.branchLaunch=logic;
+    const activeBranch=await page.evaluate(()=>{
+     const root=chainTestShop(31);root.visitPlan={selected:1,activeDay:0,activeNo:1};const b=openBranch(root,2);branchTransfer(root,70000,2);
+     root.visitPlan.selected=2;state=networkBind(root);managementVisible=true;paint();showSheet("onlineQA","Online chi nhánh",onlineMarkup());
+     return {main:root.cash,branch:b.cash};
+    });
+    await page.locator('button[data-action="branchUpgrade"][data-key="tabletPro"]').last().click();
+    const purchased=await page.evaluate(()=>state.isBranch&&state.upgrades.tabletPro&&state.online.tablet);
+    assert(purchased,"selected branch online purchase button failed");
+    await page.evaluate(()=>{hireStaff(state,"online");showSheet("onlineQA","Online chi nhánh",onlineMarkup())});
+    await page.locator('button[data-action="advertise"]').last().click();
+    const ownAd=await page.evaluate(()=>({active:deliveryCampaign(state),cash:state.cash,main:networkOwner(state).cash}));
+    assert(ownAd.active&&ownAd.cash===activeBranch.branch-6500-250-1000&&ownAd.main===activeBranch.main,"selected branch advertising UI charged wrong shop or flag");
+    report.branchOnlineUI="purchase and advertising buttons passed";
+    await setup(page,"latte");
     const retention=await page.evaluate(()=>{
      const room=document.querySelector(".cafe-room"),machine=document.querySelector(".bar-machine"),image=machine.querySelector("image");
      for(const id of ["apple","mangoCoconut","latte"]){
@@ -159,6 +173,14 @@ function sameRects(before,after,label){
    },stages);
    fs.writeFileSync(path.join(output,"equipment-contact-sheet.jpg"),Buffer.from(machineJpeg.split(",")[1],"base64"));
    console.log("CAFE_MACHINE_REVIEW_IMAGE="+machineJpeg);
+   const responsiveSamples=[["spring",375,812],["summer",430,932],["autumn",375,812],["winter",430,932]].map(([id,w,h])=>({id,w,h,data:"data:image/png;base64,"+fs.readFileSync(path.join(output,id+"-"+w+"x"+h+".png")).toString("base64")}));
+   const responsive=await sheet.evaluate(async samples=>{
+    const canvas=document.getElementById("review");canvas.width=1610;canvas.height=962;const ctx=canvas.getContext("2d");ctx.fillStyle="#fff4e6";ctx.fillRect(0,0,1610,962);ctx.font="bold 16px sans-serif";let x=0;
+    for(const s of samples){const im=new Image();im.src=s.data;await im.decode();ctx.fillStyle="#762020";ctx.fillText(s.id+" / "+s.w,x+10,21);ctx.drawImage(im,x,30,s.w,s.h);x+=s.w}
+    return canvas.toDataURL("image/jpeg",.85);
+   },responsiveSamples);
+   console.log("CAFE_RESPONSIVE_REVIEW_IMAGE="+responsive);
+   fs.writeFileSync(path.join(output,"responsive-contact-sheet.jpg"),Buffer.from(responsive.split(",")[1],"base64"));
    await sheet.close();
   }
   report.status="passed";

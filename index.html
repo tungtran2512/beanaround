@@ -2196,7 +2196,7 @@ function cleanShop(s){
  pay(s,Math.min(12,s.cash),"maintenance");s.cleanliness=100;
 }
 function repairShopV7(s){prepOnly(s);if(!s.events.broken&&s.condition>=100)throw Error("Máy đang tốt.");pay(s,Math.min(80,s.cash*.08),"repair");s.events.broken=null;s.condition=100}
-function advertise(s){prepOnly(s);if(s.events.advertising)throw Error("Đã quảng cáo hôm nay.");pay(s,1000,"advertising");s.events.advertising=1;s.events.traffic*=1.15;gainRep(s,.3)}
+function advertise(s){if(s.isBranch){advertiseBranchShop(s);return}prepOnly(s);if(s.events.advertising)throw Error("Đã quảng cáo hôm nay.");pay(s,1000,"advertising");s.events.advertising=1;s.events.traffic*=1.15;gainRep(s,.3)}
 /* ==================== ECONOMY / INVENTORY / REPORTING ==================== */
 function packPrice(s,k){return roundK(G[k].cost*(s.events.sale?.85:1)*(s.events.delay?(G[k].pack-1)/G[k].pack:1))}
 /* ==================== COLD STORAGE & FULFILLMENT ==================== */
@@ -2590,17 +2590,25 @@ function deliveryGrowthMarkup(s,branch=false){
  (deliveryCampaign(s)?'<p class="owned-mark">✓ Đã chạy quảng cáo ca này</p>':btn("📣 QUẢNG CÁO SHOPEE FOOD · 1.000k",branch?"branchAdvertise":"advertise","","wide primary"))+
  '<small>Ngân sách 1.000k/ca ghi vào Marketing. Tăng nhu cầu 25%; không bảo đảm bán hết. Lượng đơn thay đổi theo ngày: quán phát triển đầy đủ thường dự kiến khoảng 800–1.000 ly, chia thành đơn một ly và đơn nhóm. Thuê người một lần, trả lương khi đi làm. Đào tạo chỉ trả học phí một lần.</small></section>';
 }
-function branchAdvertise(s,no=2){
- prepOnly(s);const b=getBranch(s,no);if(!b)throw Error("Chưa mở chi nhánh.");
+function advertiseBranchShop(b){
  prepOnly(b);if(!b.upgrades.tabletPro||!working(b,"online"))throw Error("Cần quầy online và nhân viên Shopee Food đi làm.");
  if(deliveryCampaign(b))throw Error("Quán này đã chạy quảng cáo hôm nay.");
  pay(b,1000,"advertising");b.events.deliveryAdDay=b.day;
 }
+function branchAdvertise(s,no=2){
+ prepOnly(s);const b=getBranch(s,no);if(!b)throw Error("Chưa mở chi nhánh.");
+ advertiseBranchShop(b);
+}
+function branchOnlineUnlockMarkup(b){
+ return '<section class="business-card"><h3>SHOPEE FOOD · QUÁN '+branchNumber(b)+'</h3><p>Chuẩn bị ca '+(b.branchAge+1)+'. Quầy online có thể mua ngay trước ca đầu; dùng vốn và nhân sự riêng của quán.</p>'+
+ (b.upgrades.tabletPro?btn(b.online.enabled?"✓ Đang nhận đơn · Tắt":"Bật nhận đơn","toggleOnline","","wide primary"):btn("MUA QUẦY ONLINE · 6.500k","branchUpgrade","tabletPro","wide primary"))+
+ (b.upgrades.tabletPro&&!b.upgrades.onlineLaunch?btn("KHAI TRƯƠNG ONLINE · 8.500k","branchUpgrade","onlineLaunch","wide"):"")+'</section>';
+}
 function onlineMarkup(){
  const entries=[["Ngày hoạt động",state.day,4],["Doanh thu đồ uống",state.lifetimeRevenue,1500],["Khách đã phục vụ",state.customersServed,35],["Điểm phục vụ",ratingValue(state),4]];
- return '<section class="online-unlock"><div class="online-art">📱</div><h2>'+ (state.online.tablet?"Shopee Food Delivery":"MỞ ĐƠN ONLINE")+'</h2><p>Kênh giao đồ ăn mô phỏng trong game.</p>'+
+ return (state.isBranch?branchOnlineUnlockMarkup(state):'<section class="online-unlock"><div class="online-art">📱</div><h2>'+ (state.online.tablet?"Shopee Food Delivery":"MỞ ĐƠN ONLINE")+'</h2><p>Kênh giao đồ ăn mô phỏng trong game.</p>'+
  entries.map(([name,current,target])=>'<div class="unlock-progress '+(current>=target?"achieved":"pending")+'"><div><b>'+(current>=target?"✓ ":"○ ")+name+'</b><span>'+(name==="Doanh thu đồ uống"?MONEY(current)+" / "+MONEY(target):Number(current).toLocaleString("vi-VN",{maximumFractionDigits:1})+" / "+target)+'</span></div><progress max="'+target+'" value="'+Math.min(target,current)+'"></progress></div>').join("")+
- (state.online.tablet?btn(state.online.enabled?"✓ Đang nhận đơn · Tắt":"Bật nhận đơn","toggleOnline","","wide primary"):btn("MUA TABLET · 600k","tablet","","wide primary"))+'</section>'+
+ (state.online.tablet?btn(state.online.enabled?"✓ Đang nhận đơn · Tắt":"Bật nhận đơn","toggleOnline","","wide primary"):btn("MUA TABLET · 600k","tablet","","wide primary"))+'</section>')+
  '<p class="panel-help">Giá Shopee Food tự cộng 15% so với giá quầy; phí 18% tính trên số tiền bán thực tế. Ví dụ 100k → 115k → còn 94,3k trước giá vốn. Size, topping và hiệu ứng thu ngân được tính theo đơn. Đơn đã nhận giữ giá cũ.</p>'+
  '<div class="metrics"><div class="metric">Dự kiến hôm nay<strong>'+onlineVolume(state)+' đơn ≈ '+forecastOnlineCups(state)+' ly</strong></div><div class="metric">Đã giao tích lũy<strong>'+(state.online.receipts??state.online.onlineOrders)+' đơn / '+state.online.onlineOrders+' ly</strong></div></div>'+
  '<p>Đã bán '+MONEY(state.online.onlineRevenue)+' · Phí '+MONEY(state.online.onlineFees)+' · Đơn trễ '+state.online.failedOnlineOrders+'</p>'+deliveryPanelMarkup(state)+onlineArrivalHint(state)+deliveryGrowthMarkup(state)+btn("Bố trí nhân viên","upgradeTab","staff","wide");
@@ -6750,6 +6758,7 @@ function runBranchLaunchChecks(){
  test("advertising and active trained workers remain required",()=>{const x=invest(setup());advance(x);const full=branchForecast(x.root,2).online;x.b.employees.barista2.workingToday=false;a(onlineCapacityBase(x.b)===250&&branchForecast(x.root,2).online<full);x.b.employees.barista2.workingToday=true;delete x.b.events.deliveryAdDay;a(onlineCapacityBase(x.b)===200)});
  test("poor quality still reduces demand; no fixed order grant",()=>{const x=invest(setup());advance(x);const good=branchForecast(x.root,2).online;x.b.ratingSummary={sum:30,count:10};x.b.playerQuality={sum:25,count:10};a(branchForecast(x.root,2).online<good*.7)});
  test("season bonus doubles real branch forecast after early path",()=>{const x=invest(setup());advance(x);const before=branchForecast(x.root,2).online;x.b.seasonPackage={id:"summer",start:x.b.day,end:x.b.day+29,paid:30000};a(branchForecast(x.root,2).online===before*2)});
+ test("selected branch advertising uses its own campaign flag and wallet",()=>{const x=invest(setup()),cash=x.b.cash,main=x.root.cash;advertise(x.b);a(x.b.cash===cash-1000&&x.root.cash===main&&deliveryCampaign(x.b)&&!deliveryCampaign(x.root));let blocked=false;try{branchAdvertise(x.root,2)}catch(e){blocked=true}a(blocked&&x.b.cash===cash-1000)});
  test("main shop has no launch subsidy and existing save not granted it",()=>{const s=chainTestShop(31),before=onlineVolumeBase(s);s.upgrades.onlineLaunch=true;a(onlineVolumeBase(s)===before);const old=setup().root;const m=migrateSave(old);a(!m.chain.branch.upgrades.onlineLaunch)});
  return rows;
 }
