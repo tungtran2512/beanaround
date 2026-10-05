@@ -120,6 +120,20 @@ function sameRects(before,after,label){
    await context.close();
   }
   assert(report.errors.length===0,"Browser errors: "+report.errors.join("\n"));
+  if(process.env.REVIEW_IMAGE_LOG==="1"&&process.env.BROWSER!=="webkit"){
+   const samples=["spring","summer","autumn","winter"].map(id=>({id,data:"data:image/png;base64,"+fs.readFileSync(path.join(output,id+"-390x844.png")).toString("base64")}));
+   const sheet=await browser.newPage({viewport:{width:1560,height:874}});
+   await sheet.setContent('<canvas id="review" width="1560" height="874"></canvas>');
+   const jpeg=await sheet.evaluate(async samples=>{
+    const canvas=document.getElementById("review"),ctx=canvas.getContext("2d");ctx.fillStyle="#fff4e6";ctx.fillRect(0,0,1560,874);ctx.font="bold 16px sans-serif";
+    for(let i=0;i<samples.length;i++){const im=new Image();im.src=samples[i].data;await im.decode();ctx.fillStyle="#762020";ctx.fillText(samples[i].id.toUpperCase(),i*390+12,21);ctx.drawImage(im,i*390,30,390,844)}
+    return canvas.toDataURL("image/jpeg",.82);
+   },samples);
+   fs.writeFileSync(path.join(output,"four-seasons-contact-sheet.jpg"),Buffer.from(jpeg.split(",")[1],"base64"));
+   // Enables the assistant to inspect actual captured pixels through text-only CI tools.
+   console.log("CAFE_VISUAL_REVIEW_IMAGE="+jpeg);
+   await sheet.close();
+  }
   report.status="passed";
  }catch(error){report.status="failed";report.failure=error.message;process.exitCode=1}
  finally{await browser.close();server.close();fs.writeFileSync(path.join(output,"results.json"),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2))}

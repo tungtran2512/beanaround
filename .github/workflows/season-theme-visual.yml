@@ -19,6 +19,7 @@ jobs:
         browser: [chromium, webkit]
     env:
       BROWSER: ${{ matrix.browser }}
+      REVIEW_IMAGE_LOG: '1'
     steps:
       - uses: actions/checkout@v4
         with:
