@@ -84,6 +84,14 @@ function sameRects(before,after,label){
      return JSON.stringify(state)===before&&JSON.stringify({...localStorage})===storage;
     },theme);
     assert(unchanged,"theme changed gameplay/save");
+    const visual=await page.evaluate(()=>{
+     const game=document.getElementById("game"),t=SeasonTheme[game.dataset.cafeTheme],order=game.querySelector(".compact-order");
+     return {header:getComputedStyle(game.querySelector(".topbar")).backgroundColor,room:game.querySelector(".cafe-room").getAttribute("src"),note:order.dataset.cafeNote,expectedRoom:t.background};
+    });
+    const expectedColors={spring:"rgb(142, 32, 50)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(24, 52, 76)"};
+    assert(visual.header===expectedColors[theme],"season header color missing "+JSON.stringify(visual));
+    assert(visual.room===visual.expectedRoom,"wrong seasonal environment");
+    assert(visual.note==="show","simple order should show safe note");
     await page.waitForLoadState("networkidle");
     sameRects(before,await rects(page),theme+"/"+viewport.width);
     const audit=await page.evaluate(()=>window.BeanAroundSeasonTheme.audit());
@@ -107,6 +115,15 @@ function sameRects(before,after,label){
      assert(active===(recipe==="latte"?"espresso":recipe==="apple"?"press":"blend"),"wrong machine");
     }
     await setup(page,"latte");
+    const noteSafety=await page.evaluate(()=>{
+     const order=document.querySelector(".compact-order"),small=order.querySelector("small"),old=small.textContent;
+     small.textContent="L · Không thêm đường · Ít đá · Kem cheese · Extra shot · Giao nhanh";
+     syncCafeOrderNote();const hidden=order.dataset.cafeNote==="hide";small.textContent=old;syncCafeOrderNote();return hidden;
+    });
+    assert(noteSafety,"long order note was not hidden");
+    const logic=await page.evaluate(()=>window.BeanAroundBranchLaunchChecks.run());
+    assert(logic.every(x=>x.ok),"branch launch regression "+JSON.stringify(logic.filter(x=>!x.ok)));
+    report.branchLaunch=logic;
     const retention=await page.evaluate(()=>{
      const room=document.querySelector(".cafe-room"),machine=document.querySelector(".bar-machine"),image=machine.querySelector("image");
      for(const id of ["apple","mangoCoconut","latte"]){
