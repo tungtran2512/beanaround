@@ -824,15 +824,15 @@ body>.season-border[hidden]{display:none!important}
 /* REFERENCE COMPOSITION: the entire playable shop is inset inside the art.
    Share these dimensions between content padding and the eight frame crops. */
 #game.has-season-border,body>.season-border{
- --trim-side:clamp(16px,calc((100vw - 288px)/2),min(10vw,47px));
- --art-top:clamp(60px,9.5dvh,84px);
- --art-bottom:clamp(52px,8.5dvh,80px);
+ --trim-side:min(5vw,23.5px);
+ --art-top:clamp(60px,9.5vh,84px);
+ --art-bottom:clamp(66px,11vh,104px);
  --trim-top:calc(var(--art-top) + env(safe-area-inset-top,0px));
  --trim-bottom:calc(var(--art-bottom) + env(safe-area-inset-bottom,0px))
 }
 #game.has-season-border{
  padding:var(--trim-top) var(--trim-side) var(--trim-bottom);
- background:radial-gradient(ellipse at top,#a52a31,#761327 65%,#4b1720);
+ background:radial-gradient(ellipse at top,var(--brand-red),var(--brand-red-dark) 80%);
 }
 body>.season-border{
  top:0;bottom:auto;height:100dvh;height:var(--service-height,100dvh);
@@ -931,6 +931,48 @@ body.service-mode{padding:0}
 #decorationPreviewNotice b{display:block;font-size:10px;line-height:13px}
 #decorationPreviewNotice small{display:block;font-size:9px;line-height:12px}
 #decorationPreviewNotice button{min-width:44px;min-height:44px;padding:4px;background:var(--brand-red);color:var(--cream);font-size:11px}
+
+
+/* Final seasonal composition: 90% playable width; branch color remains its own.
+   Only the scenery is softened. Equipment/cup layers are never filtered. */
+#game.has-season-border{--scene-soften:.22}
+#game.has-season-border>.topbar{
+ background:linear-gradient(135deg,var(--brand-red),var(--brand-red-dark));
+ border-color:#cfad7870;border-bottom-color:var(--gold);
+ border-radius:14px 14px 0 0;box-shadow:0 3px 10px #2e201728;
+}
+#game.has-season-border .season-header-art{opacity:.16}
+#game.has-season-border .season-header-art:after{background:linear-gradient(180deg,transparent,var(--brand-red-dark))}
+#game.has-season-border>#cafeArea{
+ background:linear-gradient(180deg,#fff8ec,#f4e6d0);
+ border-inline:1px solid #d4b78d;box-shadow:0 5px 16px #2e20171f;
+}
+#game.has-season-border>.navbar{
+ background:linear-gradient(180deg,var(--brand-red),var(--brand-red-dark));
+ border-color:#cfad7870;border-top-color:var(--gold);border-radius:0 0 14px 14px;
+ box-shadow:0 6px 14px #2e20172e;
+}
+#game.has-season-border .navbar button.active{background:var(--cream);color:var(--brand-red-dark)}
+#game.has-season-border .compact-order{border-color:#d6ba91;border-width:1px;background:#fffaf2;box-shadow:0 2px 4px #6840240c}
+#game.has-season-border .queue-person{border-color:#d6ba91}
+#game.has-season-border .queue-person.current{border-color:var(--gold);background:var(--brand-red)}
+.service-mode #game.has-season-border #station{padding:3px;gap:2px}
+.service-mode #game.has-season-border .bar-bench{
+ border:1px solid #bd986b;border-radius:11px;
+ background:#e8d9c2!important;box-shadow:inset 0 0 0 1px #fff5df70;
+}
+.service-mode .bar-bench .season-corners{opacity:1}
+.service-mode .bar-bench .season-corners:after{
+ content:"";position:absolute;inset:0;background:rgba(255,248,232,.22);pointer-events:none
+}
+.service-mode .bar-bench .season-scene{filter:blur(.55px) saturate(.9)!important}
+.service-mode .bar-bench>.bar-machine>svg,
+.service-mode .bar-bench>.cup-position>svg{filter:drop-shadow(0 3px 2px #33261c38)!important}
+.service-mode #game.has-season-border .ingredient-drawer,
+.service-mode #game.has-season-border .finish-tray{border-color:#d0ae80;background:linear-gradient(120deg,#f4e2c5,#f9ecd8);border-radius:8px}
+.service-mode #game.has-season-border .deliver-art{background:var(--brand-red);border-color:var(--brand-red-dark);box-shadow:0 2px 0 var(--brand-red-dark)}
+#decorationPreviewNotice{color:var(--brand-red-dark);width:min(88vw,413px)}
+@media(prefers-reduced-motion:reduce){.service-mode .bar-bench .season-scene{filter:saturate(.9)!important}}
 
 </style>
 </head>
@@ -2520,12 +2562,18 @@ function tickUIV7(){
  else {paintTimer();refreshWorkDisplay()}
  save();
 }
+function shopThemeColors(s){
+ const accent=/^#[0-9a-f]{6}$/i.test(s.brand?.accent||"")?s.brand.accent:"#a92e2e";
+ const rgb=[1,3,5].map(i=>parseInt(accent.slice(i,i+2),16));
+ const hex=values=>"#"+values.map(v=>Math.round(v).toString(16).padStart(2,"0")).join("");
+ return {accent,dark:hex(rgb.map(v=>v*.62)),soft:hex(rgb.map((v,i)=>v*.13+[255,244,230][i]*.87)),wood:shopLook(s).wood};
+}
 function applyBrand(){
- const key=JSON.stringify([state.brand,state.district,state.upgrades.counter]);if(key===brandPaintKey)return;brandPaintKey=key;headerLayoutKey="";
+ const key=JSON.stringify([locationNumber(state),state.brand,state.district,state.upgrades.counter]);if(key===brandPaintKey)return;brandPaintKey=key;headerLayoutKey="";
  $("shopSign").textContent=state.brand.name;$("svgShopSign").textContent=state.brand.name;
  const sub=document.querySelector(".brand small");if(sub)sub.textContent=state.brand.slogan;
- document.documentElement.style.setProperty("--brand-red",state.brand.accent);
- document.documentElement.style.setProperty("--brand-red-dark",state.isBranch?(state.district==="park"?"#24453e":state.district==="office"?"#182a3e":"#692431"):"#651321");document.documentElement.style.setProperty("--wood",shopLook(state).wood);
+ const palette=shopThemeColors(state),style=document.documentElement.style;
+ for(const [key,value]of Object.entries({"--brand-red":palette.accent,"--brand-red-dark":palette.dark,"--brand-dark":palette.dark,"--brand-red-light":palette.soft,"--brand-soft":palette.soft,"--wood":palette.wood}))style.setProperty(key,value);
 }
 /* ==================== V7 MANAGEMENT EXPERIENCE ==================== */
 let reviewFilter="all",reviewStarFilter=0,openIntent=false,openingConfirmed=false;
@@ -4481,7 +4529,7 @@ function htmlAssetCrop(a,crop){
 }
 function syncSeasonBorder(s,game,doc=document){
  if(!game)return;
- const id=displayedDecoration(s),active=!!CAFE_ASSETS.frames.crops[id],key=locationNumber(s)+"|"+id+"|inset-frame-v3";
+ const id=displayedDecoration(s),active=!!CAFE_ASSETS.frames.crops[id],key=locationNumber(s)+"|"+id+"|season-frame-90-v4";
  let trim=doc.getElementById("seasonBorder");
  if(!trim){trim=doc.querySelector(".season-border");if(!trim){trim=doc.createElement("div");trim.setAttribute("class","season-border")}trim.id="seasonBorder";trim.setAttribute("aria-hidden","true")}
  // Attach outside the clipped service grid, not inside #game.
@@ -4991,7 +5039,7 @@ const SEASON_PRICE=30000,SEASON_DURATION=30;
 const CAFE_ASSETS=Object.freeze({
  scenes:{src:"assets/bean-around/season-scenes.png",width:1024,height:1536,
   crops:{summer:[0,0,512,468],autumn:[512,0,512,468],xmas:[0,470,512,484],tet:[512,470,512,484],midautumn:[0,956,512,580],everyday:[512,956,512,580]}},
- fullFrames:{midautumn:{src:"assets/bean-around/midautumn-full-frame.png",width:941,height:1672,insets:[94,184,94,150]}},
+ fullFrames:{"midautumn":{"src":"assets/bean-around/midautumn-full-frame.png","width":941,"height":1672,"insets":[47,184,47,250]},"summer":{"src":"assets/bean-around/summer-full-frame.png","width":941,"height":1672,"insets":[47,184,47,250]},"autumn":{"src":"assets/bean-around/autumn-full-frame.png","width":941,"height":1672,"insets":[47,184,47,250]},"xmas":{"src":"assets/bean-around/xmas-full-frame.png","width":941,"height":1672,"insets":[47,184,47,250]},"tet":{"src":"assets/bean-around/tet-full-frame.png","width":941,"height":1672,"insets":[47,184,47,250]}},
  frames:{src:"assets/bean-around/season-borders.png",width:1983,height:793,crops:{summer:[0,0,395,793],autumn:[397,0,395,793],xmas:[794,0,395,793],tet:[1191,0,395,793],midautumn:[1588,0,395,793]}},
  equipment:{src:"assets/bean-around/equipment.png",width:2172,height:724,
   crops:{espresso:[8,6,1210,712],press:[1228,0,455,718],blend:[1690,0,477,718]}}
@@ -6754,11 +6802,22 @@ window.BeanAroundRenderChecks={runBrowser:runSteadyRenderChecks,auditLayout(){
  const g=game.getBoundingClientRect(),style=getComputedStyle(game),left=g.left+parseFloat(style.paddingLeft),right=g.right-parseFloat(style.paddingRight),top=g.top+parseFloat(style.paddingTop),bottom=g.bottom-parseFloat(style.paddingBottom),tol=1;
  const test=(name,ok,detail)=>rows.push({name,ok,detail});
  test("decoration is outside shop DOM",frame?.parentNode===document.body);
- test("frame has visible reserved side bands",parseFloat(style.paddingLeft)>=g.width*.08,{width:g.width,inset:parseFloat(style.paddingLeft)});
+ test("game takes 90 percent width with five percent side bands",Math.abs(parseFloat(style.paddingLeft)-g.width*.05)<=1,{width:g.width,inset:parseFloat(style.paddingLeft)});
  for(const selector of [".topbar","#cafeArea",".navbar"]){const el=game.querySelector(selector);if(!el||el.hidden)continue;const r=el.getBoundingClientRect();if(!r.width||!r.height)continue;test(selector+" stays inside decoration opening",r.left>=left-tol&&r.right<=right+tol&&r.top>=top-tol&&r.bottom<=bottom+tol,{left:r.left,right:r.right,top:r.top,bottom:r.bottom})}
  test("no horizontal document overflow",document.documentElement.scrollWidth<=document.documentElement.clientWidth+tol);
  const small=[];for(const el of game.querySelectorAll(".cup-rack button,.ingredient-tile,.inset-page,.finish-tray button,.visual-serve button,.navbar button")){const r=el.getBoundingClientRect();if(r.width&&r.height&&(r.width<43.5||r.height<43.5))small.push({action:el.dataset.action,width:r.width,height:r.height})}
  test("primary touch targets at least 44px",small.length===0,small);
+ return rows;
+}};
+
+window.BeanAroundSeasonFinishChecks={run(){
+ const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{const root=visitRoot,preview=decorationPreview;try{visitRoot=null;decorationPreview=null;f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}finally{visitRoot=root;decorationPreview=preview}};
+ test("all five packages have separate full-resolution frames",()=>{const paths=new Set();for(const id of Object.keys(SEASON_PACKAGES)){const f=CAFE_ASSETS.fullFrames[id];a(f&&f.width>=900&&f.height>=1600);paths.add(f.src);const s=newGame(()=>.5);s.seasonPackage={id,start:1,end:30,paid:30000};const h=seasonBorderMarkup(s);a((h.match(/<img /g)||[]).length===8&&h.includes(f.src)&&!h.includes("season-borders.png"))}a(paths.size===5)});
+ test("frame source strips leave a 90 percent horizontal aperture",()=>{for(const f of Object.values(CAFE_ASSETS.fullFrames)){const [l,t,r,b]=f.insets;a(Math.abs((f.width-l-r)/f.width-.9)<.002&&t+b<f.height)}});
+ test("changing season does not replace saved branch brand palette",()=>{for(const district of Object.keys(DISTRICTS)){const s=newGame(()=>.5);s.isBranch=true;s.branchNo=2;s.district=district;s.brand.accent=DISTRICTS[district].accent;const before=JSON.stringify(shopThemeColors(s));for(const id of Object.keys(SEASON_PACKAGES)){s.seasonPackage={id,start:1,end:30,paid:30000};seasonBorderMarkup(s);a(JSON.stringify(shopThemeColors(s))===before&&s.brand.accent===DISTRICTS[district].accent)}}});
+ test("custom branch accents determine dark and soft colors",()=>{const s=newGame(()=>.5);s.brand.accent="#226644";const p=shopThemeColors(s);a(p.accent==="#226644"&&p.dark!=="#651321");a(parseInt(p.dark.slice(3,5),16)>parseInt(p.dark.slice(1,3),16));a(/^#[a-f0-9]{6}$/.test(p.soft))});
+ test("purchases charge each shop separately without recoloring others",()=>{const s=chainTestShop(61);networkBind(s);const b=openBranch(s,2);b.cash=100000;networkBind(s);const rootBrand=JSON.stringify(s.brand),branchBrand=JSON.stringify(b.brand),rootCash=s.cash,branchCash=b.cash;buySeasonPackage(s,"tet");a(s.cash===rootCash-30000&&b.cash===branchCash&&!activeDecoration(b));buySeasonPackage(b,"tet");a(b.cash===branchCash-30000&&activeDecoration(b)?.id==="tet");a(JSON.stringify(s.brand)===rootBrand&&JSON.stringify(b.brand)===branchBrand)});
+ test("branch save reload keeps purchased package, color and expiry",()=>{const s=chainTestShop(61);networkBind(s);const b=openBranch(s,2);b.cash=100000;networkBind(s);buySeasonPackage(b,"tet");const before=clone(b),m=migrateSave(clone(s)),restored=getBranch(m,2);a(restored.cash===before.cash&&restored.brand.accent===before.brand.accent&&restored.seasonPackage.end===before.seasonPackage.end&&seasonDecor(restored)==="tet")});
  return rows;
 }};
 
@@ -6777,7 +6836,7 @@ window.BeanAroundDecorationActivationChecks={run(){
 window.BeanAroundInsetChecks={run(){
  const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{try{f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}};
  test("Mid-Autumn uses reference-derived full frame, not atlas slivers",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"midautumn",start:1,end:30,paid:30000};const h=seasonBorderMarkup(s);a((h.match(/midautumn-full-frame.png/g)||[]).length===8&&!h.includes("season-borders.png"))});
- test("other four themes retain their existing artwork",()=>{for(const id of ["summer","autumn","xmas","tet"]){const s=newGame(()=>.5);s.seasonPackage={id,start:1,end:30,paid:30000};a((seasonBorderMarkup(s).match(/season-borders.png/g)||[]).length===8)}});
+ test("other four themes use their own full-resolution transparent frames",()=>{for(const id of ["summer","autumn","xmas","tet"]){const s=newGame(()=>.5);s.seasonPackage={id,start:1,end:30,paid:30000};const h=seasonBorderMarkup(s);a((h.match(/<img /g)||[]).length===8&&h.includes(CAFE_ASSETS.fullFrames[id].src)&&!h.includes("season-borders.png"))}});
  test("decorated ingredient paging leaves a sixth slot for navigation",()=>{const s=newGame(()=>.5);a(stationPageSize(s)===6);s.seasonPackage={id:"xmas",start:1,end:30,paid:30000};a(stationPageSize(s)===5);s.day=31;a(stationPageSize(s)===6)});
  test("all ingredients remain reachable after compact pagination",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"midautumn",start:1,end:30,paid:30000};for(const r of R){const keys=r.steps.slice(),size=stationPageSize(s),pages=Math.ceil(keys.length/size),shown=[];for(let i=0;i<pages;i++)shown.push(...keys.slice(i*size,i*size+size));a(JSON.stringify(keys)===JSON.stringify(shown))}});
  test("frame selection and paging never alter saved progress",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"xmas",start:1,end:30,paid:30000};const raw=JSON.stringify(s);stationPageSize(s);seasonBorderMarkup(s);a(JSON.stringify(s)===raw)});
