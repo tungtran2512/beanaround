@@ -820,6 +820,103 @@ body>.season-border[hidden]{display:none!important}
 @media(max-height:620px){body>.season-border{--trim-side:10px;--trim-top:8px;--trim-bottom:6px}}
 .service-mode .bar-bench,.service-mode .bar-machine,.service-mode .bar-machine svg{transition:none!important;animation:none!important}
 
+
+/* REFERENCE COMPOSITION: the entire playable shop is inset inside the art.
+   Share these dimensions between content padding and the eight frame crops. */
+#game.has-season-border,body>.season-border{
+ --trim-side:clamp(16px,calc((100vw - 288px)/2),min(10vw,47px));
+ --art-top:clamp(60px,9.5dvh,84px);
+ --art-bottom:clamp(52px,8.5dvh,80px);
+ --trim-top:calc(var(--art-top) + env(safe-area-inset-top,0px));
+ --trim-bottom:calc(var(--art-bottom) + env(safe-area-inset-bottom,0px))
+}
+#game.has-season-border{
+ padding:var(--trim-top) var(--trim-side) var(--trim-bottom);
+ background:radial-gradient(ellipse at top,#a52a31,#761327 65%,#4b1720);
+}
+body>.season-border{
+ top:0;bottom:auto;height:100dvh;height:var(--service-height,100dvh);
+ grid-template-columns:var(--trim-side) minmax(0,1fr) var(--trim-side);
+ grid-template-rows:var(--trim-top) minmax(0,1fr) var(--trim-bottom);
+}
+.season-frame-title{
+ position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--art-top) * .46);
+ left:23%;width:54%;height:calc(var(--art-top) * .47);
+ display:flex;align-items:center;justify-content:center;text-align:center;
+ color:#fff4d5;font:900 clamp(14px,4.3vw,21px)/1.05 ui-rounded,system-ui,sans-serif;
+ letter-spacing:.3px;text-transform:uppercase;text-shadow:0 2px 1px #4b2815;
+ overflow:hidden;overflow-wrap:anywhere;pointer-events:none
+}
+#game.has-season-border>.topbar,#game.has-season-border>.navbar,
+#game.has-season-border>#cafeArea,#game.has-season-border>#management{min-width:0;width:100%}
+#game.has-season-border .topbar{
+ grid-template-columns:84px minmax(0,1fr) 82px;gap:3px;padding:4px;
+ border:1px solid #b97947;border-bottom:2px solid var(--gold);border-radius:10px 10px 0 0
+}
+#game.has-season-border .topbar .brand{
+ width:100%;max-width:none;padding:2px;background:transparent;box-shadow:none;border:0;
+}
+#game.has-season-border .topbar .brand b{display:none}
+#game.has-season-border .topbar .brand:before{content:"Tiền mặt";font-size:9px;display:block;color:var(--cream)}
+#game.has-season-border .topbar .brand #money{font-size:15px;overflow-wrap:anywhere}
+#game.has-season-border .hud-left{grid-template-columns:44px minmax(0,1fr);gap:2px}
+#game.has-season-border .hud-left #dayLabel{font-size:10px}
+#game.has-season-border .hud-left #phaseLabel{font-size:9px;margin-top:0}
+#game.has-season-border .hud-rating{min-width:0}
+#game.has-season-border .hud-rating #headerStars{font-size:13px;letter-spacing:0}
+#game.has-season-border .hud-rating #reviewTotal{font-size:8px;white-space:normal}
+#game.has-season-border .navbar{border-radius:0 0 11px 11px;border:1px solid var(--gold);padding:3px;gap:2px}
+#game.has-season-border .navbar button{min-height:44px;min-width:44px;font-size:9px;padding:1px}
+body.service-mode{padding:0}
+.service-mode #game.has-season-border>.topbar{height:66px;min-height:66px}
+.service-mode #game.has-season-border>.navbar{height:50px;min-height:50px;padding:2px}
+.service-mode #game.has-season-border #station,
+.service-mode #game.has-season-border #station.owner-manual-view{
+ --inset-queue:60px;--inset-order:56px;--inset-progress:44px;--inset-ingredients:58px;--inset-finish:52px;
+ grid-template-rows:var(--inset-queue) var(--inset-order) minmax(80px,1fr) var(--inset-progress) 44px var(--inset-ingredients) var(--inset-finish) 46px;
+ gap:2px;padding:3px 0;min-width:0;
+}
+.service-mode #game.has-season-border #station.owner-manual-view{--inset-progress:60px}
+.service-mode #game.has-season-border .bar-bench{grid-template-columns:44px minmax(0,1fr) 48px;gap:2px;padding:3px;border-radius:10px}
+.service-mode #game.has-season-border .bar-machine{max-height:none}
+.service-mode #game.has-season-border .bar-machine>svg{max-width:100%}
+.service-mode #game.has-season-border .cup-rack{grid-template-columns:44px;gap:2px;min-height:90px;height:92px}
+.service-mode #game.has-season-border .cup-rack button{height:44px;min-height:44px}
+.service-mode #game.has-season-border .cup-rack svg{height:32px;min-height:30px}
+.service-mode #game.has-season-border .cup-position{padding-bottom:10px}
+.service-mode #game.has-season-border .customer-queue{gap:3px}
+.service-mode #game.has-season-border .compact-order{padding:3px 5px}
+.service-mode #game.has-season-border .compact-order b{font-size:13px}
+.service-mode #game.has-season-border .compact-order small{font-size:11px;line-height:14px}
+.service-mode #game.has-season-border .visual-tabs{grid-template-columns:repeat(5,minmax(0,1fr));gap:2px}
+.service-mode #game.has-season-border .visual-tabs.bakery-service-bar{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}
+.service-mode #game.has-season-border .visual-tabs>.ingredient-more{display:none}
+.service-mode #game.has-season-border .ingredient-drawer{grid-template-columns:repeat(6,minmax(0,1fr));padding:2px;gap:2px}
+.service-mode #game.has-season-border .ingredient-tile,
+.service-mode #game.has-season-border .visual-tabs .art-button{min-width:44px;min-height:44px}
+.service-mode #game.has-season-border .ingredient-tile svg{max-width:46px;max-height:42px}
+.service-mode #game.has-season-border .inset-page{display:flex;align-items:center;justify-content:center;flex-direction:column;min-width:44px;min-height:44px;padding:1px;box-shadow:none;border-radius:7px;background:var(--brand-red);color:var(--cream)}
+.service-mode #game.has-season-border .inset-page b{font-size:23px;line-height:22px}
+.service-mode #game.has-season-border .inset-page small{font-size:9px}
+.service-mode #game.has-season-border .finish-tray{gap:2px;padding:2px}
+.service-mode #game.has-season-border .finish-tray svg{max-width:38px;max-height:36px}
+.service-mode #game.has-season-border .visual-serve{grid-template-columns:44px 44px minmax(0,1fr) 44px;gap:3px}
+.service-mode #game.has-season-border .deliver-art{gap:2px}
+.service-mode #game.has-season-border .deliver-art svg{width:26px;height:26px}
+.service-mode #game.has-season-border .deliver-art b{font-size:12px}
+@media(max-height:740px){
+ #game.has-season-border,body>.season-border{--art-top:52px;--art-bottom:48px}
+ .service-mode #game.has-season-border>.topbar{height:60px;min-height:60px}
+ .service-mode #game.has-season-border>.navbar{height:48px;min-height:48px}
+ .service-mode #game.has-season-border #station,
+ .service-mode #game.has-season-border #station.owner-manual-view{--inset-queue:54px;--inset-order:50px;--inset-ingredients:48px;--inset-finish:46px;gap:1px}
+}
+@media(max-height:620px){
+ #game.has-season-border,body>.season-border{--art-top:40px;--art-bottom:32px}
+ .service-mode #game.has-season-border #station,
+ .service-mode #game.has-season-border #station.owner-manual-view{grid-template-rows:50px 48px minmax(60px,1fr) var(--inset-progress) 44px 44px 44px 44px;gap:1px}
+}
+
 </style>
 </head>
 <body><div id="bootNotice"><b>BEAN AROUND · Đang khởi động…</b><p>Nếu thông báo này không biến mất và nút không hoạt động: hãy mở link game bằng Safari. Bản xem trước của ứng dụng Tệp / Google Drive không chạy game.</p><small>Nếu đang mở website thật, gửi lại thông báo lỗi bên dưới để được kiểm tra.</small><pre id="bootError" style="white-space:pre-wrap"></pre></div>
@@ -4336,12 +4433,12 @@ function menuBoardMarkup(){return contestHubMarkup(state)+dayBriefMarkup(state)+
 
 
 function seasonBorderMarkup(s){
- const a=CAFE_ASSETS.frames,c=a.crops[seasonDecor(s)];if(!c)return "";
- const [x,y,w,h]=c,t=98;
+ const id=seasonDecor(s),full=CAFE_ASSETS.fullFrames[id],a=full||CAFE_ASSETS.frames,c=full?[0,0,full.width,full.height]:a.crops[id];if(!c)return "";
+ const [x,y,w,h]=c,[left,top,right,bottom]=full?full.insets:[98,98,98,98];
  const pieces=[
- [x,y,t,t],[x+t,y,w-2*t,t],[x+w-t,y,t,t],
- [x,y+t,t,h-2*t],null,[x+w-t,y+t,t,h-2*t],
- [x,y+h-t,t,t],[x+t,y+h-t,w-2*t,t],[x+w-t,y+h-t,t,t]
+ [x,y,left,top],[x+left,y,w-left-right,top],[x+w-right,y,right,top],
+ [x,y+top,left,h-top-bottom],null,[x+w-right,y+top,right,h-top-bottom],
+ [x,y+h-bottom,left,bottom],[x+left,y+h-bottom,w-left-right,bottom],[x+w-right,y+h-bottom,right,bottom]
  ];
  return pieces.map((crop,i)=>crop?'<span class="season-border-piece border-piece-'+i+'">'+htmlAssetCrop(a,crop)+'</span>':'<span class="season-border-center"></span>').join("");
 }
@@ -4368,12 +4465,15 @@ function htmlAssetCrop(a,crop){
 }
 function syncSeasonBorder(s,game,doc=document){
  if(!game)return;
- const id=seasonDecor(s),active=!!CAFE_ASSETS.frames.crops[id],key=locationNumber(s)+"|"+id+"|html-frame-v2";
+ const id=seasonDecor(s),active=!!CAFE_ASSETS.frames.crops[id],key=locationNumber(s)+"|"+id+"|inset-frame-v3";
  let trim=doc.getElementById("seasonBorder");
- if(!trim){trim=doc.querySelector(".season-border");if(!trim){trim=doc.createElement("div");trim.className="season-border"}trim.id="seasonBorder";trim.setAttribute("aria-hidden","true")}
+ if(!trim){trim=doc.querySelector(".season-border");if(!trim){trim=doc.createElement("div");trim.setAttribute("class","season-border")}trim.id="seasonBorder";trim.setAttribute("aria-hidden","true")}
  // Attach outside the clipped service grid, not inside #game.
  if(trim.parentNode!==doc.body)doc.body.appendChild(trim);
  if(trim.dataset.artKey!==key){trim.innerHTML=active?seasonBorderMarkup(s):"";trim.dataset.artKey=key}
+ let title=trim.querySelector(".season-frame-title");
+ if(active&&!title){title=doc.createElement("span");title.setAttribute("class","season-frame-title");trim.appendChild(title)}
+ if(title){const name=s.brand?.name||"BEAN AROUND";if(title.textContent!==name)title.textContent=name}
  trim.hidden=!active;game.classList.toggle("has-season-border",active);
 }
 
@@ -4491,6 +4591,7 @@ function validCore(s){
 }
 /* V12 MOBILE SERVICE VIEW */
 let ingredientPage=0,lastBarOrder="",lastManualStep="";
+function stationPageSize(s){return activeDecoration(s)?5:6}
 function queueMarkup(){
  const rows=waitingCustomers(state);
  return '<div class="customer-queue" aria-label="Hàng chờ tối đa 5 khách">'+Array.from({length:5},(_,i)=>{
@@ -4548,13 +4649,13 @@ function renderStation(){
  const queueBefore=state.counterWaiting.length;fillCounterWaiting(state);if(state.counterWaiting.length!==queueBefore)save();
  if(lastBarOrder!==state.order?.uid){ingredientPage=0;lastBarOrder=state.order?.uid||""}
  if(state.bakery.owned)stationTab="order";
- const c=state.cup,o=state.order,r=o?recipeForOrder(o):null,next=expectedStep(state),keys=stationKeys(state),pages=Math.max(1,Math.ceil(keys.length/6));
- if(o?.ownerManual&&stationTab==="order"&&lastManualStep!==o.uid+"|"+next){const index=keys.indexOf(next.replace("topping-",""));if(index>=0)ingredientPage=Math.floor(index/6);lastManualStep=o.uid+"|"+next}
+ const c=state.cup,o=state.order,r=o?recipeForOrder(o):null,next=expectedStep(state),keys=stationKeys(state),pageSize=stationPageSize(state),pages=Math.max(1,Math.ceil(keys.length/pageSize));
+ if(o?.ownerManual&&stationTab==="order"&&lastManualStep!==o.uid+"|"+next){const index=keys.indexOf(next.replace("topping-",""));if(index>=0)ingredientPage=Math.floor(index/pageSize);lastManualStep=o.uid+"|"+next}
  ingredientPage=Math.min(ingredientPage,pages-1);
  const machine=machineForStage(state);
  const art=machine==="filter"?"pour":["tea","water"].includes(machine)?"kettle":machine;
  const blocked=!!state.cadence?.handedOff||!!state.cadence?.awaiting||!o||!!state.job||!!o.needsClarification||o.recovery?.status==="complaint"||ownerState(state).active?.mode==="alert"||!!(state.frontJob&&!state.frontJob.complete&&teamEnabled(state));
- const tiles=keys.slice(ingredientPage*6,ingredientPage*6+6);
+ const tiles=keys.slice(ingredientPage*pageSize,ingredientPage*pageSize+pageSize);
  const markup=queueMarkup()+compactOrderMarkup(o)+
  '<div class="bar-bench" data-finish="'+(state.upgrades.counter?'stone':'wood')+'" data-location="'+locationNumber(state)+'"><div class="season-corners" aria-hidden="true">'+seasonScene(state)+counterSurface(state)+'</div><span class="shift-meter" id="shiftMeter"></span><div class="cup-rack">'+artButton("cup-m","M","cup","M","cup-pick","",blocked||!!c)+artButton("cup-l","L","cup","L","cup-pick","",blocked||!!c)+'</div>'+
  '<button class="bar-machine" data-machine="'+machine+'" data-action="'+(next==="extraShot"?"extraShot":"ingredient")+'" data-key="'+machine+'" aria-label="'+escapeHTML(A[machine]?.[0]||"Bàn hoàn thiện ly")+'"'+(blocked||!machine||!c||c.sealed?" disabled":"")+'>'+machineIllustration(art)+'<span>'+(machine==="espresso"?"Espresso · 3 đầu pha":machine?(SHORT_INGREDIENT[machine]||A[machine]?.[0]):o?"Hoàn thiện ly":"Chờ đơn")+'</span></button>'+
@@ -4565,7 +4666,7 @@ function renderStation(){
  const top=!!TOPPINGS[k],stock=top?k:A[k]?.[1],a=top?k:k==="espresso"?"espresso-shot":k==="filter"?"pour":k==="water"?"kettle":k;
  const n=stock?quantity(state,stock):null,need=top?1:c?.size==="L"?2:1;
  return artButton(a,SHORT_INGREDIENT[k]||A[k]?.[0]||k,top?"topping":"ingredient",k,"ingredient-tile "+(next===k||next==="topping-"+k?"next-step":""),n===null?"":String(n),blocked||!c||c.sealed||n!==null&&n<need);
- }).join("")+Array.from({length:6-tiles.length},()=>'<span class="empty-slot" aria-hidden="true"></span>').join("")+'</div>'+
+ }).join("")+Array.from({length:pageSize-tiles.length},()=>'<span class="empty-slot" aria-hidden="true"></span>').join("")+(pageSize===5?'<button class="ingredient-more inset-page" data-action="ingredientPage" aria-label="Trang nguyên liệu tiếp theo"'+(pages===1?" disabled":"")+'><b>›</b><small>'+(ingredientPage+1)+'/'+pages+'</small></button>':"")+'</div>'+
  '<div class="finish-tray" aria-label="Hoàn thiện ly">'+artButton("sugar-spoon","Đường","ingredient","sugar","","",blocked||!c||c.sealed)+artButton("ice","Đá","iceMode","normal","","",blocked||!c||c.sealed)+artButton("ice-small","Ít đá","iceMode","little","","",blocked||!c||c.sealed)+artButton("espresso-shot","+ shot","extraShot","","","",blocked||!c||c.sealed)+artButton("lid","Nắp","lid","","seal-button","",blocked||!c||c.sealed)+'</div>'+
  '<div class="visual-serve">'+artButton("bin","Bỏ ly","trash","","discard-control","",!c||!!state.job)+artButton("staff-apron",ownerState(state).active?.mode==="alert"?"Cần chủ":"Hỗ trợ","serviceTools","","service-tools",ownerState(state).active?.mode==="alert"?"!":state.complaintQueue.length?String(state.complaintQueue.length):state.online.queue.length?String(state.online.queue.length):"")+'<button class="deliver-art primary" data-action="serve"'+(blocked||!c?.sealed||o?.bakery&&o.bakery.status!=="ready"?" disabled":"")+'>'+icon("serve-tray")+'<b>GIAO KHÁCH</b></button>'+(o?.bakery?artButton(BAKES[o.bakery.id].art,o.bakery.status==="ready"?"✓ Bánh":o.bakery.status==="preparing"?Math.ceil(o.bakery.remaining)+"s":"Bánh","bakeryOrder","","bakery-service",o.bakery.status==="ready"?"✓":"!"):artButton("store","Đóng cửa","stockClose","","stock-close"))+'</div>';
  patchServicePanels(host,markup);paintTimer();
@@ -4821,6 +4922,7 @@ const SEASON_PRICE=30000,SEASON_DURATION=30;
 const CAFE_ASSETS=Object.freeze({
  scenes:{src:"assets/bean-around/season-scenes.png",width:1024,height:1536,
   crops:{summer:[0,0,512,468],autumn:[512,0,512,468],xmas:[0,470,512,484],tet:[512,470,512,484],midautumn:[0,956,512,580],everyday:[512,956,512,580]}},
+ fullFrames:{midautumn:{src:"assets/bean-around/midautumn-full-frame.png",width:941,height:1672,insets:[94,184,94,150]}},
  frames:{src:"assets/bean-around/season-borders.png",width:1983,height:793,crops:{summer:[0,0,395,793],autumn:[397,0,395,793],xmas:[794,0,395,793],tet:[1191,0,395,793],midautumn:[1588,0,395,793]}},
  equipment:{src:"assets/bean-around/equipment.png",width:2172,height:724,
   crops:{espresso:[8,6,1210,712],press:[1228,0,455,718],blend:[1690,0,477,718]}}
@@ -4933,7 +5035,7 @@ async function actV8(action,key){
   if(action==="espressoStop"||action==="tasteStop"){const q=stopTasteSkill(state);save();paint();toast(q==="balanced"?"✨ Chuẩn vị!":"Lệch vị một chút · Lần sau dừng trong vùng xanh");return}
   if(action==="priority"){priorityCustomer(state,key);closeSheet();save();paint();return}
   if(action==="stationTab")ingredientPage=0;
-  if(action==="ingredientPage"){ingredientPage=(ingredientPage+1)%Math.max(1,Math.ceil(stationKeys(state).length/6));renderStation();return}
+  if(action==="ingredientPage"){ingredientPage=(ingredientPage+1)%Math.max(1,Math.ceil(stationKeys(state).length/stationPageSize(state)));renderStation();return}
   if(action==="serviceTools"){serviceToolsSheet();return}
   if(action==="orderDetail"){
    const o=state.order;if(!o){serviceToolsSheet();return}
@@ -6564,10 +6666,34 @@ function runSteadyRenderChecks(){
  test("season changes replace scenery once while preserving machine",()=>{const b=node(bench()),bg=b.querySelector(".season-corners"),m=b.querySelector(".bar-machine");const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};patchBenchPanel(b,bench("espresso","Espresso",x));a(b.querySelector(".season-corners")!==bg&&b.querySelector(".bar-machine")===m);const next=b.querySelector(".season-corners");patchBenchPanel(b,bench("blend","Xay",x));a(b.querySelector(".season-corners")===next)});
  test("borders use clipped HTML images instead of nested SVG",()=>{const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};const html=seasonBorderMarkup(x);a((html.match(/<img /g)||[]).length===8&&!html.includes("<svg")&&html.includes('max-width:none'))});
  test("frame mounts outside clipped game and repairs missing DOM",()=>{const doc=document.implementation.createHTMLDocument("frame-test"),game=doc.createElement("div");doc.body.appendChild(game);const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};syncSeasonBorder(x,game,doc);const frame=doc.getElementById("seasonBorder");a(frame.parentNode===doc.body&&!frame.hidden&&game.classList.contains("has-season-border"));const img=frame.querySelector("img");syncSeasonBorder(x,game,doc);a(frame.querySelector("img")===img);frame.remove();syncSeasonBorder(x,game,doc);a(doc.getElementById("seasonBorder")&&!doc.getElementById("seasonBorder").hidden)});
+ test("frame title follows custom shop name without recreating decoration",()=>{const doc=document.implementation.createHTMLDocument("title-test"),game=doc.createElement("div");doc.body.appendChild(game);const x=clone(s);x.seasonPackage={id:"midautumn",start:1,end:30,paid:30000};x.brand.name="BEAN AROUND";syncSeasonBorder(x,game,doc);const frame=doc.getElementById("seasonBorder"),img=frame.querySelector("img");x.brand.name="Quán bên hồ";syncSeasonBorder(x,game,doc);a(frame.querySelector(".season-frame-title").textContent==="Quán bên hồ"&&frame.querySelector("img")===img)});
  test("expired frame hides and removes reserved padding",()=>{const doc=document.implementation.createHTMLDocument("frame-test"),game=doc.createElement("div");doc.body.appendChild(game);const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};syncSeasonBorder(x,game,doc);x.day=31;syncSeasonBorder(x,game,doc);a(doc.getElementById("seasonBorder").hidden&&!game.classList.contains("has-season-border"))});
  return rows;
 }
-window.BeanAroundRenderChecks={runBrowser:runSteadyRenderChecks};
+window.BeanAroundRenderChecks={runBrowser:runSteadyRenderChecks,auditLayout(){
+ const rows=[],game=document.getElementById("game"),frame=document.getElementById("seasonBorder");
+ if(!game?.classList.contains("has-season-border"))return [{name:"active seasonal package required",ok:false}];
+ const g=game.getBoundingClientRect(),style=getComputedStyle(game),left=g.left+parseFloat(style.paddingLeft),right=g.right-parseFloat(style.paddingRight),top=g.top+parseFloat(style.paddingTop),bottom=g.bottom-parseFloat(style.paddingBottom),tol=1;
+ const test=(name,ok,detail)=>rows.push({name,ok,detail});
+ test("decoration is outside shop DOM",frame?.parentNode===document.body);
+ test("frame has visible reserved side bands",parseFloat(style.paddingLeft)>=g.width*.08,{width:g.width,inset:parseFloat(style.paddingLeft)});
+ for(const selector of [".topbar","#cafeArea",".navbar"]){const el=game.querySelector(selector);if(!el||el.hidden)continue;const r=el.getBoundingClientRect();if(!r.width||!r.height)continue;test(selector+" stays inside decoration opening",r.left>=left-tol&&r.right<=right+tol&&r.top>=top-tol&&r.bottom<=bottom+tol,{left:r.left,right:r.right,top:r.top,bottom:r.bottom})}
+ test("no horizontal document overflow",document.documentElement.scrollWidth<=document.documentElement.clientWidth+tol);
+ const small=[];for(const el of game.querySelectorAll(".cup-rack button,.ingredient-tile,.inset-page,.finish-tray button,.visual-serve button,.navbar button")){const r=el.getBoundingClientRect();if(r.width&&r.height&&(r.width<43.5||r.height<43.5))small.push({action:el.dataset.action,width:r.width,height:r.height})}
+ test("primary touch targets at least 44px",small.length===0,small);
+ return rows;
+}};
+
+window.BeanAroundInsetChecks={run(){
+ const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{try{f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}};
+ test("Mid-Autumn uses reference-derived full frame, not atlas slivers",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"midautumn",start:1,end:30,paid:30000};const h=seasonBorderMarkup(s);a((h.match(/midautumn-full-frame.png/g)||[]).length===8&&!h.includes("season-borders.png"))});
+ test("other four themes retain their existing artwork",()=>{for(const id of ["summer","autumn","xmas","tet"]){const s=newGame(()=>.5);s.seasonPackage={id,start:1,end:30,paid:30000};a((seasonBorderMarkup(s).match(/season-borders.png/g)||[]).length===8)}});
+ test("decorated ingredient paging leaves a sixth slot for navigation",()=>{const s=newGame(()=>.5);a(stationPageSize(s)===6);s.seasonPackage={id:"xmas",start:1,end:30,paid:30000};a(stationPageSize(s)===5);s.day=31;a(stationPageSize(s)===6)});
+ test("all ingredients remain reachable after compact pagination",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"midautumn",start:1,end:30,paid:30000};for(const r of R){const keys=r.steps.slice(),size=stationPageSize(s),pages=Math.ceil(keys.length/size),shown=[];for(let i=0;i<pages;i++)shown.push(...keys.slice(i*size,i*size+size));a(JSON.stringify(keys)===JSON.stringify(shown))}});
+ test("frame selection and paging never alter saved progress",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"xmas",start:1,end:30,paid:30000};const raw=JSON.stringify(s);stationPageSize(s);seasonBorderMarkup(s);a(JSON.stringify(s)===raw)});
+ return rows;
+}};
+
 
 
 window.BeanAroundBorderChecks={run(){
@@ -6587,7 +6713,7 @@ window.BeanAroundBorderChecks={run(){
  test("extra shot calls espresso only",()=>{const s=order("latte",["espresso","milk"]);s.order.extraShot=1;a(machineForStage(s)==="espresso")});
  test("no customer means no machine",()=>{const s=newGame(()=>.5);a(machineForStage(s)==="")});
  test("machine choice does not mutate stock time or order",()=>{const s=order("mangoCoconut",["mango"]),before=JSON.stringify(s);machineForStage(s);a(JSON.stringify(s)===before)});
- test("all five borders have eight isolated pieces and empty center",()=>{for(const id of Object.keys(SEASON_PACKAGES)){const s=newGame(()=>.5);s.seasonPackage={id,start:1,end:30,paid:30000};const h=seasonBorderMarkup(s);a((h.match(/class="season-border-piece /g)||[]).length===8);a(h.includes('<span class="season-border-center"></span>'));a((h.match(/season-borders.png/g)||[]).length===8)}});
+ test("all five borders have eight isolated pieces and empty center",()=>{for(const id of Object.keys(SEASON_PACKAGES)){const s=newGame(()=>.5);s.seasonPackage={id,start:1,end:30,paid:30000};const h=seasonBorderMarkup(s);a((h.match(/class="season-border-piece /g)||[]).length===8);a(h.includes('<span class="season-border-center"></span>'));a((h.match(/<img /g)||[]).length===8&&h.includes(CAFE_ASSETS.fullFrames[id]?.src||CAFE_ASSETS.frames.src))}});
  test("unowned and expired packages have no border",()=>{const s=newGame(()=>.5);a(seasonBorderMarkup(s)==="");s.seasonPackage={id:"xmas",start:1,end:30,paid:30000};s.day=31;a(seasonBorderMarkup(s)==="")});
  test("each border source is within atlas and separated",()=>{const v=Object.values(CAFE_ASSETS.frames.crops);for(let i=0;i<v.length;i++){const [x,y,w,h]=v[i];a(x>=0&&x+w<=1983&&y>=0&&y+h<=793);if(i)a(v[i-1][0]+v[i-1][2]<=x)}});
  return rows;
@@ -6616,7 +6742,7 @@ window.BeanAroundSeasonChecks={run(){
  test("new branch inherits no package from parent",()=>{const root=chainTestShop(61);networkBind(root);buySeasonPackage(root,"tet");const b=openBranch(root,2);a(!activeDecoration(b)&&seasonDecor(b)==="everyday")});
  test("global opened day blocks branch prep purchases",()=>{const root=chainTestShop(61);networkBind(root);const b=openBranch(root,2);root.visitPlan.activeDay=root.day;b.cash=100000;fails(()=>buySeasonPackage(b,"tet"));a(!b.seasonPackage)});
  test("different machine sources and crop boxes for espresso juicer blender",()=>{const boxes=CAFE_ASSETS.equipment.crops;a(new Set(Object.values(boxes).map(x=>x.join(","))).size===3);for(const key of ["espresso","press","blend"]){const m=assetSvg("equipment",key);a(m.includes('equipment.png')&&m.includes(boxes[key].join(" "))&&!m.includes("<use"))}});
- test("art paths are local and source rectangles stay within atlas",()=>{for(const g of Object.values(CAFE_ASSETS)){a(g.src.startsWith("assets/")&&!g.src.includes("http"));for(const [x,y,w,h]of Object.values(g.crops))a(x>=0&&y>=0&&x+w<=g.width&&y+h<=g.height)}});
+ test("art paths are local and source rectangles stay within atlas",()=>{for(const g of Object.values(CAFE_ASSETS).filter(g=>g.src)){a(g.src.startsWith("assets/")&&!g.src.includes("http"));for(const [x,y,w,h]of Object.values(g.crops))a(x>=0&&y>=0&&x+w<=g.width&&y+h<=g.height)}for(const g of Object.values(CAFE_ASSETS.fullFrames)){a(g.src.startsWith("assets/")&&!g.src.includes("http"));const [l,t,r,b]=g.insets;a(l>0&&t>0&&r>0&&b>0&&l+r<g.width&&t+b<g.height)}});
  return rows;
 }};
 
