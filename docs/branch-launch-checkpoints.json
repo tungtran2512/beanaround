@@ -1,0 +1,355 @@
+{
+  "assumptions": "Controlled forecast fixture, normal prices, 4-star initial rating and 4.5 quality; no seasonal/contest bonuses; operating and stock cash excluded.",
+  "branches": [
+    {
+      "branch": 2,
+      "shifts": [
+        {
+          "shift": 1,
+          "calendarDay": 31,
+          "baseCapacity": 200,
+          "forecastOrders": 59,
+          "training": {
+            "deliveryBasics": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            },
+            "delivery": {
+              "progress": 0,
+              "done": false,
+              "enrolledDay": 31
+            },
+            "speedBrew": {
+              "progress": 0,
+              "done": false,
+              "enrolledDay": 31
+            },
+            "packingLine": {
+              "progress": 0,
+              "done": false,
+              "enrolledDay": 31
+            },
+            "dispatchLead": {
+              "progress": 0,
+              "done": false,
+              "enrolledDay": 31
+            }
+          },
+          "cashExcludingStockAndOperating": 74100
+        },
+        {
+          "shift": 2,
+          "calendarDay": 32,
+          "baseCapacity": 200,
+          "forecastOrders": 76,
+          "training": {
+            "deliveryBasics": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            },
+            "delivery": {
+              "progress": 1,
+              "done": false,
+              "enrolledDay": 31
+            },
+            "speedBrew": {
+              "progress": 1,
+              "done": false,
+              "enrolledDay": 31
+            },
+            "packingLine": {
+              "progress": 1,
+              "done": false,
+              "enrolledDay": 31
+            },
+            "dispatchLead": {
+              "progress": 1,
+              "done": false,
+              "enrolledDay": 31
+            }
+          },
+          "cashExcludingStockAndOperating": 67100
+        },
+        {
+          "shift": 3,
+          "calendarDay": 33,
+          "baseCapacity": 200,
+          "forecastOrders": 98,
+          "training": {
+            "deliveryBasics": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            },
+            "delivery": {
+              "progress": 2,
+              "done": false,
+              "enrolledDay": 31
+            },
+            "speedBrew": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            },
+            "packingLine": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            },
+            "dispatchLead": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            }
+          },
+          "cashExcludingStockAndOperating": 66100
+        },
+        {
+          "shift": 4,
+          "calendarDay": 34,
+          "baseCapacity": 350,
+          "forecastOrders": 252,
+          "training": {
+            "deliveryBasics": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            },
+            "delivery": {
+              "progress": 3,
+              "done": true,
+              "enrolledDay": 31
+            },
+            "speedBrew": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            },
+            "packingLine": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            },
+            "dispatchLead": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            }
+          },
+          "cashExcludingStockAndOperating": 60600
+        },
+        {
+          "shift": 5,
+          "calendarDay": 35,
+          "baseCapacity": 350,
+          "forecastOrders": 284,
+          "training": {
+            "deliveryBasics": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            },
+            "delivery": {
+              "progress": 3,
+              "done": true,
+              "enrolledDay": 31
+            },
+            "speedBrew": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            },
+            "packingLine": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            },
+            "dispatchLead": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 31
+            }
+          },
+          "cashExcludingStockAndOperating": 59600
+        }
+      ]
+    },
+    {
+      "branch": 3,
+      "shifts": [
+        {
+          "shift": 1,
+          "calendarDay": 61,
+          "baseCapacity": 200,
+          "forecastOrders": 53,
+          "training": {
+            "deliveryBasics": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            },
+            "delivery": {
+              "progress": 0,
+              "done": false,
+              "enrolledDay": 61
+            },
+            "speedBrew": {
+              "progress": 0,
+              "done": false,
+              "enrolledDay": 61
+            },
+            "packingLine": {
+              "progress": 0,
+              "done": false,
+              "enrolledDay": 61
+            },
+            "dispatchLead": {
+              "progress": 0,
+              "done": false,
+              "enrolledDay": 61
+            }
+          },
+          "cashExcludingStockAndOperating": 104100
+        },
+        {
+          "shift": 2,
+          "calendarDay": 62,
+          "baseCapacity": 200,
+          "forecastOrders": 68,
+          "training": {
+            "deliveryBasics": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            },
+            "delivery": {
+              "progress": 1,
+              "done": false,
+              "enrolledDay": 61
+            },
+            "speedBrew": {
+              "progress": 1,
+              "done": false,
+              "enrolledDay": 61
+            },
+            "packingLine": {
+              "progress": 1,
+              "done": false,
+              "enrolledDay": 61
+            },
+            "dispatchLead": {
+              "progress": 1,
+              "done": false,
+              "enrolledDay": 61
+            }
+          },
+          "cashExcludingStockAndOperating": 97100
+        },
+        {
+          "shift": 3,
+          "calendarDay": 63,
+          "baseCapacity": 200,
+          "forecastOrders": 78,
+          "training": {
+            "deliveryBasics": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            },
+            "delivery": {
+              "progress": 2,
+              "done": false,
+              "enrolledDay": 61
+            },
+            "speedBrew": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            },
+            "packingLine": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            },
+            "dispatchLead": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            }
+          },
+          "cashExcludingStockAndOperating": 96100
+        },
+        {
+          "shift": 4,
+          "calendarDay": 64,
+          "baseCapacity": 350,
+          "forecastOrders": 284,
+          "training": {
+            "deliveryBasics": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            },
+            "delivery": {
+              "progress": 3,
+              "done": true,
+              "enrolledDay": 61
+            },
+            "speedBrew": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            },
+            "packingLine": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            },
+            "dispatchLead": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            }
+          },
+          "cashExcludingStockAndOperating": 90600
+        },
+        {
+          "shift": 5,
+          "calendarDay": 65,
+          "baseCapacity": 350,
+          "forecastOrders": 284,
+          "training": {
+            "deliveryBasics": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            },
+            "delivery": {
+              "progress": 3,
+              "done": true,
+              "enrolledDay": 61
+            },
+            "speedBrew": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            },
+            "packingLine": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            },
+            "dispatchLead": {
+              "progress": 2,
+              "done": true,
+              "enrolledDay": 61
+            }
+          },
+          "cashExcludingStockAndOperating": 89600
+        }
+      ]
+    }
+  ]
+}
