@@ -765,261 +765,31 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 
 .cold-preparation{margin:12px 0;padding:14px;border:1px solid var(--brand-red-light,#e8c1b9);border-radius:16px;background:var(--cream,#fff4e6)}.cold-preparation p{margin:7px 0}.cold-preparation small{display:block;margin-top:8px}.cold-preparation button{min-height:44px}
 
-/* Illustrated assets share one scene atlas and one equipment atlas, loaded by current UI only. */
-.season-scene,.season-header-scene,.postcard-background,.season-preview-art,.equipment-render,.postcard-equipment svg{display:block;width:100%;height:100%;overflow:hidden!important;pointer-events:none}
-.season-corners{opacity:1!important}.season-corners svg{height:100%}
-.service-mode .bar-bench{grid-template-columns:48px minmax(0,1fr) 64px;gap:3px;overflow:hidden;background:#78503b!important;box-shadow:inset 0 0 0 1px #d0a364;border:2px solid #8a4029}
-.service-mode .bar-machine{background:transparent!important;border:0!important;box-shadow:none;opacity:1!important;align-self:end;justify-content:flex-end;padding:0 0 12px;min-width:0;overflow:hidden}
-.service-mode .bar-machine>svg{height:calc(100% - 12px);max-height:none;flex:1 1 auto;filter:drop-shadow(0 2px 2px #281c1833)}
-.service-mode .bar-machine>span{background:#fff5e6eb;border-radius:5px;padding:1px 5px;color:#633923;font-size:9px;line-height:12px;align-self:center}
-.service-mode .bar-machine:disabled{opacity:1}.service-mode .bar-machine:focus-visible{outline:3px solid #ffd26a;outline-offset:-3px}
-.service-mode .cup-position{align-self:end;padding-bottom:15px}.service-mode .cup-rack{gap:5px;align-self:center}
-.service-mode .cup-rack button{min-width:44px;min-height:44px;background:#fff7e9f5;border-color:#d4a763}
+/* Original vector appliances; full-width shop, no seasonal image scenery. */
+.equipment-render,.postcard-equipment svg{display:block;width:100%;height:100%;overflow:hidden!important;pointer-events:none}
+.service-mode .bar-bench{grid-template-columns:48px minmax(0,1fr) 66px;gap:3px;overflow:hidden;background:linear-gradient(180deg,#faf3e7 0%,#efe3d0 78%,#b8865d 78%,#d4a77d 82%,#b78660 100%)!important;border:1px solid #bc9370;box-shadow:inset 0 1px 3px #fff8}
+.service-mode .bar-bench[data-finish="stone"]{background:linear-gradient(180deg,#faf3e7 0%,#efe3d0 78%,#e2ddd2 78%,#f8f2e8 81%,#c3b9a8 100%)!important}
+.season-corners,.season-header-art,.season-border{display:none!important}
+.service-mode .bar-machine{background:transparent!important;border:0!important;box-shadow:none;opacity:1!important;align-self:end;justify-content:flex-end;padding:0 0 10px;min-width:0;overflow:hidden;animation:none!important;transition:none!important}
+.service-mode .bar-machine>svg{height:calc(100% - 12px);max-height:none;flex:1 1 auto;filter:none!important;animation:none!important;transition:none!important}
+.service-mode .bar-machine>span{background:#fff5e6e8;border-radius:5px;padding:1px 5px;color:#633923;font-size:9px;line-height:12px;align-self:center}
+.service-mode .bar-machine:disabled{opacity:1}.service-mode .bar-machine:focus-visible{outline:3px solid var(--gold);outline-offset:-3px}
+.service-mode .bar-machine[data-machine=""]{pointer-events:none}
+.service-mode .cup-position{align-self:end;padding-bottom:12px;min-width:0}
+.service-mode .cup-rack{gap:5px;align-self:center}
+.service-mode .cup-rack button{min-width:44px;min-height:44px;background:#fff7e9;border-color:#c59e70}
 .service-mode .ingredient-drawer,.service-mode .finish-tray{background:linear-gradient(135deg,#f8e8cf,#ebd1ac);border-color:#c39261}
-.topbar{position:relative;isolation:isolate;overflow:hidden;background:#771b2a}
-.topbar>*:not(.season-header-art){position:relative;z-index:1}
-.season-header-art{position:absolute!important;inset:0;z-index:0;pointer-events:none;opacity:.58;overflow:hidden}
-.season-header-art:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#66132233,#70192bea 46%,#70192bf5)}
-.season-header-scene{object-position:top}
-.topbar .brand{padding:7px 8px;background:linear-gradient(175deg,#996337,#60371e);border:1px solid #d6a763;border-radius:8px;box-shadow:0 2px 5px #2f100c55;max-width:55%}
-.topbar .brand b{color:#fff5df;text-shadow:0 2px #452117;font-size:clamp(14px,4vw,20px)}
-.illustrated-postcard{position:relative;height:178px;max-height:178px;overflow:hidden;border:2px solid #9b6743;border-radius:14px;box-shadow:0 4px 14px #4b281522;background:#663d28}
-.postcard-background{position:absolute;inset:0}.postcard-sign{position:absolute;top:7px;left:50%;transform:translateX(-50%);max-width:92%;padding:5px 12px;border:1px solid #dda768;border-radius:8px;background:linear-gradient(#936237,#59301b);color:#fff5df;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 4px #0005}
-.postcard-equipment{position:absolute;bottom:17px;left:20%;width:61%;height:69%}.postcard-badge{position:absolute;bottom:3px;right:6px;font-size:10px;background:#751e2a;color:#fff4df;border-radius:5px;padding:2px 5px}
-.season-shop>p{font-size:13px}.season-package{overflow:hidden;border:1px solid #c99b70;border-radius:16px;margin:15px 0;background:#fff8ed;box-shadow:0 4px 12px #4b281514}
-.season-preview{position:relative;height:190px;overflow:hidden;background:#734d36}.season-preview.large{height:240px}
-.season-package-copy{padding:12px 14px}.season-package h4{margin:0;color:var(--brand-red-dark);font-size:18px}.season-package p{margin:5px 0 8px}.season-package small{display:block;margin-bottom:10px}.season-package span,.season-owned{display:block;padding:8px 0;color:#794c31}
-.season-package button,.season-shop button{min-height:44px}.season-active{padding:12px;border-radius:12px;border:1px solid #c99b70;background:#f7e6cb;color:#732436}.upgrade-nav button{min-height:44px}
-#game[data-season="summer"]{--season-highlight:#e5ae52}#game[data-season="autumn"]{--season-highlight:#c97a32}#game[data-season="xmas"]{--season-highlight:#d0a453}#game[data-season="tet"]{--season-highlight:#eab34f}#game[data-season="midautumn"]{--season-highlight:#d6aa56}
-#game[data-season]:not([data-season="everyday"]){box-shadow:inset 3px 0 var(--season-highlight),inset -3px 0 var(--season-highlight),0 0 60px #33191d40}
-@media(max-width:390px){.service-mode .bar-bench{grid-template-columns:44px minmax(0,1fr) 56px;gap:2px}.season-preview{height:176px}.illustrated-postcard{height:162px}}
-@media(prefers-reduced-motion:reduce){.season-scene,.equipment-render{animation:none!important;transition:none!important}}
-
-.illustrated-postcard[data-counter="stone"]:after{content:"";position:absolute;bottom:12px;left:0;right:0;height:9px;background:linear-gradient(120deg,#eee6dc,#b8aaa0 48%,#f6f0e6 50%,#cec1b6);box-shadow:0 3px 4px #321b1733;pointer-events:none}.illustrated-postcard[data-machine-tier]:not([data-machine-tier="0"]) .postcard-sign{border-color:#ffe1a1;box-shadow:0 0 8px #ffe1a155}
-.season-counter{position:absolute;left:0;right:0;bottom:0;width:100%;height:24%!important;overflow:hidden!important;pointer-events:none;box-shadow:0 -1px 4px #472b2533}.service-mode .bar-bench .season-scene{height:100%}.service-mode .bar-bench[data-finish="stone"] .season-counter{opacity:.85;background:#ece6dc}
-
-/* Nine-slice seasonal trims stay outside live controls and never capture touches. */
-#game.has-season-border{--trim-side:clamp(12px,3.6vw,18px);--trim-top:20px;--trim-bottom:16px;padding-left:var(--trim-side);padding-right:var(--trim-side);padding-top:var(--trim-top);padding-bottom:var(--trim-bottom);background:#741b2b}
-.season-border[hidden]{display:none!important}
-.season-border{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(470px,100vw);z-index:9;display:grid;grid-template-columns:var(--trim-side) minmax(0,1fr) var(--trim-side);grid-template-rows:var(--trim-top) minmax(0,1fr) var(--trim-bottom);pointer-events:none!important;overflow:hidden;contain:layout paint}
-.season-border *{pointer-events:none!important}.season-border-piece{display:block;min-width:0;min-height:0;overflow:hidden}.season-border-art{display:block;width:100%;height:100%;overflow:hidden!important}.season-border-center{visibility:hidden}
-#game.has-season-border .season-header-art{opacity:.7}
-.service-mode .bar-machine[data-machine=""]{pointer-events:none;align-items:center;justify-content:flex-end}.service-mode .bar-machine[data-machine=""]>span{margin-bottom:5px}
-.service-mode .bar-machine>.equipment-render{overflow:hidden!important}
-@media(max-height:720px){#game.has-season-border{--trim-side:12px;--trim-top:12px;--trim-bottom:10px}}
-@media(max-height:620px){#game.has-season-border{--trim-side:10px;--trim-top:8px;--trim-bottom:6px}}
-@media(prefers-reduced-motion:reduce){.season-border,.season-border *{animation:none!important;transition:none!important}}
-
-
-/* The frame is a body-level HTML-image overlay: unaffected by game/SVG clipping. */
-body>.season-border{--trim-side:clamp(12px,3.6vw,18px);--trim-top:20px;--trim-bottom:16px;position:fixed;top:0;bottom:0;left:50%;width:min(470px,100vw);transform:translateX(-50%);z-index:40;display:grid;pointer-events:none!important}
-body>.season-border[hidden]{display:none!important}
-.border-image-window{display:block;position:relative;width:100%;height:100%;overflow:hidden;pointer-events:none}
-.border-image-window img{display:block;object-fit:fill;pointer-events:none;user-select:none}
-@media(max-height:720px){body>.season-border{--trim-side:12px;--trim-top:12px;--trim-bottom:10px}}
-@media(max-height:620px){body>.season-border{--trim-side:10px;--trim-top:8px;--trim-bottom:6px}}
-.service-mode .bar-bench,.service-mode .bar-machine,.service-mode .bar-machine svg{transition:none!important;animation:none!important}
-
-
-/* REFERENCE COMPOSITION: the entire playable shop is inset inside the art.
-   Share these dimensions between content padding and the eight frame crops. */
-#game.has-season-border,body>.season-border{
- --trim-side:min(5vw,23.5px);
- --art-top:clamp(60px,9.5vh,84px);
- --art-bottom:clamp(66px,11vh,104px);
- --trim-top:calc(var(--art-top) + env(safe-area-inset-top,0px));
- --trim-bottom:calc(var(--art-bottom) + env(safe-area-inset-bottom,0px))
-}
-#game.has-season-border{
- padding:var(--trim-top) var(--trim-side) var(--trim-bottom);
- background:radial-gradient(ellipse at top,var(--brand-red),var(--brand-red-dark) 80%);
-}
-body>.season-border{
- top:0;bottom:auto;height:100dvh;height:var(--service-height,100dvh);
- grid-template-columns:var(--trim-side) minmax(0,1fr) var(--trim-side);
- grid-template-rows:var(--trim-top) minmax(0,1fr) var(--trim-bottom);
-}
-.season-frame-title{
- position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--art-top) * .46);
- left:23%;width:54%;height:calc(var(--art-top) * .47);
- display:flex;align-items:center;justify-content:center;text-align:center;
- color:#fff4d5;font:900 clamp(14px,4.3vw,21px)/1.05 ui-rounded,system-ui,sans-serif;
- letter-spacing:.3px;text-transform:uppercase;text-shadow:0 2px 1px #4b2815;
- overflow:hidden;overflow-wrap:anywhere;pointer-events:none
-}
-#game.has-season-border>.topbar,#game.has-season-border>.navbar,
-#game.has-season-border>#cafeArea,#game.has-season-border>#management{min-width:0;width:100%}
-#game.has-season-border .topbar{
- grid-template-columns:84px minmax(0,1fr) 82px;gap:3px;padding:4px;
- border:1px solid #b97947;border-bottom:2px solid var(--gold);border-radius:10px 10px 0 0
-}
-#game.has-season-border .topbar .brand{
- width:100%;max-width:none;padding:2px;background:transparent;box-shadow:none;border:0;
-}
-#game.has-season-border .topbar .brand b{display:none}
-#game.has-season-border .topbar .brand:before{content:"Tiền mặt";font-size:9px;display:block;color:var(--cream)}
-#game.has-season-border .topbar .brand #money{font-size:15px;overflow-wrap:anywhere}
-#game.has-season-border .hud-left{grid-template-columns:44px minmax(0,1fr);gap:2px}
-#game.has-season-border .hud-left #dayLabel{font-size:10px}
-#game.has-season-border .hud-left #phaseLabel{font-size:9px;margin-top:0}
-#game.has-season-border .hud-rating{min-width:0}
-#game.has-season-border .hud-rating #headerStars{font-size:13px;letter-spacing:0}
-#game.has-season-border .hud-rating #reviewTotal{font-size:8px;white-space:normal}
-#game.has-season-border .navbar{border-radius:0 0 11px 11px;border:1px solid var(--gold);padding:3px;gap:2px}
-#game.has-season-border .navbar button{min-height:44px;min-width:44px;font-size:9px;padding:1px}
-body.service-mode{padding:0}
-.service-mode #game.has-season-border>.topbar{height:66px;min-height:66px}
-.service-mode #game.has-season-border>.navbar{height:50px;min-height:50px;padding:2px}
-.service-mode #game.has-season-border #station,
-.service-mode #game.has-season-border #station.owner-manual-view{
- --inset-queue:60px;--inset-order:56px;--inset-progress:44px;--inset-ingredients:58px;--inset-finish:52px;
- grid-template-rows:var(--inset-queue) var(--inset-order) minmax(80px,1fr) var(--inset-progress) 44px var(--inset-ingredients) var(--inset-finish) 46px;
- gap:2px;padding:3px 0;min-width:0;
-}
-.service-mode #game.has-season-border #station.owner-manual-view{--inset-progress:60px}
-.service-mode #game.has-season-border .bar-bench{grid-template-columns:44px minmax(0,1fr) 48px;gap:2px;padding:3px;border-radius:10px}
-.service-mode #game.has-season-border .bar-machine{max-height:none}
-.service-mode #game.has-season-border .bar-machine>svg{max-width:100%}
-.service-mode #game.has-season-border .cup-rack{grid-template-columns:44px;gap:2px;min-height:90px;height:92px}
-.service-mode #game.has-season-border .cup-rack button{height:44px;min-height:44px}
-.service-mode #game.has-season-border .cup-rack svg{height:32px;min-height:30px}
-.service-mode #game.has-season-border .cup-position{padding-bottom:10px}
-.service-mode #game.has-season-border .customer-queue{gap:3px}
-.service-mode #game.has-season-border .compact-order{padding:3px 5px}
-.service-mode #game.has-season-border .compact-order b{font-size:13px}
-.service-mode #game.has-season-border .compact-order small{font-size:11px;line-height:14px}
-.service-mode #game.has-season-border .visual-tabs{grid-template-columns:repeat(5,minmax(0,1fr));gap:2px}
-.service-mode #game.has-season-border .visual-tabs.bakery-service-bar{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}
-.service-mode #game.has-season-border .visual-tabs>.ingredient-more{display:none}
-.service-mode #game.has-season-border .ingredient-drawer{grid-template-columns:repeat(6,minmax(0,1fr));padding:2px;gap:2px}
-.service-mode #game.has-season-border .ingredient-tile,
-.service-mode #game.has-season-border .visual-tabs .art-button{min-width:44px;min-height:44px}
-.service-mode #game.has-season-border .ingredient-tile svg{max-width:46px;max-height:42px}
-.service-mode #game.has-season-border .inset-page{display:flex;align-items:center;justify-content:center;flex-direction:column;min-width:44px;min-height:44px;padding:1px;box-shadow:none;border-radius:7px;background:var(--brand-red);color:var(--cream)}
-.service-mode #game.has-season-border .inset-page b{font-size:23px;line-height:22px}
-.service-mode #game.has-season-border .inset-page small{font-size:9px}
-.service-mode #game.has-season-border .finish-tray{gap:2px;padding:2px}
-.service-mode #game.has-season-border .finish-tray svg{max-width:38px;max-height:36px}
-.service-mode #game.has-season-border .visual-serve{grid-template-columns:44px 44px minmax(0,1fr) 44px;gap:3px}
-.service-mode #game.has-season-border .deliver-art{gap:2px}
-.service-mode #game.has-season-border .deliver-art svg{width:26px;height:26px}
-.service-mode #game.has-season-border .deliver-art b{font-size:12px}
-@media(max-height:740px){
- #game.has-season-border,body>.season-border{--art-top:52px;--art-bottom:48px}
- .service-mode #game.has-season-border>.topbar{height:60px;min-height:60px}
- .service-mode #game.has-season-border>.navbar{height:48px;min-height:48px}
- .service-mode #game.has-season-border #station,
- .service-mode #game.has-season-border #station.owner-manual-view{--inset-queue:54px;--inset-order:50px;--inset-ingredients:48px;--inset-finish:46px;gap:1px}
-}
-@media(max-height:620px){
- #game.has-season-border,body>.season-border{--art-top:40px;--art-bottom:32px}
- .service-mode #game.has-season-border #station,
- .service-mode #game.has-season-border #station.owner-manual-view{grid-template-rows:50px 48px minmax(60px,1fr) var(--inset-progress) 44px 44px 44px 44px;gap:1px}
-}
-
-
-/* Read-only artwork preview uses the actual shop renderer and real save data.
-   The notice occupies the reserved lower decoration band, not a game row. */
-#decorationPreviewNotice{
- position:fixed;z-index:45;bottom:calc(3px + env(safe-area-inset-bottom,0px));
- left:50%;transform:translateX(-50%);width:min(80vw,376px);
- min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:5px;
- padding:3px 5px;background:#fff5e9f5;color:#74172f;border:1px solid #c99555;border-radius:9px;
- box-shadow:0 2px 9px #39101755;
-}
-#decorationPreviewNotice>span{min-width:0}
-#decorationPreviewNotice b{display:block;font-size:10px;line-height:13px}
-#decorationPreviewNotice small{display:block;font-size:9px;line-height:12px}
-#decorationPreviewNotice button{min-width:44px;min-height:44px;padding:4px;background:var(--brand-red);color:var(--cream);font-size:11px}
-
-
-/* Final seasonal composition: 90% playable width; branch color remains its own.
-   Only the scenery is softened. Equipment/cup layers are never filtered. */
-#game.has-season-border{--scene-soften:.22}
-#game.has-season-border>.topbar{
- background:linear-gradient(135deg,var(--brand-red),var(--brand-red-dark));
- border-color:#cfad7870;border-bottom-color:var(--gold);
- border-radius:14px 14px 0 0;box-shadow:0 3px 10px #2e201728;
-}
-#game.has-season-border .season-header-art{opacity:.16}
-#game.has-season-border .season-header-art:after{background:linear-gradient(180deg,transparent,var(--brand-red-dark))}
-#game.has-season-border>#cafeArea{
- background:linear-gradient(180deg,#fff8ec,#f4e6d0);
- border-inline:1px solid #d4b78d;box-shadow:0 5px 16px #2e20171f;
-}
-#game.has-season-border>.navbar{
- background:linear-gradient(180deg,var(--brand-red),var(--brand-red-dark));
- border-color:#cfad7870;border-top-color:var(--gold);border-radius:0 0 14px 14px;
- box-shadow:0 6px 14px #2e20172e;
-}
-#game.has-season-border .navbar button.active{background:var(--cream);color:var(--brand-red-dark)}
-#game.has-season-border .compact-order{border-color:#d6ba91;border-width:1px;background:#fffaf2;box-shadow:0 2px 4px #6840240c}
-#game.has-season-border .queue-person{border-color:#d6ba91}
-#game.has-season-border .queue-person.current{border-color:var(--gold);background:var(--brand-red)}
-.service-mode #game.has-season-border #station{padding:3px;gap:2px}
-.service-mode #game.has-season-border .bar-bench{
- border:1px solid #bd986b;border-radius:11px;
- background:#e8d9c2!important;box-shadow:inset 0 0 0 1px #fff5df70;
-}
-.service-mode .bar-bench .season-corners{opacity:1}
-.service-mode .bar-bench .season-corners:after{
- content:"";position:absolute;inset:0;background:rgba(255,248,232,.22);pointer-events:none
-}
-.service-mode .bar-bench .season-scene{filter:blur(.55px) saturate(.9)!important}
-.service-mode .bar-bench>.bar-machine>svg,
-.service-mode .bar-bench>.cup-position>svg{filter:drop-shadow(0 3px 2px #33261c38)!important}
-.service-mode #game.has-season-border .ingredient-drawer,
-.service-mode #game.has-season-border .finish-tray{border-color:#d0ae80;background:linear-gradient(120deg,#f4e2c5,#f9ecd8);border-radius:8px}
-.service-mode #game.has-season-border .deliver-art{background:var(--brand-red);border-color:var(--brand-red-dark);box-shadow:0 2px 0 var(--brand-red-dark)}
-#decorationPreviewNotice{color:var(--brand-red-dark);width:min(88vw,413px)}
-@media(prefers-reduced-motion:reduce){.service-mode .bar-bench .season-scene{filter:saturate(.9)!important}}
-
-
-/* Side-only seasonal surround. Keep all normal gameplay height available. */
-#game.has-season-border,body>.season-border{
- --art-top:0px;--art-bottom:0px;--trim-top:0px;--trim-bottom:0px;
-}
-#game.has-season-border{padding-top:0;padding-bottom:0}
-body>.season-border{grid-template-rows:0 minmax(0,1fr) 0}
-body>.season-border .season-frame-title{display:none}
-body>.season-border .border-piece-0,
-body>.season-border .border-piece-1,
-body>.season-border .border-piece-2,
-body>.season-border .border-piece-6,
-body>.season-border .border-piece-7,
-body>.season-border .border-piece-8{visibility:hidden}
-#game.has-season-border .topbar .brand b{
- display:block;font-size:12px;line-height:1.15;max-height:28px;overflow:hidden;
-}
-#game.has-season-border .topbar .brand:before{display:none}
-#game.has-season-border>.topbar{padding-top:calc(4px + env(safe-area-inset-top,0px))}
-#game.has-season-border>.navbar{padding-bottom:calc(2px + env(safe-area-inset-bottom,0px))}
-.service-mode #game.has-season-border>.topbar{
- height:calc(66px + env(safe-area-inset-top,0px));
- min-height:calc(66px + env(safe-area-inset-top,0px));
-}
-.service-mode #game.has-season-border>.navbar{
- height:calc(50px + env(safe-area-inset-bottom,0px));
- min-height:calc(50px + env(safe-area-inset-bottom,0px));
-}
-/* Navigation belongs to its scroll content, not an overlay above upgrade rows. */
+.illustrated-postcard{position:relative;height:178px;max-height:178px;overflow:hidden;border:1px solid #b78a67;border-radius:14px;background:linear-gradient(180deg,#faf3e7 0%,#ead8be 80%,#b58662 80%,#d7b38d 100%)}
+.illustrated-postcard[data-counter="stone"]{background:linear-gradient(180deg,#faf3e7 0%,#ead8be 80%,#d1cabc 80%,#f0ebe2 100%)}
+.postcard-sign{position:absolute;top:7px;left:50%;transform:translateX(-50%);max-width:92%;padding:3px 10px;border-radius:6px;background:var(--brand-red);color:var(--cream);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.postcard-equipment{position:absolute;bottom:13px;left:20%;width:61%;height:69%}
+.postcard-badge{position:absolute;bottom:3px;right:6px;font-size:10px;background:var(--brand-red);color:var(--cream);border-radius:5px;padding:2px 5px}
+.season-package{border-bottom:1px solid #c99b7055;padding:10px 0}.season-package-copy{padding:8px}
+.season-package h4{margin:0;color:var(--brand-red-dark);font-size:17px}.season-package small{display:block;margin:6px 0}
+.season-package button,.season-shop button{min-height:44px}
+.season-active{padding:12px;border-radius:12px;background:#f7e6cb;color:var(--brand-red-dark)}
 .management-nav,.upgrade-nav{position:static;top:auto;bottom:auto;z-index:auto}
-#game>.topbar>#decorationPreviewNotice{
- position:relative;grid-column:1 / -1;inset:auto;transform:none;
- width:100%;min-width:0;min-height:44px;margin:0;padding:2px 4px;
- box-shadow:none;z-index:auto;align-self:stretch;
-}
-.decoration-preview-mode.service-mode #game.has-season-border>.topbar{
- height:calc(116px + env(safe-area-inset-top,0px));
- min-height:calc(116px + env(safe-area-inset-top,0px));
- grid-template-rows:minmax(0,1fr) 48px;
-}
-@media(max-height:740px){
- .service-mode #game.has-season-border>.topbar{height:calc(60px + env(safe-area-inset-top,0px));min-height:calc(60px + env(safe-area-inset-top,0px))}
- .service-mode #game.has-season-border>.navbar{height:calc(48px + env(safe-area-inset-bottom,0px));min-height:calc(48px + env(safe-area-inset-bottom,0px))}
- .decoration-preview-mode.service-mode #game.has-season-border>.topbar{height:calc(110px + env(safe-area-inset-top,0px));min-height:calc(110px + env(safe-area-inset-top,0px))}
-}
-
+@media(max-width:390px){.service-mode .bar-bench{grid-template-columns:44px minmax(0,1fr) 60px;gap:2px}}
 </style>
 </head>
 <body><div id="bootNotice"><b>BEAN AROUND · Đang khởi động…</b><p>Nếu thông báo này không biến mất và nút không hoạt động: hãy mở link game bằng Safari. Bản xem trước của ứng dụng Tệp / Google Drive không chạy game.</p><small>Nếu đang mở website thật, gửi lại thông báo lỗi bên dưới để được kiểm tra.</small><pre id="bootError" style="white-space:pre-wrap"></pre></div>
@@ -1953,7 +1723,7 @@ function validCoreV7(s){
  if(s.job&&(!A[s.job.key]||!Number.isFinite(s.job.remaining)||s.job.remaining<=0||!Number.isFinite(s.job.total)||s.job.remaining>s.job.total))return false;
  if(s.staffJob&&(!s.staffJob.order||!R.some(r=>r.id===s.staffJob.order.id)||!Number.isFinite(s.staffJob.remaining)||s.staffJob.remaining<=0))return false;
  if(!Number.isFinite(s.cleanliness)||s.cleanliness<0||s.cleanliness>100||!Number.isFinite(s.condition)||s.condition<0||s.condition>100)return false;
- if(!Number.isInteger(s.online.remaining)||s.online.remaining<0||s.online.remaining>1000||s.online.queue.length>10)return false;
+ if(!Number.isInteger(s.online.remaining)||s.online.remaining<0||s.online.remaining>2000||s.online.queue.length>10)return false;
  if(s.online.queue.some(o=>!R.some(r=>r.id===o.id)||!Number.isFinite(o.time)||!Number.isFinite(o.work)||!Number.isFinite(o.quotedPrice)||o.quotedPrice<0))return false;
  return ["lifetimeRevenue","lifetimeProfit","customersServed","reputation"].every(k=>Number.isFinite(s[k]));
 }
@@ -2451,7 +2221,7 @@ function suggestedCartUncapped(s){
  const need=stockPlan(s),result={};
  const cold=coldPreparationPlan(s);if(cold.batches){need.bean=(need.bean||0)+cold.beanForBrew;need.water=(need.water||0)+cold.waterForBrew}
  for(const [k,n]of Object.entries(need))if(k!=="brew"&&ingredientAvailable(s,k)){const q=Math.ceil(Math.max(0,n-quantity(s,k))/(G[k].pack-(s.events.delay?1:0)));if(q)result[k]=Math.min(stockPackLimit(s),q)}
- for(const[k,n]of Object.entries(bakerySuggestions(s)))if(n)result["bake:"+k]=Math.min(500,n);
+ for(const[k,n]of Object.entries(bakerySuggestions(s)))if(n)result["bake:"+k]=Math.min(bakeryPackLimit(s),n);
  return result;
 }
 function buyCartV7(s,items){
@@ -3084,7 +2854,7 @@ function validDelivery(s){
  if(s.online?.quotaUnit!==undefined&&!["orders","cups"].includes(s.online.quotaUnit))return false;
  const d=s.delivery;if(!d)return true;
  if(d.day!==s.day){if(s.phase==="prep"&&!d.pending?.length&&Object.values(d.tickets||{}).every(t=>t.closed))return true;return false}
- if(d.version!==1||!Number.isInteger(d.seq)||d.seq<0||!Array.isArray(d.pending)||d.pending.length>4||!d.tickets||Object.keys(d.tickets).length>1000)return false;
+ if(d.version!==1||!Number.isInteger(d.seq)||d.seq<0||!Array.isArray(d.pending)||d.pending.length>4||!d.tickets||Object.keys(d.tickets).length>2000)return false;
  for(const t of Object.values(d.tickets)){
   if(!Number.isInteger(t.size)||t.size<1||t.size>4||!Array.isArray(t.waiting)||!Array.isArray(t.ready)||!t.failed||typeof t.closed!=="boolean")return false;
   if(t.closed)continue;
@@ -3258,7 +3028,7 @@ function operationChoices(s){
  ...(e.id==="resign"?[{id:"replace",label:"Tuyển thay thế · "+STAFF[e.staff].hireCost+"k",detail:"Đến ngày "+(s.day+1)+". Không tính lương hôm nay.",cost:STAFF[e.staff].hireCost}]:[])];
  if(e.id==="acFault")return [{id:"urgent",label:"Sửa gấp · "+repairCost(120)+"k",detail:"Khôi phục sau 30 giây mô phỏng.",cost:repairCost(120)},{id:"later",label:"Sửa cuối ca · "+repairCost(70)+"k",detail:"Chịu nóng đến khi đóng cửa.",cost:repairCost(70)},{id:"budget",label:s.upgrades.fan?"Bật quạt dự phòng":"Ưu tiên mang đi",detail:s.upgrades.fan?"Giảm tác động nóng; chưa sửa điều hòa.":"Không nhận thêm khách ngồi lại trong ca; giữ giá đồ uống.",cost:0}];
  if(e.id==="lidFault")return [{id:"manual",label:"Đóng nắp thủ công · miễn phí",detail:"Phụ quầy vẫn có thể hỗ trợ.",cost:0},{id:"fix",label:"Sửa máy · "+repairCost(50)+"k",detail:"Khôi phục sau 20 giây mô phỏng.",cost:repairCost(50)}];
- if(e.id==="onlineSurge")return [{id:"accept",label:"Nhận thêm "+Math.min(8,additionalOnlineSlots(s))+" đơn",detail:additionalOnlineSlots(s)?"Tạo đơn thật trong giới hạn đội ngũ (thường tối đa 500 đơn; thưởng vô địch tối đa 850 đơn/ngày).":"Đã chạm công suất nhận đơn; không tăng thêm.",cost:0},{id:"limit",label:"Giữ lượng nhận hiện tại",detail:"Không phạt rating vì từ chối đơn chưa nhận.",cost:0},{id:"pause",label:"Tạm dừng nhận thêm Shopee Food",detail:"Hoàn thành các đơn đã có trong hàng chờ.",cost:0}];
+ if(e.id==="onlineSurge")return [{id:"accept",label:"Nhận thêm "+Math.min(8,additionalOnlineSlots(s))+" đơn",detail:additionalOnlineSlots(s)?"Tạo đơn thật trong giới hạn đội ngũ (thường 500; vô địch 850; gói mùa nhân đôi mức tương ứng, tối đa 1.700 đơn/ngày).":"Đã chạm công suất nhận đơn; không tăng thêm.",cost:0},{id:"limit",label:"Giữ lượng nhận hiện tại",detail:"Không phạt rating vì từ chối đơn chưa nhận.",cost:0},{id:"pause",label:"Tạm dừng nhận thêm Shopee Food",detail:"Hoàn thành các đơn đã có trong hàng chờ.",cost:0}];
  return [];
 }
 function resolveOperation(s,choice){
@@ -4030,7 +3800,7 @@ function contestDefaults(s){
 }
 function contestPeriod(s){return Math.floor(s.day/30)}
 function contestBoost(s){const c=s.contest;return !s.isBranch&&c&&c.promoStart<=s.day&&c.promoEnd>=s.day&&c.promoStart>0?1.7:1}
-function stockPackLimit(s){return contestBoost(s)>1?1000:onlineVolume(s)>150?500:100}
+function stockPackLimit(s){return contestBoost(s)>1||onlineDecorationFactor(s)>1?1000:onlineVolume(s)>150?500:100}
 function contestAvailable(s){const c=contestDefaults(s);return !s.isBranch&&s.phase==="prep"&&contestPeriod(s)>c.lastPeriod&&!c.active}
 function contestMeta(key){
  if(key.startsWith("top:")){const t=TOPPINGS[key.slice(4)];return t?{name:t.name,art:t.icon}:null}
@@ -4274,7 +4044,7 @@ function onlineCapacityBase(s){
  if(!s.upgrades.multiStation||!trainedWorking(s,"fulfillmentLead")||!extraOnlineTeam(s,2))return 450;
  return 500;
 }
-function onlineCapacity(s){return Math.floor(onlineCapacityBase(s)*contestBoost(s))}
+function onlineCapacity(s){return basePromotedOnlineCapacity(s)*onlineDecorationFactor(s)}
 function additionalOnlineSlots(s){return Math.max(0,Math.min(onlineCapacity(s),s.business?.onlineLimit??onlineCapacity(s))-s.online.dayQuota)}
 function holidayActive(s){return !!s.holiday.kind&&s.day>=s.holiday.start&&s.day<=s.holiday.end}
 function holidayFactor(s){return holidayActive(s)?1.5:1}
@@ -4282,7 +4052,7 @@ function holidayFactor(s){return holidayActive(s)?1.5:1}
 function businessDefaults(s){
  if(!s.business)s.business={version:1,counterLimit:null,onlineLimit:null,months:[],historyStartDay:s.day};
  if(!Array.isArray(s.business.months))s.business.months=[];
- for(const key of ["counterLimit","onlineLimit"])if(!Number.isInteger(s.business[key])||s.business[key]<0||s.business[key]>1000)s.business[key]=null;
+ for(const key of ["counterLimit","onlineLimit"])if(!Number.isInteger(s.business[key])||s.business[key]<0||s.business[key]>(key==="onlineLimit"?2000:1000))s.business[key]=null;
  if(s.business.counterLimit!==null)s.business.counterLimit=Math.min(60,s.business.counterLimit);
  s.business.version=1;
  return s.business;
@@ -4314,9 +4084,11 @@ function onlineVolumeBase(s){
  const network=46+s.reputation*.35+Math.min(65,s.customersServed*.04);
  const attraction=network*ratingTraffic(s)*price*quality*.8*(trained(s,"delivery")?1:.5);
  const multiplier=(s.upgrades.counter?1.25:1)*(s.upgrades.branding?1.15:1)*(s.upgrades.tabletPro?1.3:1)*(s.events.weather==="rain"?1.15:1)*(deliveryCampaign(s)?1.25:1)*(trained(s,"deliveryBasics")?1.15:1)*(trained(s,"delivery")?1.2:1);
- const capacity=onlineCapacity(s);
- const demand=Math.max(0,decorationFactor(s)*marketDemand(attraction*multiplier*seasonalDemand(s)*(trainedWorking(s,"speedBrew")?1.1:1)*(trainedWorking(s,"packingLine")?1.08:1)*(trainedWorking(s,"dispatchLead")?1.08:1)*(s.upgrades.packingCounter?1.12:1)*(s.upgrades.dualGroup?1.12:1)*(s.upgrades.multiStation?1.12:1),500,s));
- return Math.min(Math.floor(Math.min(capacity,demand*contestBoost(s))*onlineDailyFactor(s)),s.business?.onlineLimit??capacity);
+ const capacity=basePromotedOnlineCapacity(s);
+ const demand=Math.max(0,marketDemand(attraction*multiplier*seasonalDemand(s)*(trainedWorking(s,"speedBrew")?1.1:1)*(trainedWorking(s,"packingLine")?1.08:1)*(trainedWorking(s,"dispatchLead")?1.08:1)*(s.upgrades.packingCounter?1.12:1)*(s.upgrades.dualGroup?1.12:1)*(s.upgrades.multiStation?1.12:1),500,s));
+ // Round the original parcel forecast first, then double it, including championship demand.
+ const baseOrders=Math.floor(Math.min(capacity,demand*contestBoost(s))*onlineDailyFactor(s));
+ return Math.min(baseOrders*onlineDecorationFactor(s),s.business?.onlineLimit??Infinity);
 }
 function applyBusinessPlan(s,counter,online){
  prepOnly(s);const b=businessDefaults(s);
@@ -4499,7 +4271,7 @@ function shopTime(s){
  const min=s.phase==="prep"?420:s.phase==="report"?(s.stats.closedAt??1320):Math.floor(s.shift.minute);
  return String(Math.floor(min/60)).padStart(2,"0")+":"+String(min%60).padStart(2,"0");
 }
-function holidayMarkup(){return '<div class="notice">Trang trí theo mùa · 30 ngày · riêng từng quán.'+btn("Xem các gói trang trí","upgradeTab","seasons","wide")+'</div>'}
+function holidayMarkup(){return '<div class="notice">Gói mùa · x2 đơn online · 30 ngày · riêng từng quán.'+btn("Xem các gói mùa","upgradeTab","seasons","wide")+'</div>'}
 function equipmentMarkup(){if(state.isBranch){return shopPostcard(state)+'<p>Trang bị riêng, mở theo số ca hoạt động của quán.</p>'+Object.entries(BRANCH_GEAR).map(([id,u])=>upgradeRow(id==="espresso"?"espresso":"store",u.name,u.desc,state.upgrades[id]?"✓":btn(MONEY(u.cost)+" MUA","branchUpgrade",id),"<small>Cần "+u.age+" ca</small>")).join("")}return shopPostcard(state)+holidayMarkup()+equipmentMarkupV9()}
 function teamMarkup(){
  const roles=[["barista","☕","Pha"],["helper","🧊","Đường / đá"],["cashier","🧾","Kiểm đơn"],["manager","⭐","99%"],["helper2","👥","Công suất"]];
@@ -4531,7 +4303,7 @@ function dayBrief(s){
  else if(ids.includes("festival"))facts.push("🎉 Có lễ hội gần quán → thêm khách ghé.");
  else if(s.events.traffic>1.01)facts.push("✨ Quán có thêm sức hút hôm nay.");
  if(seasonInfo(s).peak)facts.push("🎊 "+seasonInfo(s).name+": nhu cầu tăng, cần chuẩn bị kho và nhân sự.");
- if(activeDecoration(s))facts.push(SEASON_PACKAGES[s.seasonPackage.id].name+": +50% nhu cầu, còn "+(s.seasonPackage.end-s.day+1)+" ngày; kiểm tra kho và công suất trước ca.");
+ if(activeDecoration(s))facts.push(SEASON_PACKAGES[s.seasonPackage.id].name+": x2 đơn online, còn "+(s.seasonPackage.end-s.day+1)+" ngày; kiểm tra kho và công suất trước ca.");
  if(holidayActive(s))facts.push("🧧 Trang trí lễ / Tết: +50% nhu cầu, còn "+(s.holiday.end-s.day+1)+" ngày.");
  return {title:"Ngày "+s.day+" · "+dayName,text:facts.join(" "),demand:trafficDemand(s),capacity:plannedTraffic(s)};
 }
@@ -4542,16 +4314,7 @@ function dayBriefMarkup(s){
 function menuBoardMarkup(){return contestHubMarkup(state)+dayBriefMarkup(state)+menuBoardMarkupV10()}
 
 
-function seasonBorderMarkup(s){
- const id=displayedDecoration(s),full=CAFE_ASSETS.fullFrames[id],a=full||CAFE_ASSETS.frames,c=full?[0,0,full.width,full.height]:a.crops[id];if(!c)return "";
- const [x,y,w,h]=c,[left,top,right,bottom]=full?full.insets:[98,98,98,98];
- const pieces=[
- [x,y,left,top],[x+left,y,w-left-right,top],[x+w-right,y,right,top],
- [x,y,left,h],null,[x+w-right,y,right,h],
- [x,y+h-bottom,left,bottom],[x+left,y+h-bottom,w-left-right,bottom],[x+w-right,y+h-bottom,right,bottom]
- ];
- return pieces.map((crop,i)=>crop?'<span class="season-border-piece border-piece-'+i+'">'+htmlAssetCrop(a,crop)+'</span>':'<span class="season-border-center"></span>').join("");
-}
+function seasonBorderMarkup(s){return ""}
 function machineForStage(s){
  if(!s.order)return "";
  const r=recipeForOrder(s.order),c=s.cup;
@@ -4575,28 +4338,16 @@ function htmlAssetCrop(a,crop){
 }
 function syncSeasonBorder(s,game,doc=document){
  if(!game)return;
- const id=displayedDecoration(s),active=!!CAFE_ASSETS.frames.crops[id],key=locationNumber(s)+"|"+id+"|side-frame-90-v5";
- let trim=doc.getElementById("seasonBorder");
- if(!trim){trim=doc.querySelector(".season-border");if(!trim){trim=doc.createElement("div");trim.setAttribute("class","season-border")}trim.id="seasonBorder";trim.setAttribute("aria-hidden","true")}
- // Attach outside the clipped service grid, not inside #game.
- if(trim.parentNode!==doc.body)doc.body.appendChild(trim);
- if(trim.dataset.artKey!==key){trim.innerHTML=active?seasonBorderMarkup(s):"";trim.dataset.artKey=key}
- let title=trim.querySelector(".season-frame-title");
- if(active&&!title){title=doc.createElement("span");title.setAttribute("class","season-frame-title");trim.appendChild(title)}
- if(title){const name=s.brand?.name||"BEAN AROUND";if(title.textContent!==name)title.textContent=name}
- trim.hidden=!active;game.classList.toggle("has-season-border",active);
+ doc.getElementById("seasonBorder")?.remove();
+ game.classList.remove("has-season-border");
 }
 
 function seasonHeaderPaint(){
- const p=activeDecoration(state),id=displayedDecoration(state),key=locationNumber(state)+"|"+id;
- const game=$("game");if(game&&game.dataset.season!==id)game.dataset.season=id;
- syncSeasonBorder(state,game);decorationPreviewNotice();
- if(key!==seasonHeaderKey){
-  const bar=document.querySelector(".topbar");
-  if(bar){let decor=bar.querySelector(".season-header-art");if(!decor){decor=document.createElement("div");decor.className="season-header-art";decor.setAttribute("aria-hidden","true");bar.prepend(decor)}decor.innerHTML=seasonScene(state,"season-header-scene")}
-  seasonHeaderKey=key;headerLayoutKey="";
- }
- const banner=$("holidayBanner");if(banner&&p){banner.hidden=false;banner.textContent=SEASON_PACKAGES[p.id].name+" · +50% nhu cầu · "+(p.end-state.day+1)+" ngày"}
+ const game=$("game");if(game)game.dataset.season="everyday";
+ syncSeasonBorder(state,game);
+ document.querySelector(".season-header-art")?.remove();
+ const p=activeDecoration(state),banner=$("holidayBanner");
+ if(banner&&p){banner.hidden=false;banner.textContent=SEASON_PACKAGES[p.id].name+" · x2 đơn online · "+(p.end-state.day+1)+" ngày"}
 }
 
 let seasonHeaderKey="";
@@ -4883,7 +4634,7 @@ function validVisitState(s){
  if(s.district!==undefined&&!DISTRICTS[s.district])return false;
  if(s.backgroundManaged&&!s.isBranch&&s.phase==="open"){
   if(!validNetworkBackground(s))return false;const b=s.branchControl;
-  for(const k of ["goal","issued","onlineGoal","onlineIssued"])if(!Number.isInteger(b[k])||b[k]<0||b[k]>1000)return false;
+  for(const k of ["goal","issued","onlineGoal","onlineIssued"])if(!Number.isInteger(b[k])||b[k]<0||b[k]>2000)return false;
   for(const j of [b.job,b.onlineJob])if(j&&(!R.some(r=>r.id===j.order?.id)||!Number.isFinite(j.remaining)||j.remaining<0||!Number.isFinite(j.cost)||j.cost<0))return false;
  }
  return true;
@@ -5037,20 +4788,11 @@ let decorationPreview=null;
 function displayedDecoration(s){
  return decorationPreview&&decorationPreview.shop===locationNumber(s)?decorationPreview.id:seasonDecor(s);
 }
-function hasDecorationFrame(s){return !!CAFE_ASSETS.frames.crops[displayedDecoration(s)]}
-function requestedDecorationPreview(search){
- const id=new URLSearchParams(search).get("decor-preview");
- return id&&Object.hasOwn(SEASON_PACKAGES,id)?id:null;
-}
+function hasDecorationFrame(s){return false}
+function requestedDecorationPreview(search){return null}
 function beginDecorationPreview(id){
- if(!Object.hasOwn(SEASON_PACKAGES,id))throw Error("Gói xem thử không hợp lệ.");
- if(!decorationPreview){
-  const originalRoot=networkOwner(state),previousManagement=managementVisible;
-  decorationPreview={id,shop:locationNumber(state),originalRoot,previousManagement};
-  state=networkBind(clone(originalRoot));
- }else decorationPreview.id=id;
- closeSheet();tasteTapBlockUntil=0;stopStockHold(false);managementVisible=false;stationPanelCache=null;seasonHeaderKey="";brandPaintKey="";
- syncScreenVisibility();
+ if(!Object.hasOwn(SEASON_PACKAGES,id))throw Error("Gói không hợp lệ.");
+ seasonalPackageDialog(id);
 }
 function endDecorationPreview(){
  if(!decorationPreview)return;
@@ -5087,18 +4829,19 @@ const SEASON_PACKAGES=Object.freeze({
 });
 const SEASON_PRICE=30000,SEASON_DURATION=30;
 const CAFE_ASSETS=Object.freeze({
- scenes:{src:"assets/bean-around/season-scenes.png",width:1024,height:1536,
-  crops:{summer:[0,0,512,468],autumn:[512,0,512,468],xmas:[0,470,512,484],tet:[512,470,512,484],midautumn:[0,956,512,580],everyday:[512,956,512,580]}},
- fullFrames:{"midautumn":{"src":"assets/bean-around/midautumn-full-frame.png","width":941,"height":1672,"insets":[47,184,47,250]},"summer":{"src":"assets/bean-around/summer-full-frame.png","width":941,"height":1672,"insets":[47,184,47,250]},"autumn":{"src":"assets/bean-around/autumn-full-frame.png","width":941,"height":1672,"insets":[47,184,47,250]},"xmas":{"src":"assets/bean-around/xmas-full-frame.png","width":941,"height":1672,"insets":[47,184,47,250]},"tet":{"src":"assets/bean-around/tet-full-frame.png","width":941,"height":1672,"insets":[47,184,47,250]}},
- frames:{src:"assets/bean-around/season-borders.png",width:1983,height:793,crops:{summer:[0,0,395,793],autumn:[397,0,395,793],xmas:[794,0,395,793],tet:[1191,0,395,793],midautumn:[1588,0,395,793]}},
- equipment:{src:"assets/bean-around/equipment.png",width:2172,height:724,
-  crops:{espresso:[8,6,1210,712],press:[1228,0,455,718],blend:[1690,0,477,718]}}
+ // Original PNGs stay archived; gameplay no longer requests them.
+ scenes:{src:"",width:0,height:0,crops:{}},fullFrames:{},frames:{src:"",width:0,height:0,crops:{}},
+ equipment:{src:"assets/bean-around/equipment-vector.svg",width:2172,height:724,
+ crops:{espresso:[8,6,1210,712],press:[1228,0,455,718],blend:[1690,0,477,718]}}
 });
 function activeDecoration(s){
  const p=s.seasonPackage;
  return p&&SEASON_PACKAGES[p.id]&&Number.isInteger(p.start)&&Number.isInteger(p.end)&&s.day>=p.start&&s.day<=p.end?p:null;
 }
-function decorationFactor(s){return activeDecoration(s)?1.5:1}
+// Seasonal packages now affect online parcels only; existing counter demand is unchanged.
+function decorationFactor(s){return 1}
+function onlineDecorationFactor(s){return activeDecoration(s)?2:1}
+function basePromotedOnlineCapacity(s){return Math.floor(onlineCapacityBase(s)*contestBoost(s))}
 function decorationAvailable(s,id){return !!SEASON_PACKAGES[id]?.months.includes(seasonInfo(s).month)}
 function buySeasonPackage(s,id){
  prepOnly(s);
@@ -5123,37 +4866,28 @@ function croppedAssetSvg(a,crop,cls="",align="xMidYMid meet"){
 }
 function assetSvg(group,key,cls="",align="xMidYMid meet"){const a=CAFE_ASSETS[group];return croppedAssetSvg(a,a?.crops[key],cls,align)}
 
-function seasonScene(s,cls="season-scene"){return assetSvg("scenes",displayedDecoration(s),cls,cls.includes("header")?"xMidYMin slice":"xMidYMid slice")}
-function counterSurface(s){
- const a=CAFE_ASSETS.scenes,k=displayedDecoration(s),c=a.crops[k],y=k==="summer"||k==="autumn"?350:k==="xmas"||k==="tet"?842:1320;
- return '<svg class="season-counter" viewBox="'+[c[0],y,512,56].join(" ")+'" preserveAspectRatio="xMidYMid slice" overflow="hidden" aria-hidden="true"><image href="'+a.src+'" width="'+a.width+'" height="'+a.height+'"/></svg>';
-}
+function seasonScene(s,cls="season-scene"){return ""}
+function counterSurface(s){return ""}
 function seasonalPackagesMarkup(){
  const s=state,p=activeDecoration(s),month=seasonInfo(s).month;
- return '<section class="season-shop"><h3>Trang trí · Quán '+locationNumber(s)+'</h3><p>Tháng '+month+' trong game · 30.000k/gói · hiệu lực 30 ngày liên tục từ ngày mua.</p><p>+50% nhu cầu quầy và online; số đơn nhận phụ thuộc công suất, đội ngũ và giới hạn nhận đơn. Không cộng tiền trực tiếp. Mỗi quán mua riêng, không tự gia hạn.</p>'+
- (p?'<div class="season-active"><b>'+SEASON_PACKAGES[p.id].name+'</b> · còn '+(p.end-s.day+1)+' ngày · hết sau ngày '+p.end+'</div>':"")+
- Object.entries(SEASON_PACKAGES).map(([id,g])=>'<article class="season-package"><div class="season-preview">'+assetSvg("scenes",id,"season-preview-art","xMidYMax slice")+'</div><div class="season-package-copy"><h4>'+g.name+'</h4><p>'+g.caption+'</p><small>Bán tháng '+g.months.join(", ")+' · 30 ngày · +50% nhu cầu</small>'+
- (p?.id===id?'<strong class="season-owned">Đang trang trí quán này</strong>':p?'<span>Đợi gói hiện tại hết hạn</span>':!decorationAvailable(s,id)?'<span>Chưa đến tháng mở bán</span>':btn("Xem & mua · 30.000k","seasonPreview",id,"primary wide"))+btn("Xem thử trên quầy","decorPreview",id,"wide")+'</div></article>').join("")+'</section>';
+ return '<section class="season-shop"><h3>Gói mùa · Quán '+locationNumber(s)+'</h3><p>Tháng '+month+' · 30.000k/gói · 30 ngày liên tục từ ngày mua.</p><p><b>x2 số đơn online</b> sau khi tính thời tiết, nhu cầu và thưởng vô địch. Ví dụ 750 đơn → 1.500 đơn. Giới hạn nhận đơn do anh tự đặt vẫn áp dụng.</p><p>Gói hiện không thay đổi hình ảnh quán. Mỗi quán mua riêng, không tự gia hạn. Chuẩn bị đủ nguyên liệu để phục vụ lượng đơn tăng thêm.</p>'+
+ (p?'<div class="season-active"><b>'+SEASON_PACKAGES[p.id].name+'</b> · x2 online · còn '+(p.end-s.day+1)+' ngày</div>':"")+
+ Object.entries(SEASON_PACKAGES).map(([id,g])=>'<article class="season-package"><div class="season-package-copy"><h4>'+g.name+'</h4><small>Bán tháng '+g.months.join(", ")+' · 30 ngày · x2 đơn online</small>'+
+ (p?.id===id?'<strong class="season-owned">Đang áp dụng cho quán này</strong>':p?'<span>Đợi gói hiện tại hết hạn</span>':!decorationAvailable(s,id)?'<span>Chưa đến tháng mở bán</span>':btn("Chi tiết · 30.000k","seasonPreview",id,"primary wide"))+'</div></article>').join("")+'</section>';
 }
 function seasonalPackageDialog(id){
  const g=SEASON_PACKAGES[id];if(!g)throw Error("Gói không hợp lệ.");
- showSheet("seasonPackage",g.name,'<div class="season-preview large">'+assetSvg("scenes",id,"season-preview-art","xMidYMax slice")+'</div><p>Trang trí riêng <b>Quán '+locationNumber(state)+'</b> từ ngày '+state.day+' đến hết ngày '+(state.day+29)+'.</p><p>Giá 30.000k, ghi vào chi phí trang trí. +50% nhu cầu trong 30 ngày, không cộng dồn gói và không gia hạn tự động. Công suất phục vụ vẫn áp dụng.</p>'+btn("Xem thử trên quầy · không mất phí","decorPreview",id,"wide")+btn("Mua cho quán này · 30.000k","seasonBuy",id,"primary wide"));
+ showSheet("seasonPackage",g.name,'<p>Áp dụng riêng cho <b>Quán '+locationNumber(state)+'</b>, ngày '+state.day+'–'+(state.day+29)+'.</p><p>30.000k · <b>x2 đơn online</b>, tính sau thưởng vô địch. 750 đơn thành 1.500 đơn; mỗi đơn nhóm vẫn có nhiều ly. Giới hạn nhận đơn tự đặt vẫn giữ.</p><p>Không thay đổi hình ảnh quán, không tự gia hạn. Các đơn cần pha chế và dùng nguyên liệu thật. Gợi ý nhập hàng sẽ tính lượng đơn tăng thêm.</p>'+btn("Mua cho quán này · 30.000k","seasonBuy",id,"primary wide"));
 }
 
-function seasonSvg(s){
- const kind=seasonDecor(s);
- if(kind==="xmas")return '<g stroke="#314c43" stroke-width="1.4"><path d="M18 49V29" stroke="#986340" stroke-width="5"/><path d="M18 2L4 22H10L0 37H36L26 22H32Z" fill="#477661"/><path d="M18 0L20 6L26 7L21 11L22 17L18 13L13 17L14 11L9 7L16 6" fill="#efc766" stroke="none"/><circle cx="12" cy="22" r="2.5" fill="#e86657"/><circle cx="25" cy="30" r="2.5" fill="#efc766"/><circle cx="200" cy="34" r="14" fill="#fffdf5"/><circle cx="200" cy="15" r="10" fill="#fffdf5"/><path d="M187 8H213M192 7V0H207V7" fill="#523c36" stroke="#523c36"/><path d="M190 25H210" stroke="#aa3039" stroke-width="5"/><path d="M201 15L210 18L201 19" fill="#df9238" stroke="none"/><circle cx="197" cy="13" r="1"/><circle cx="200" cy="33" r="1.5"/><circle cx="200" cy="40" r="1.5"/></g>';
- if(kind==="tet")return '<g stroke="#704c3a" stroke-width="2"><path d="M17 48V15L7 6M17 27L29 12M202 48V13L192 3M202 28L215 14" fill="none"/>'+[[6,7],[16,17],[28,12],[11,28],[193,4],[202,15],[214,14],[198,32]].map(([x,y],i)=>'<g transform="translate('+x+' '+y+')" fill="'+(i<4?"#ed91aa":"#f2ce52")+'" stroke="none"><circle cy="-4" r="4"/><circle cx="4" cy="-1" r="4"/><circle cx="3" cy="4" r="4"/><circle cx="-3" cy="4" r="4"/><circle cx="-4" cy="-1" r="4"/><circle r="2" fill="#bb532b"/></g>').join("")+'<path d="M5 43H28L25 54H8M191 43H214L211 54H194" fill="#a43036"/><path d="M40 2H183" stroke="#dcb65a"/><rect x="47" y="4" width="11" height="16" rx="3" fill="#aa3039"/><rect x="169" y="4" width="11" height="16" rx="3" fill="#aa3039"/></g>';
- if(kind==="summer")return '<g stroke="#618263" stroke-width="1.5"><path d="M17 54Q30 25 18 3M21 26Q0 22 2 9Q17 9 21 26M21 19Q40 11 40 0Q23 1 21 19" fill="#81a46f"/><path d="M198 52V13" stroke="#b48657"/><path d="M178 15Q198 -8 218 15Z" fill="#f0b85f"/><path d="M181 49H215V54H181" fill="#4e8476"/><circle cx="210" cy="35" r="8" fill="#f2c95f"/><path d="M206 29L213 42M203 36H217" stroke="#fff3b1"/></g>';
- return '<g fill="#749167" stroke="#456d55" stroke-width="1.2"><path d="M14 48V16M14 29Q-3 26 3 15Q16 19 14 29M15 21Q32 16 27 7Q14 10 15 21"/><path d="M3 39H25L22 54H6" fill="#d7aa78"/><path d="M207 47V23M207 31Q189 24 194 14Q208 17 207 31M207 26Q223 23 220 12Q208 14 207 26"/><path d="M194 39H219L215 54H198" fill="#bc7856"/></g>';
-}
+function seasonSvg(s){return ""}
 function machineDrawing(s){
  const v=shopLook(s),shell=s.district==="park"?"M17 114V42Q17 17 45 17H153Q185 17 185 44V114Z":s.isBranch?"M18 16H179V115H18Z":"M22 23L35 12H166L178 24V112H20Z",body=s.isBranch?(s.district==="park"?"#f3e5c9":"#dde6e7"):v.tier?"#f4eadb":"#d9dcda",edge=v.accent,groups=v.tier?Math.min(3,v.tier+1):2;
  return '<g stroke="#443b35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+shell+'" fill="'+edge+'"/><path d="M29 28H171V75H29Z" fill="'+body+'"/><path d="M26 82H174V115H26Z" fill="#4b514e"/><rect x="31" y="92" width="138" height="16" rx="3" fill="#b5bbb3"/>'+Array.from({length:groups},(_,i)=>{const x=49+i*(groups===3?43:76);return '<circle cx="'+x+'" cy="47" r="12" fill="#fff9ec"/><path d="M'+x+' 47l5 -6" stroke="'+edge+'"/><rect x="'+(x-8)+'" y="66" width="16" height="12" rx="3" fill="#babbb1"/><path d="M'+x+' 77v8m0 -10h16" stroke="#cfa970" stroke-width="4"/><path d="M'+(x-8)+' 86h18l-2 15h-14Z" fill="#fff9ec"/>'}).join("")+'<path d="M33 14V7H165V14" fill="#c3bba9"/><path d="M15 57H8V88M182 57H190V88" fill="none"/><rect x="14" y="115" width="17" height="7" rx="2" fill="#38352f"/><rect x="166" y="115" width="17" height="7" rx="2" fill="#38352f"/><rect x="196" y="49" width="24" height="59" rx="6" fill="'+v.grinder+'"/><path d="M194 21H222L218 49H198Z" fill="#ae9874"/><path d="M192 20H224" stroke="#494039" stroke-width="5"/><rect x="201" y="63" width="15" height="12" rx="2" fill="#303a36"/><path d="M208 77V90H219M194 111H224" stroke="#56584d" stroke-width="4"/>'+(v.tier>=2?'<path d="M34 33H168" stroke="#d3aa57" stroke-width="3"/><circle cx="158" cy="61" r="3" fill="#75a97d"/>':"")+'</g>';
 }
 function shopPostcard(s){
  const active=activeDecoration(s),theme=seasonDecor(s);
- return '<div class="shop-postcard illustrated-postcard" data-counter="'+(s.upgrades.counter?'stone':'wood')+'" data-machine-tier="'+shopLook(s).tier+'" role="img" aria-label="'+escapeHTML(s.brand.name+" · Quán "+locationNumber(s)+(active?" · "+SEASON_PACKAGES[active.id].name:""))+'">'+seasonScene(s,"postcard-background")+'<span class="postcard-sign">'+escapeHTML(s.brand.name)+' · '+locationNumber(s)+'</span><div class="postcard-equipment">'+assetSvg("equipment","espresso","","xMidYMax meet")+'</div>'+(active?'<span class="postcard-badge">'+(active.end-s.day+1)+' ngày · +50% nhu cầu</span>':"")+'</div>';
+ return '<div class="shop-postcard illustrated-postcard" data-counter="'+(s.upgrades.counter?'stone':'wood')+'" data-machine-tier="'+shopLook(s).tier+'" role="img" aria-label="'+escapeHTML(s.brand.name+" · Quán "+locationNumber(s)+(active?" · "+SEASON_PACKAGES[active.id].name:""))+'">'+seasonScene(s,"postcard-background")+'<span class="postcard-sign">'+escapeHTML(s.brand.name)+' · '+locationNumber(s)+'</span><div class="postcard-equipment">'+assetSvg("equipment","espresso","","xMidYMax meet")+'</div>'+(active?'<span class="postcard-badge">'+(active.end-s.day+1)+' ngày · x2 online</span>':"")+'</div>';
 }
 function locationIntroMarkup(){
  const season=seasonInfo(state);return '<div class="location-intro">'+shopPostcard(state)+'<div><b>QUÁN '+locationNumber(state)+' · '+escapeHTML(districtInfo(state)?.name||"Quán đầu tiên")+'</b><small>Lịch game · Tháng '+season.month+' · '+season.name+'</small></div>'+btn("CHỌN QUÁN GHÉ HÔM NAY","visitChoose","","wide")+'</div>';
@@ -5617,7 +5351,7 @@ function validExpansion(s){
  if(c.branch3&&!c.branch)return false;
  for(const no of[2,3]){const q=getBranch(s,no);if(!q)continue;
  if(s.isBranch||!q.isBranch||branchNumber(q)!==no||q.day!==s.day||branches(q).length||!q.branchControl||!Number.isInteger(q.branchAge)||q.branchAge<0||!validCore(q))return false;
- const ctrl=q.branchControl;for(const k of["goal","issued","onlineGoal","onlineIssued"])if(!Number.isInteger(ctrl[k])||ctrl[k]<0||ctrl[k]>1000)return false;
+ const ctrl=q.branchControl;for(const k of["goal","issued","onlineGoal","onlineIssued"])if(!Number.isInteger(ctrl[k])||ctrl[k]<0||ctrl[k]>2000)return false;
  for(const job of[ctrl.job,ctrl.onlineJob])if(job&&(!job.order||!R.some(r=>r.id===job.order.id)||!finite(job.order.quotedPrice)||!finite(job.remaining)||!finite(job.cost)))return false;
  }
  return true;
@@ -5643,7 +5377,7 @@ function bakeryReserved(s,id){
 function cartBakeId(key){return key.startsWith("bake:")?key.slice(5):null}
 function cartItem(s,key){const id=cartBakeId(key);return id?BAKES[id]?{...BAKES[id],pack:1,available:bakeryUnlocked(s,id)}:null:G[key]?{...G[key],available:key!=="brew"&&ingredientAvailable(s,key)}:null}
 function cartUnitPrice(s,key){const id=cartBakeId(key);return id?BAKES[id]?.cost||0:packPrice(s,key)}
-function bakeryPackLimit(s){return contestBoost(s)>1?1000:500}
+function bakeryPackLimit(s){return contestBoost(s)>1||onlineDecorationFactor(s)>1?1000:500}
 function cartLimit(s,key){return cartBakeId(key)?bakeryPackLimit(s):stockPackLimit(s)}
 function buyCart(s,items){
  prepOnly(s);if(!Object.keys(items).length)throw Error("Giỏ trống.");
@@ -5813,9 +5547,9 @@ function branchForecast(s,no=2){
  const menu=activeMenu(b),price=menu.reduce((n,r)=>n+demandFactor(b.menu[r.id].playerPrice,r.price),0)/menu.length;
  const local=decorationFactor(b)*(48+Math.min(30,b.branchAge*2))*(1+Math.min(.35,s.reputation*.0035))*clamp(.7+(ratingValue(b)-3)*.2,.4,1.1)*price*(s.events.weather==="rain"?.8:1)*((s.events.traffic||1)/(s.events.advertising?1.15:1))*(b.upgrades.led?1.25:1);
  const counterBenchmark=working(s,"barista")?Math.min(trafficDemand(view),Math.round(trafficDemand({...s,seasonPackage:null})*decorationFactor(b))):trafficDemand(view);
- const onlineBenchmark=onlineVolume(view);
+ const onlineBenchmark=onlineVolumeBase({...view,seasonPackage:null,business:{...view.business,onlineLimit:null}});
  const counter=Math.max(1,Math.min(counterDailyLimit(view),branchCapacity(b),Math.round((local*(1-p)+counterBenchmark*.90*p)*districtDemand(b)*(s.events.weather==="rain"?.85:1))));
- const online=b.upgrades.tabletPro&&working(b,"online")?Math.round(onlineBenchmark*(.45+.45*p)*(trained(b,"delivery")?1:.65)):0;
+ const online=b.upgrades.tabletPro&&working(b,"online")?Math.min(Math.round(onlineBenchmark*(.45+.45*p)*(trained(b,"delivery")?1:.65))*onlineDecorationFactor(b),b.business?.onlineLimit??Infinity):0;
  return {counter,online};
 }
 function branchGoal(s,no=2){return branchForecast(s,no).counter}
@@ -6565,7 +6299,7 @@ async function act(action,key){
    case "manage":managementVisible=true;managementTab="report";financePeriod="day";financeKey=null;closeSheet();break;
    case "manageTab":if(!["stats","stock","upgrades","prices","reviews","report","expansion"].includes(key))throw Error("Tab không hợp lệ.");managementVisible=true;managementTab=key;break;
    case "seasonPreview":seasonalPackageDialog(key);break;
-   case "seasonBuy":buySeasonPackage(state,key);closeSheet();stationPanelCache=null;toast("Đã trang trí quán này · 30 ngày · +50% nhu cầu.");break;
+   case "seasonBuy":buySeasonPackage(state,key);closeSheet();stationPanelCache=null;toast("Đã kích hoạt gói mùa · x2 đơn online · 30 ngày.");break;
    case "upgradeTab":if(!["menu","ingredients","topping","equipment","seasons","staff","bakery","online"].includes(key))throw Error("Mục không hợp lệ.");upgradeTab=key;break;
    case "unlockDrink":unlockDrink(state,key);toast("Đã mở "+state.menu[key].name+". Hãy nhập nguyên liệu trước khi bán.");break;
    case "toggleDrink":toggleDrink(state,key);toast(state.menu[key].enabled?"Đã thêm món vào menu.":"Đã tạm ngừng bán món.");break;
@@ -6839,21 +6573,21 @@ function runSteadyRenderChecks(){
  test("disabled/action/label update without replacing button",()=>{const b=node(bench()),button=b.querySelector(".bar-machine");patchBenchPanel(b,bench("","Hoàn thiện ly"));a(b.querySelector(".bar-machine")===button&&button.hasAttribute("disabled")&&button.querySelector("span").textContent==="Hoàn thiện ly");patchBenchPanel(b,bench("blend","Xay"));a(!button.hasAttribute("disabled")&&button.getAttribute("data-machine")==="blend")});
  test("200 automatic stage changes do not replace background",()=>{const b=node(bench()),bg=b.querySelector(".season-corners"),image=b.querySelector(".bar-machine").querySelector("image");for(let i=0;i<200;i++)patchBenchPanel(b,bench(["espresso","press","blend","","water"][i%5]));a(b.querySelector(".season-corners")===bg&&b.querySelector(".bar-machine").querySelector(".equipment-render").querySelector("image")===image)});
  test("shift timer text is retained while machine changes",()=>{const b=node(bench());b.querySelector(".shift-meter").textContent="2:12";patchBenchPanel(b,bench("blend"));a(b.querySelector(".shift-meter").textContent==="2:12")});
- test("season changes replace scenery once while preserving machine",()=>{const b=node(bench()),bg=b.querySelector(".season-corners"),m=b.querySelector(".bar-machine");const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};patchBenchPanel(b,bench("espresso","Espresso",x));a(b.querySelector(".season-corners")!==bg&&b.querySelector(".bar-machine")===m);const next=b.querySelector(".season-corners");patchBenchPanel(b,bench("blend","Xay",x));a(b.querySelector(".season-corners")===next)});
- test("borders use clipped HTML images instead of nested SVG",()=>{const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};const html=seasonBorderMarkup(x);a((html.match(/<img /g)||[]).length===8&&!html.includes("<svg")&&html.includes('max-width:none'))});
- test("frame mounts outside clipped game and repairs missing DOM",()=>{const doc=document.implementation.createHTMLDocument("frame-test"),game=doc.createElement("div");doc.body.appendChild(game);const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};syncSeasonBorder(x,game,doc);const frame=doc.getElementById("seasonBorder");a(frame.parentNode===doc.body&&!frame.hidden&&game.classList.contains("has-season-border"));const img=frame.querySelector("img");syncSeasonBorder(x,game,doc);a(frame.querySelector("img")===img);frame.remove();syncSeasonBorder(x,game,doc);a(doc.getElementById("seasonBorder")&&!doc.getElementById("seasonBorder").hidden)});
- test("frame title follows custom shop name without recreating decoration",()=>{const doc=document.implementation.createHTMLDocument("title-test"),game=doc.createElement("div");doc.body.appendChild(game);const x=clone(s);x.seasonPackage={id:"midautumn",start:1,end:30,paid:30000};x.brand.name="BEAN AROUND";syncSeasonBorder(x,game,doc);const frame=doc.getElementById("seasonBorder"),img=frame.querySelector("img");x.brand.name="Quán bên hồ";syncSeasonBorder(x,game,doc);a(frame.querySelector(".season-frame-title").textContent==="Quán bên hồ"&&frame.querySelector("img")===img)});
- test("expired frame hides and removes reserved padding",()=>{const doc=document.implementation.createHTMLDocument("frame-test"),game=doc.createElement("div");doc.body.appendChild(game);const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};syncSeasonBorder(x,game,doc);x.day=31;syncSeasonBorder(x,game,doc);a(doc.getElementById("seasonBorder").hidden&&!game.classList.contains("has-season-border"))});
+ test("season purchase does not replace bench or machine",()=>{const b=node(bench()),bg=b.querySelector(".season-corners"),m=b.querySelector(".bar-machine"),x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};patchBenchPanel(b,bench("espresso","Espresso",x));a(b.querySelector(".season-corners")===bg&&b.querySelector(".bar-machine")===m)});
+ test("no seasonal images are inserted",()=>{const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};a(seasonBorderMarkup(x)===""&&seasonScene(x)==="")});
+ test("stale border is removed and normal width restored",()=>{const doc=document.implementation.createHTMLDocument("frame-test"),game=doc.createElement("div"),frame=doc.createElement("div");frame.id="seasonBorder";game.classList.add("has-season-border");doc.body.appendChild(game);doc.body.appendChild(frame);syncSeasonBorder(s,game,doc);a(!doc.getElementById("seasonBorder")&&!game.classList.contains("has-season-border"));syncSeasonBorder(s,game,doc);a(!doc.getElementById("seasonBorder"))});
+ test("custom brand remains saved while border cleanup runs",()=>{const doc=document.implementation.createHTMLDocument("title-test"),game=doc.createElement("div"),x=clone(s);doc.body.appendChild(game);x.brand.name="Quán bên hồ";syncSeasonBorder(x,game,doc);a(x.brand.name==="Quán bên hồ"&&!doc.getElementById("seasonBorder"))});
+ test("expired package cannot restore removed decoration",()=>{const doc=document.implementation.createHTMLDocument("frame-test"),game=doc.createElement("div"),x=clone(s);doc.body.appendChild(game);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};x.day=31;syncSeasonBorder(x,game,doc);a(!doc.getElementById("seasonBorder")&&!game.classList.contains("has-season-border"))});
  return rows;
 }
 window.BeanAroundRenderChecks={runBrowser:runSteadyRenderChecks,auditLayout(){
  const rows=[],game=document.getElementById("game"),frame=document.getElementById("seasonBorder");
- if(!game?.classList.contains("has-season-border"))return [{name:"active seasonal package required",ok:false}];
+ if(!game)return [{name:"game container exists",ok:false}];
  const g=game.getBoundingClientRect(),style=getComputedStyle(game),left=g.left+parseFloat(style.paddingLeft),right=g.right-parseFloat(style.paddingRight),top=g.top+parseFloat(style.paddingTop),bottom=g.bottom-parseFloat(style.paddingBottom),tol=1;
  const test=(name,ok,detail)=>rows.push({name,ok,detail});
- test("decoration is outside shop DOM",frame?.parentNode===document.body);
- test("game takes 90 percent width with five percent side bands",Math.abs(parseFloat(style.paddingLeft)-g.width*.05)<=1,{width:g.width,inset:parseFloat(style.paddingLeft)});
- for(const selector of [".topbar","#cafeArea",".navbar"]){const el=game.querySelector(selector);if(!el||el.hidden)continue;const r=el.getBoundingClientRect();if(!r.width||!r.height)continue;test(selector+" stays inside decoration opening",r.left>=left-tol&&r.right<=right+tol&&r.top>=top-tol&&r.bottom<=bottom+tol,{left:r.left,right:r.right,top:r.top,bottom:r.bottom})}
+ test("removed decoration is absent",!frame&&!game.classList.contains("has-season-border"));
+ test("no seasonal side padding",parseFloat(style.paddingLeft)<2&&parseFloat(style.paddingRight)<2,{width:g.width,inset:parseFloat(style.paddingLeft)});
+ for(const selector of [".topbar","#cafeArea",".navbar"]){const el=game.querySelector(selector);if(!el||el.hidden)continue;const r=el.getBoundingClientRect();if(!r.width||!r.height)continue;test(selector+" stays inside game",r.left>=left-tol&&r.right<=right+tol&&r.top>=top-tol&&r.bottom<=bottom+tol,{left:r.left,right:r.right,top:r.top,bottom:r.bottom})}
  test("no horizontal document overflow",document.documentElement.scrollWidth<=document.documentElement.clientWidth+tol);
  const small=[];for(const el of game.querySelectorAll(".cup-rack button,.ingredient-tile,.inset-page,.finish-tray button,.visual-serve button,.navbar button")){const r=el.getBoundingClientRect();if(r.width&&r.height&&(r.width<43.5||r.height<43.5))small.push({action:el.dataset.action,width:r.width,height:r.height})}
  test("primary touch targets at least 44px",small.length===0,small);
@@ -6862,8 +6596,8 @@ window.BeanAroundRenderChecks={runBrowser:runSteadyRenderChecks,auditLayout(){
 
 window.BeanAroundSeasonFinishChecks={run(){
  const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{const root=visitRoot,preview=decorationPreview;try{visitRoot=null;decorationPreview=null;f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}finally{visitRoot=root;decorationPreview=preview}};
- test("all five packages have separate full-resolution frames",()=>{const paths=new Set();for(const id of Object.keys(SEASON_PACKAGES)){const f=CAFE_ASSETS.fullFrames[id];a(f&&f.width>=900&&f.height>=1600);paths.add(f.src);const s=newGame(()=>.5);s.seasonPackage={id,start:1,end:30,paid:30000};const h=seasonBorderMarkup(s);a((h.match(/<img /g)||[]).length===8&&h.includes(f.src)&&!h.includes("season-borders.png"))}a(paths.size===5)});
- test("frame source strips leave a 90 percent horizontal aperture",()=>{for(const f of Object.values(CAFE_ASSETS.fullFrames)){const [l,t,r,b]=f.insets;a(Math.abs((f.width-l-r)/f.width-.9)<.002&&t+b<f.height)}});
+ test("paid packages never mount removed artwork",()=>{for(const id of Object.keys(SEASON_PACKAGES)){const s=newGame(()=>.5);s.seasonPackage={id,start:1,end:30,paid:30000};a(!hasDecorationFrame(s)&&seasonBorderMarkup(s)===""&&seasonScene(s)===""&&counterSurface(s)===""&&onlineDecorationFactor(s)===2)}});
+ test("removed frame sources cannot be requested by renderer",()=>{a(Object.keys(CAFE_ASSETS.fullFrames).length===0&&Object.keys(CAFE_ASSETS.frames.crops).length===0&&CAFE_ASSETS.scenes.src==="")});
  test("changing season does not replace saved branch brand palette",()=>{for(const district of Object.keys(DISTRICTS)){const s=newGame(()=>.5);s.isBranch=true;s.branchNo=2;s.district=district;s.brand.accent=DISTRICTS[district].accent;const before=JSON.stringify(shopThemeColors(s));for(const id of Object.keys(SEASON_PACKAGES)){s.seasonPackage={id,start:1,end:30,paid:30000};seasonBorderMarkup(s);a(JSON.stringify(shopThemeColors(s))===before&&s.brand.accent===DISTRICTS[district].accent)}}});
  test("custom branch accents determine dark and soft colors",()=>{const s=newGame(()=>.5);s.brand.accent="#226644";const p=shopThemeColors(s);a(p.accent==="#226644"&&p.dark!=="#651321");a(parseInt(p.dark.slice(3,5),16)>parseInt(p.dark.slice(1,3),16));a(/^#[a-f0-9]{6}$/.test(p.soft))});
  test("purchases charge each shop separately without recoloring others",()=>{const s=chainTestShop(61);networkBind(s);const b=openBranch(s,2);b.cash=100000;networkBind(s);const rootBrand=JSON.stringify(s.brand),branchBrand=JSON.stringify(b.brand),rootCash=s.cash,branchCash=b.cash;buySeasonPackage(s,"tet");a(s.cash===rootCash-30000&&b.cash===branchCash&&!activeDecoration(b));buySeasonPackage(b,"tet");a(b.cash===branchCash-30000&&activeDecoration(b)?.id==="tet");a(JSON.stringify(s.brand)===rootBrand&&JSON.stringify(b.brand)===branchBrand)});
@@ -6874,20 +6608,20 @@ window.BeanAroundSeasonFinishChecks={run(){
 window.BeanAroundDecorationActivationChecks={run(){
  const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{const previous=decorationPreview;try{decorationPreview=null;f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}finally{decorationPreview=previous}};
  test("new shop intentionally has no paid artwork",()=>{const s=newGame(()=>.5);a(!hasDecorationFrame(s)&&seasonBorderMarkup(s)==="")});
- test("visual preview shows reference frame without a purchased package",()=>{const s=newGame(()=>.5),raw=JSON.stringify(s);decorationPreview={id:"midautumn",shop:1};a(hasDecorationFrame(s)&&stationPageSize(s)===5&&seasonBorderMarkup(s).includes("midautumn-full-frame.png"));a(!activeDecoration(s)&&decorationFactor(s)===1&&JSON.stringify(s)===raw)});
+ test("old preview URL no longer traps gameplay in read-only mode",()=>{a(requestedDecorationPreview("?decor-preview=midautumn")===null);const s=newGame(()=>.5);a(!hasDecorationFrame(s)&&stationPageSize(s)===6&&onlineDecorationFactor(s)===1)});
  test("visual preview cannot grant the seasonal demand bonus",()=>{const s=newGame(()=>.5),before=decorationFactor(s);decorationPreview={id:"xmas",shop:1};a(displayedDecoration(s)==="xmas"&&decorationFactor(s)===before)});
- test("leaving visual preview restores actual appearance",()=>{const s=newGame(()=>.5);decorationPreview={id:"midautumn",shop:1};a(hasDecorationFrame(s));decorationPreview=null;a(!hasDecorationFrame(s)&&stationPageSize(s)===6)});
- test("paid package remains intact under a different preview",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"xmas",start:1,end:30,paid:30000};const raw=JSON.stringify(s);decorationPreview={id:"midautumn",shop:1};a(displayedDecoration(s)==="midautumn"&&seasonDecor(s)==="xmas"&&decorationFactor(s)===1.5);decorationPreview=null;a(displayedDecoration(s)==="xmas"&&JSON.stringify(s)===raw)});
- test("legacy festival gets artwork without repurchase or longer duration",()=>{for(const [month,id]of [[11,"xmas"],[1,"tet"],[4,"summer"],[7,"midautumn"],[9,"autumn"]]){const s=newGame(()=>.5);s.day=((month-11+12)%12)*30+1;s.holiday={kind:"festival",start:s.day,end:s.day+9,claimed:["old"]};const raw=JSON.stringify(s);a(seasonDecor(s)===id&&hasDecorationFrame(s)&&stationPageSize(s)===5);a(JSON.stringify(s)===raw);s.day+=10;a(!hasDecorationFrame(s))}});
+ test("runtime preview cannot resize the playing surface",()=>{const s=newGame(()=>.5);decorationPreview={id:"midautumn",shop:1};a(!hasDecorationFrame(s)&&stationPageSize(s)===6);decorationPreview=null;a(!hasDecorationFrame(s))});
+ test("paid package bonus ignores obsolete visual preview",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"xmas",start:1,end:30,paid:30000};const raw=JSON.stringify(s);decorationPreview={id:"midautumn",shop:1};a(onlineDecorationFactor(s)===2&&decorationFactor(s)===1&&!hasDecorationFrame(s));decorationPreview=null;a(JSON.stringify(s)===raw)});
+ test("legacy festival retains save and expiry without removed artwork",()=>{const s=newGame(()=>.5);s.holiday={kind:"festival",start:1,end:10,claimed:["old"]};const raw=JSON.stringify(s);a(holidayActive(s)&&!hasDecorationFrame(s)&&stationPageSize(s)===6&&onlineDecorationFactor(s)===1&&JSON.stringify(s)===raw);s.day=11;a(!holidayActive(s))});
  test("legacy art stays tied to purchase month across month boundary",()=>{const s=newGame(()=>.5);s.day=60;s.holiday={kind:"festival",start:58,end:67,claimed:["old"]};a(seasonDecor(s)==="xmas");s.day=65;a(seasonDecor(s)==="xmas");s.day=68;a(seasonDecor(s)==="everyday")});
  return rows;
 }};
 
 window.BeanAroundInsetChecks={run(){
  const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{try{f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}};
- test("Mid-Autumn uses reference-derived full frame, not atlas slivers",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"midautumn",start:1,end:30,paid:30000};const h=seasonBorderMarkup(s);a((h.match(/midautumn-full-frame.png/g)||[]).length===8&&!h.includes("season-borders.png"))});
- test("other four themes use their own full-resolution transparent frames",()=>{for(const id of ["summer","autumn","xmas","tet"]){const s=newGame(()=>.5);s.seasonPackage={id,start:1,end:30,paid:30000};const h=seasonBorderMarkup(s);a((h.match(/<img /g)||[]).length===8&&h.includes(CAFE_ASSETS.fullFrames[id].src)&&!h.includes("season-borders.png"))}});
- test("decorated ingredient paging leaves a sixth slot for navigation",()=>{const s=newGame(()=>.5);a(stationPageSize(s)===6);s.seasonPackage={id:"xmas",start:1,end:30,paid:30000};a(stationPageSize(s)===5);s.day=31;a(stationPageSize(s)===6)});
+ test("Mid-Autumn purchase preserves normal shop width",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"midautumn",start:1,end:30,paid:30000};a(!hasDecorationFrame(s)&&seasonBorderMarkup(s)==="")});
+ test("other seasonal packages do not change bench imagery",()=>{const s=newGame(()=>.5),before=seasonScene(s);for(const id of ["summer","autumn","xmas","tet"]){s.seasonPackage={id,start:1,end:30,paid:30000};a(seasonScene(s)===before&&!hasDecorationFrame(s))}});
+ test("ingredient paging stays six with and without an active package",()=>{const s=newGame(()=>.5);a(stationPageSize(s)===6);s.seasonPackage={id:"xmas",start:1,end:30,paid:30000};a(stationPageSize(s)===6);s.day=31;a(stationPageSize(s)===6)});
  test("all ingredients remain reachable after compact pagination",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"midautumn",start:1,end:30,paid:30000};for(const r of R){const keys=r.steps.slice(),size=stationPageSize(s),pages=Math.ceil(keys.length/size),shown=[];for(let i=0;i<pages;i++)shown.push(...keys.slice(i*size,i*size+size));a(JSON.stringify(keys)===JSON.stringify(shown))}});
  test("frame selection and paging never alter saved progress",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"xmas",start:1,end:30,paid:30000};const raw=JSON.stringify(s);stationPageSize(s);seasonBorderMarkup(s);a(JSON.stringify(s)===raw)});
  return rows;
@@ -6912,9 +6646,9 @@ window.BeanAroundBorderChecks={run(){
  test("extra shot calls espresso only",()=>{const s=order("latte",["espresso","milk"]);s.order.extraShot=1;a(machineForStage(s)==="espresso")});
  test("no customer means no machine",()=>{const s=newGame(()=>.5);a(machineForStage(s)==="")});
  test("machine choice does not mutate stock time or order",()=>{const s=order("mangoCoconut",["mango"]),before=JSON.stringify(s);machineForStage(s);a(JSON.stringify(s)===before)});
- test("all five borders have eight isolated pieces and empty center",()=>{for(const id of Object.keys(SEASON_PACKAGES)){const s=newGame(()=>.5);s.seasonPackage={id,start:1,end:30,paid:30000};const h=seasonBorderMarkup(s);a((h.match(/class="season-border-piece /g)||[]).length===8);a(h.includes('<span class="season-border-center"></span>'));a((h.match(/<img /g)||[]).length===8&&h.includes(CAFE_ASSETS.fullFrames[id]?.src||CAFE_ASSETS.frames.src))}});
+ test("all package themes leave border markup empty",()=>{for(const id of Object.keys(SEASON_PACKAGES)){const s=newGame(()=>.5);s.seasonPackage={id,start:1,end:30,paid:30000};a(seasonBorderMarkup(s)===""&&!hasDecorationFrame(s))}});
  test("unowned and expired packages have no border",()=>{const s=newGame(()=>.5);a(seasonBorderMarkup(s)==="");s.seasonPackage={id:"xmas",start:1,end:30,paid:30000};s.day=31;a(seasonBorderMarkup(s)==="")});
- test("each border source is within atlas and separated",()=>{const v=Object.values(CAFE_ASSETS.frames.crops);for(let i=0;i<v.length;i++){const [x,y,w,h]=v[i];a(x>=0&&x+w<=1983&&y>=0&&y+h<=793);if(i)a(v[i-1][0]+v[i-1][2]<=x)}});
+ test("only vector equipment has an active asset source",()=>{a(Object.values(CAFE_ASSETS).filter(x=>x.src).length===1&&CAFE_ASSETS.equipment.src.endsWith(".svg"))});
  return rows;
 }};
 
@@ -6924,27 +6658,46 @@ window.BeanAroundSeasonChecks={run(){
  const shop=(month=11)=>{const s=newGame(()=>.5);s.day=((month-11+12)%12)*30+1;s.cash=500000;s.events.preparedDay=s.day;s.events.active=null;s.ops.active=null;return s};
  for(const [id,g]of Object.entries(SEASON_PACKAGES))for(let month=1;month<=12;month++)test(id+" month "+month,()=>{const s=shop(month),before=s.cash;if(g.months.includes(month)){buySeasonPackage(s,id);a(s.cash===before-30000&&activeDecoration(s)?.id===id)}else{fails(()=>buySeasonPackage(s,id));a(s.cash===before&&!s.seasonPackage)}});
  test("charge once and book full decoration cost, no revenue grant",()=>{const s=shop();buySeasonPackage(s,"xmas");a(s.stats.decorExpense===30000&&s.stats.spent===30000&&s.lifetimeRevenue===0);fails(()=>buySeasonPackage(s,"xmas"));a(s.stats.decorExpense===30000)});
- test("last day purchase lasts 30 inclusive days across month boundary",()=>{const s=shop(12);s.day+=29;buySeasonPackage(s,"xmas");const d=s.day;s.day=d+29;a(activeDecoration(s)&&decorationFactor(s)===1.5);s.day++;a(!activeDecoration(s)&&decorationFactor(s)===1&&seasonDecor(s)==="everyday")});
+ test("last day purchase lasts 30 inclusive days across month boundary",()=>{const s=shop(12);s.day+=29;buySeasonPackage(s,"xmas");const d=s.day;s.day=d+29;a(activeDecoration(s)&&onlineDecorationFactor(s)===2);s.day++;a(!activeDecoration(s)&&decorationFactor(s)===1&&seasonDecor(s)==="everyday")});
  test("no stacking across two themes",()=>{const s=shop(8);buySeasonPackage(s,"midautumn");s.day+=5;const raw=JSON.stringify(s);fails(()=>buySeasonPackage(s,"midautumn"));a(JSON.stringify(s)===raw)});
  test("expired package can be renewed only in selling month",()=>{const s=shop(11);buySeasonPackage(s,"xmas");s.day+=30;buySeasonPackage(s,"xmas");a(s.stats.decorExpense===60000);s.day+=30;fails(()=>buySeasonPackage(s,"xmas"));buySeasonPackage(s,"tet");a(activeDecoration(s).id==="tet")});
  test("insufficient balance and unknown id are atomic",()=>{const s=shop();s.cash=29999;const raw=JSON.stringify(s);fails(()=>buySeasonPackage(s,"xmas"));fails(()=>buySeasonPackage(s,"bogus"));a(JSON.stringify(s)===raw)});
  test("service and report cannot buy",()=>{for(const phase of ["open","report"]){const s=shop();s.phase=phase;fails(()=>buySeasonPackage(s,"xmas"));a(!s.seasonPackage)}});
- test("old active festival is honored but cannot stack new package",()=>{const s=shop();s.holiday={kind:"festival",start:s.day,end:s.day+9,claimed:[]};fails(()=>buySeasonPackage(s,"xmas"));s.day+=10;buySeasonPackage(s,"xmas");a(decorationFactor(s)===1.5)});
+ test("old active festival is honored but cannot stack new package",()=>{const s=shop();s.holiday={kind:"festival",start:s.day,end:s.day+9,claimed:[]};fails(()=>buySeasonPackage(s,"xmas"));s.day+=10;buySeasonPackage(s,"xmas");a(onlineDecorationFactor(s)===2)});
  test("missing field migrates safely and grants no decoration",()=>{const s=shop(),m=migrateSave(clone(s));a(m.cash===s.cash&&!activeDecoration(m)&&seasonDecor(m)==="everyday")});
  test("reload retains paid package without fee duplication or time loss",()=>{const s=shop();buySeasonPackage(s,"xmas");const m=migrateSave(clone(s));a(m.cash===s.cash&&m.seasonPackage.end===s.day+29&&m.stats.decorExpense===30000&&seasonDecor(m)==="xmas")});
  test("corrupt duration rejected without mutating input",()=>{const s=shop();buySeasonPackage(s,"xmas");s.seasonPackage.end++;const raw=JSON.stringify(s);fails(()=>migrateSave(s));a(JSON.stringify(s)===raw)});
  test("calendar is game day based regardless wall clock",()=>{const s=shop(4);buySeasonPackage(s,"summer");const raw=JSON.stringify(s);for(let i=0;i<10;i++)a(seasonInfo(s).month===4&&activeDecoration(s));a(JSON.stringify(s)===raw)});
  test("decoration does not change recipe duration or stock",()=>{const s=shop(),stock=JSON.stringify(s.stock),t=actionSeconds(s,"espresso");buySeasonPackage(s,"xmas");a(JSON.stringify(s.stock)===stock&&actionSeconds(s,"espresso")===t)});
- test("counter demand is plus fifty percent before existing cap",()=>{const s=shop(4);s.cash=100000;const before=trafficDemand(s);buySeasonPackage(s,"summer");a(Math.abs(trafficDemand(s)-Math.min(counterDailyLimit(s),Math.round(before*1.5)))<=1)});
+ test("seasonal package changes online only, not walk-in demand",()=>{const s=shop(4),before=trafficDemand(s);buySeasonPackage(s,"summer");a(trafficDemand(s)===before&&decorationFactor(s)===1&&onlineDecorationFactor(s)===2)});
  test("online demand grows but never exceeds configured capacity",()=>{const s=chainTestShop(151);s.online.tablet=s.online.enabled=true;const before=onlineVolume(s);buySeasonPackage(s,"summer");a(onlineVolume(s)>=before&&onlineVolume(s)<=onlineCapacity(s))});
  test("separate branch purchase does not charge or decorate parent",()=>{const root=chainTestShop(61);networkBind(root);const b=openBranch(root,2);b.cash=100000;const cash=root.cash;buySeasonPackage(b,"tet");a(root.cash===cash&&!activeDecoration(root)&&activeDecoration(b).id==="tet"&&b.stats.decorExpense===30000)});
  test("new branch inherits no package from parent",()=>{const root=chainTestShop(61);networkBind(root);buySeasonPackage(root,"tet");const b=openBranch(root,2);a(!activeDecoration(b)&&seasonDecor(b)==="everyday")});
  test("global opened day blocks branch prep purchases",()=>{const root=chainTestShop(61);networkBind(root);const b=openBranch(root,2);root.visitPlan.activeDay=root.day;b.cash=100000;fails(()=>buySeasonPackage(b,"tet"));a(!b.seasonPackage)});
- test("different machine sources and crop boxes for espresso juicer blender",()=>{const boxes=CAFE_ASSETS.equipment.crops;a(new Set(Object.values(boxes).map(x=>x.join(","))).size===3);for(const key of ["espresso","press","blend"]){const m=assetSvg("equipment",key);a(m.includes('equipment.png')&&m.includes(boxes[key].join(" "))&&!m.includes("<use"))}});
+ test("different machine sources and crop boxes for espresso juicer blender",()=>{const boxes=CAFE_ASSETS.equipment.crops;a(new Set(Object.values(boxes).map(x=>x.join(","))).size===3);for(const key of ["espresso","press","blend"]){const m=assetSvg("equipment",key);a(m.includes('equipment-vector.svg')&&m.includes(boxes[key].join(" "))&&!m.includes("<use"))}});
  test("art paths are local and source rectangles stay within atlas",()=>{for(const g of Object.values(CAFE_ASSETS).filter(g=>g.src)){a(g.src.startsWith("assets/")&&!g.src.includes("http"));for(const [x,y,w,h]of Object.values(g.crops))a(x>=0&&y>=0&&x+w<=g.width&&y+h<=g.height)}for(const g of Object.values(CAFE_ASSETS.fullFrames)){a(g.src.startsWith("assets/")&&!g.src.includes("http"));const [l,t,r,b]=g.insets;a(l>0&&t>0&&r>0&&b>0&&l+r<g.width&&t+b<g.height)}});
  return rows;
 }};
 
+
+
+window.BeanAroundOnlineSeasonChecks={run(){
+ const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{const root=visitRoot,old=gameRandom;try{visitRoot=null;gameRandom=()=>.2;f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}finally{visitRoot=root;gameRandom=old}};
+ const full=(day=28)=>{const s=chainTestShop(day);for(const k of Object.keys(EQUIPMENT))s.upgrades[k]=true;s.online.tablet=s.online.enabled=true;s.online.quotaUnit="orders";deliveryDefaults(s);Object.assign(s.events,{weather:"sun",traffic:1.2,advertising:1,preparedDay:day});return s};
+ const pack=s=>{s.seasonPackage={id:"xmas",start:s.day,end:s.day+29,paid:30000}};
+ test("each daily demand factor doubles exact parcels, not cups",()=>{for(let day=28;day<35;day++){const s=full(day),before=onlineVolume(s);pack(s);a(onlineVolume(s)===2*before&&onlineCapacity(s)===1000);a(forecastOnlineCups(s)>onlineVolume(s))}});
+ test("championship stacks multiplicatively to1700, not1350",()=>{const s=full();s.contest.promoStart=28;s.contest.promoEnd=42;const before=onlineVolume(s);a(before===850);pack(s);a(onlineCapacity(s)===1700&&onlineVolume(s)===1700)});
+ test("player admission limit takes precedence after doubling",()=>{const s=full();pack(s);s.contest.promoStart=28;s.contest.promoEnd=42;applyBusinessPlan(s,"60","1500");a(onlineVolume(s)===1500);const m=migrateSave(clone(s));a(m.business.onlineLimit===1500&&onlineVolume(m)===1500);s.business.onlineLimit=0;a(onlineVolume(s)===0)});
+ test("low demand stays proportional and no staff cannot get free full capacity",()=>{const s=full();s.employees.online.workingToday=false;const before=onlineVolume(s);pack(s);a(onlineVolume(s)===before*2&&onlineCapacity(s)===12)});
+ test("disabled platform stays disabled under seasonal package",()=>{const s=full();pack(s);s.online.enabled=false;a(onlineVolume(s)===0);s.online.enabled=true;s.online.tablet=false;a(onlineVolume(s)===0)});
+ test("package expires after30 game days without altering accepted quota",()=>{const s=full();pack(s);s.contest.promoStart=28;s.contest.promoEnd=90;openDay(s);const q=s.online.dayQuota,left=s.online.remaining;s.day=58;a(onlineDecorationFactor(s)===1&&onlineCapacity(s)===850&&s.online.dayQuota===q&&s.online.remaining===left)});
+ test("reload accepts active1700 quota and remaining over1000",()=>{const s=full();pack(s);s.contest.promoStart=28;s.contest.promoEnd=42;openDay(s);a(s.online.dayQuota===1700&&s.online.remaining>1000);const cash=s.cash,m=migrateSave(clone(s));a(m.online.dayQuota===1700&&m.online.remaining===s.online.remaining&&m.cash===cash&&validCore(m))});
+ test("buying package does not change an old in-flight quota on reload",()=>{const s=full();pack(s);openDay(s);s.online.dayQuota=500;s.online.remaining=499;const m=migrateSave(clone(s));a(m.online.dayQuota===500&&m.online.remaining===499)});
+ test("procurement includes the expanded drinks and cold brew forecast",()=>{const s=full();for(const k of Object.keys(s.stock))s.stock[k]=[];const before=stockPlan(s),cold=coldPreparationPlan(s);pack(s);const after=stockPlan(s),more=coldPreparationPlan(s);a(after.cup>before.cup&&more.target>=cold.target&&stockPackLimit(s)===1000&&bakeryPackLimit(s)===1000);const cart=suggestedCartUncapped(s);a(cart.bean*G.bean.pack>=more.beanService+more.beanForBrew)});
+ test("separate branch doubles its own forecast and preserves parent",()=>{const s=full(61);networkBind(s);const b=maxTestBranch(s,openBranch(s,2));b.events.advertising=1;const before=branchForecast(s,2),main=onlineVolumeBase(s);b.seasonPackage={id:"tet",start:61,end:90,paid:30000};const after=branchForecast(s,2);a(after.online===2*before.online&&after.counter===before.counter&&onlineVolumeBase(s)===main);a(validCore(migrateSave(clone(s))))});
+ test("1700 actual receipts complete with real stock fees and valid save",()=>{const s=full();pack(s);s.contest.promoStart=28;s.contest.promoEnd=42;s.business.counterLimit=1;openDay(s);s.order.needsClarification=false;simulationFill(s);deliver(s);let guard=100000,checked=false;while(s.phase==="open"&&guard--){s.cleanliness=100;clockStep(s,.2);if(!checked&&s.online.issued>1000){const m=migrateSave(clone(s));a(m.online.issued===s.online.issued&&m.online.dayQuota===1700);checked=true}}a(guard>0&&checked&&s.phase==="report"&&s.stats.onlineReceipts===1700&&s.stats.onlineFees>0&&quantity(s,"cup")<50000);a(validCore(migrateSave(clone(s))))});
+ return rows;
+}};
 
 window.BeanAroundColdProcurementChecks={run(){
  const rows=[],assert=(v,m="assertion")=>{if(!v)throw Error(m)},check=(name,f)=>{try{f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}};
