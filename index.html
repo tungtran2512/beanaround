@@ -5004,14 +5004,14 @@ function syncCafeTheme(s,doc=document){
 }
 function cafeMaskHeader(host,node){
  const base=host.getBoundingClientRect();if(!base.width||!base.height)return;
- let path="M0 0H"+base.width+"V"+base.height+"H0Z";
+ let path="";
  for(const el of host.querySelectorAll(".owner-button,.hud-left>div,.brand,.hud-rating")){
   const r=el.getBoundingClientRect(),x=Math.max(0,r.left-base.left-3),y=Math.max(0,r.top-base.top-2),right=Math.min(base.width,r.right-base.left+3),bottom=Math.min(base.height,r.bottom-base.top+2);
   if(right>x&&bottom>y)path+="M"+x+" "+y+"H"+right+"V"+bottom+"H"+x+"Z";
  }
  const key=base.width+"|"+base.height+"|"+path;if(node.dataset.maskBounds===key)return;
  node.dataset.maskBounds=key;
- const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+base.width+'" height="'+base.height+'"><path fill="white" fill-rule="evenodd" d="'+path+'"/></svg>';
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+base.width+'" height="'+base.height+'"><defs><mask id="text-safe"><rect width="100%" height="100%" fill="white"/><path fill="black" d="'+path+'"/></mask></defs><rect width="100%" height="100%" fill="white" mask="url(#text-safe)"/></svg>';
  const mask='url("data:image/svg+xml,'+encodeURIComponent(svg)+'")';node.style.maskImage=mask;node.style.webkitMaskImage=mask;
 }
 function syncCafeOrderNote(){
