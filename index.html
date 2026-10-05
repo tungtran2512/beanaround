@@ -974,6 +974,52 @@ body.service-mode{padding:0}
 #decorationPreviewNotice{color:var(--brand-red-dark);width:min(88vw,413px)}
 @media(prefers-reduced-motion:reduce){.service-mode .bar-bench .season-scene{filter:saturate(.9)!important}}
 
+
+/* Side-only seasonal surround. Keep all normal gameplay height available. */
+#game.has-season-border,body>.season-border{
+ --art-top:0px;--art-bottom:0px;--trim-top:0px;--trim-bottom:0px;
+}
+#game.has-season-border{padding-top:0;padding-bottom:0}
+body>.season-border{grid-template-rows:0 minmax(0,1fr) 0}
+body>.season-border .season-frame-title{display:none}
+body>.season-border .border-piece-0,
+body>.season-border .border-piece-1,
+body>.season-border .border-piece-2,
+body>.season-border .border-piece-6,
+body>.season-border .border-piece-7,
+body>.season-border .border-piece-8{visibility:hidden}
+#game.has-season-border .topbar .brand b{
+ display:block;font-size:12px;line-height:1.15;max-height:28px;overflow:hidden;
+}
+#game.has-season-border .topbar .brand:before{display:none}
+#game.has-season-border>.topbar{padding-top:calc(4px + env(safe-area-inset-top,0px))}
+#game.has-season-border>.navbar{padding-bottom:calc(2px + env(safe-area-inset-bottom,0px))}
+.service-mode #game.has-season-border>.topbar{
+ height:calc(66px + env(safe-area-inset-top,0px));
+ min-height:calc(66px + env(safe-area-inset-top,0px));
+}
+.service-mode #game.has-season-border>.navbar{
+ height:calc(50px + env(safe-area-inset-bottom,0px));
+ min-height:calc(50px + env(safe-area-inset-bottom,0px));
+}
+/* Navigation belongs to its scroll content, not an overlay above upgrade rows. */
+.management-nav,.upgrade-nav{position:static;top:auto;bottom:auto;z-index:auto}
+#game>.topbar>#decorationPreviewNotice{
+ position:relative;grid-column:1 / -1;inset:auto;transform:none;
+ width:100%;min-width:0;min-height:44px;margin:0;padding:2px 4px;
+ box-shadow:none;z-index:auto;align-self:stretch;
+}
+.decoration-preview-mode.service-mode #game.has-season-border>.topbar{
+ height:calc(116px + env(safe-area-inset-top,0px));
+ min-height:calc(116px + env(safe-area-inset-top,0px));
+ grid-template-rows:minmax(0,1fr) 48px;
+}
+@media(max-height:740px){
+ .service-mode #game.has-season-border>.topbar{height:calc(60px + env(safe-area-inset-top,0px));min-height:calc(60px + env(safe-area-inset-top,0px))}
+ .service-mode #game.has-season-border>.navbar{height:calc(48px + env(safe-area-inset-bottom,0px));min-height:calc(48px + env(safe-area-inset-bottom,0px))}
+ .decoration-preview-mode.service-mode #game.has-season-border>.topbar{height:calc(110px + env(safe-area-inset-top,0px));min-height:calc(110px + env(safe-area-inset-top,0px))}
+}
+
 </style>
 </head>
 <body><div id="bootNotice"><b>BEAN AROUND · Đang khởi động…</b><p>Nếu thông báo này không biến mất và nút không hoạt động: hãy mở link game bằng Safari. Bản xem trước của ứng dụng Tệp / Google Drive không chạy game.</p><small>Nếu đang mở website thật, gửi lại thông báo lỗi bên dưới để được kiểm tra.</small><pre id="bootError" style="white-space:pre-wrap"></pre></div>
@@ -4501,7 +4547,7 @@ function seasonBorderMarkup(s){
  const [x,y,w,h]=c,[left,top,right,bottom]=full?full.insets:[98,98,98,98];
  const pieces=[
  [x,y,left,top],[x+left,y,w-left-right,top],[x+w-right,y,right,top],
- [x,y+top,left,h-top-bottom],null,[x+w-right,y+top,right,h-top-bottom],
+ [x,y,left,h],null,[x+w-right,y,right,h],
  [x,y+h-bottom,left,bottom],[x+left,y+h-bottom,w-left-right,bottom],[x+w-right,y+h-bottom,right,bottom]
  ];
  return pieces.map((crop,i)=>crop?'<span class="season-border-piece border-piece-'+i+'">'+htmlAssetCrop(a,crop)+'</span>':'<span class="season-border-center"></span>').join("");
@@ -4529,7 +4575,7 @@ function htmlAssetCrop(a,crop){
 }
 function syncSeasonBorder(s,game,doc=document){
  if(!game)return;
- const id=displayedDecoration(s),active=!!CAFE_ASSETS.frames.crops[id],key=locationNumber(s)+"|"+id+"|season-frame-90-v4";
+ const id=displayedDecoration(s),active=!!CAFE_ASSETS.frames.crops[id],key=locationNumber(s)+"|"+id+"|side-frame-90-v5";
  let trim=doc.getElementById("seasonBorder");
  if(!trim){trim=doc.querySelector(".season-border");if(!trim){trim=doc.createElement("div");trim.setAttribute("class","season-border")}trim.id="seasonBorder";trim.setAttribute("aria-hidden","true")}
  // Attach outside the clipped service grid, not inside #game.
@@ -5013,12 +5059,16 @@ function endDecorationPreview(){
  stationPanelCache=null;seasonHeaderKey="";brandPaintKey="";
  const url=new URL(window.location.href);url.searchParams.delete("decor-preview");
  window.history.replaceState(null,"",url.pathname+url.search+url.hash);
- document.getElementById("decorationPreviewNotice")?.remove();paint();
+ document.getElementById("decorationPreviewNotice")?.remove();document.body.classList.toggle("decoration-preview-mode",false);paint();
 }
 function decorationPreviewNotice(){
  let el=document.getElementById("decorationPreviewNotice");
+ document.body.classList.toggle("decoration-preview-mode",!!decorationPreview);
  if(!decorationPreview){el?.remove();return}
- if(!el){el=document.createElement("div");el.id="decorationPreviewNotice";el.setAttribute("role","status");document.body.appendChild(el)}
+ const header=document.querySelector(".topbar");if(!header)return;
+ if(!el){el=document.createElement("div");el.id="decorationPreviewNotice";el.setAttribute("role","status")}
+ // Preview controls stay in the header flow; never cover the bottom navigation.
+ if(el.parentNode!==header)header.appendChild(el);
  const key=decorationPreview.id;
  if(el.dataset.theme!==key){
   el.innerHTML='<span><b>XEM THỬ · '+escapeHTML(SEASON_PACKAGES[key].name)+'</b><small>Ca đang tạm dừng · Không mua gói, không ghi save</small></span><button data-action="decorPreviewExit">Thoát</button>';
