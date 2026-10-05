@@ -790,6 +790,85 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 .season-active{padding:12px;border-radius:12px;background:#f7e6cb;color:var(--brand-red-dark)}
 .management-nav,.upgrade-nav{position:static;top:auto;bottom:auto;z-index:auto}
 @media(max-width:390px){.service-mode .bar-bench{grid-template-columns:44px minmax(0,1fr) 60px;gap:2px}}
+
+/* SEASON THEME: paint-only layers. No dimensions/padding/grid definitions on
+   gameplay containers or controls; default/off is the unchanged baseline. */
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .bar-bench .season-corners{
+ display:block!important;opacity:1;z-index:0;pointer-events:none;
+}
+.cafe-atmosphere{position:absolute;inset:0;overflow:hidden;pointer-events:none;isolation:isolate;contain:layout paint}
+.cafe-atmosphere *,.cafe-header-decor,.cafe-header-decor *,.cafe-nav-decor,.cafe-nav-decor *{pointer-events:none!important;user-select:none;-webkit-user-select:none}
+.cafe-atmosphere>.cafe-room{
+ position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:fill;z-index:0;
+ filter:blur(2px) saturate(.72) contrast(.86);opacity:.77;transform:scale(1.015);
+}
+.cafe-atmosphere>.cafe-season-props{
+ position:absolute;inset:0;width:100%;height:100%;max-width:none;z-index:1;
+ filter:blur(.55px) saturate(.8);opacity:.63;overflow:hidden;
+}
+.cafe-light-treatment{position:absolute;inset:0;z-index:2;background:
+ radial-gradient(ellipse at 53% 57%,#fff9eae0 0%,#fff7e585 28%,#fff4df0d 67%,transparent 85%),
+ linear-gradient(180deg,transparent 68%,#f6dfae1f 79%,transparent 82%);
+ box-shadow:inset 0 14px 26px -20px var(--cafe-light);pointer-events:none;
+}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .cafe-atmosphere:after{
+ content:"";position:absolute;inset:0;background:var(--cafe-light);opacity:var(--cafe-wash);z-index:2;pointer-events:none;
+}
+/* The original vector atlas already has a soft contact shadow. Never filter
+   its parent: the only filters live on the two background layers above. */
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .bar-bench>.bar-machine,
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .bar-bench>.cup-position{z-index:3;opacity:1;filter:none}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .bar-bench>.cup-rack{z-index:4}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .shift-meter{z-index:5}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .topbar{
+ isolation:isolate;background-image:linear-gradient(120deg,#00000014,transparent 48%,#efca940a);
+}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .topbar>*:not(.cafe-header-decor){z-index:1}
+.cafe-header-decor{position:absolute!important;inset:0;z-index:0;overflow:hidden}
+.cafe-header-decor:before,.cafe-header-decor:after{
+ content:"";position:absolute;top:0;width:clamp(22px,7vw,34px);height:10px;
+ background-image:var(--cafe-header-decor);background-size:contain;background-repeat:no-repeat;opacity:.48;pointer-events:none;
+}
+.cafe-header-decor:before{left:0}
+.cafe-header-decor:after{right:0;transform:scaleX(-1)}
+/* Tiny warm lights only in the top two pixels, away from all header labels. */
+.cafe-header-decor{background-image:radial-gradient(circle,#edcd8b 0 1px,transparent 1.6px);background-size:41px 3px;background-repeat:repeat-x;background-position:center top}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .customer-queue{background-image:radial-gradient(ellipse at center,#efd7ae18,transparent 75%)}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .compact-order{
+ background-image:linear-gradient(120deg,#fffdf780,transparent 65%);
+ box-shadow:inset 0 1px 0 #fffaf0,0 1px 2px #6946230b;
+}
+/* CTA ornaments are confined to its bottom corners, never the label/icon. */
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .deliver-art{position:relative;isolation:isolate;overflow:hidden}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .deliver-art:before,
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .deliver-art:after{
+ content:"";position:absolute;bottom:1px;width:13px;height:8px;background:var(--cafe-cta-decor) center / contain no-repeat;opacity:.52;z-index:0;pointer-events:none;
+}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .deliver-art:before{left:3px}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .deliver-art:after{right:3px;transform:scaleX(-1)}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .deliver-art>b,
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .deliver-art>svg{position:relative;z-index:1}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .navbar{
+ position:relative;isolation:isolate;background-image:linear-gradient(110deg,#0000000a,transparent 50%,#e9cda10a);
+}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .navbar>button{z-index:1}
+.cafe-nav-decor{position:absolute!important;inset:0;z-index:0;overflow:hidden}
+.cafe-nav-decor:before,.cafe-nav-decor:after{
+ content:"";position:absolute;bottom:0;width:18px;height:7px;background:var(--cafe-nav-decor) center / contain no-repeat;opacity:.42;pointer-events:none;
+}
+.cafe-nav-decor:before{left:0}.cafe-nav-decor:after{right:0;transform:scaleX(-1)}
+/* A postcard reuses the same room; its existing bounds and machine stay intact. */
+.illustrated-postcard>.cafe-atmosphere{z-index:0}
+.illustrated-postcard>.postcard-equipment,.illustrated-postcard>.postcard-sign,.illustrated-postcard>.postcard-badge{z-index:3}
+@media(max-width:380px){
+ .cafe-atmosphere>.cafe-season-props{display:none}
+ .cafe-header-decor:before,.cafe-header-decor:after{opacity:.3}
+ .cafe-nav-decor:before,.cafe-nav-decor:after{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .cafe-atmosphere *,.cafe-header-decor,.cafe-nav-decor{animation:none!important;transition:none!important}
+}
+
 </style>
 </head>
 <body><div id="bootNotice"><b>BEAN AROUND · Đang khởi động…</b><p>Nếu thông báo này không biến mất và nút không hoạt động: hãy mở link game bằng Safari. Bản xem trước của ứng dụng Tệp / Google Drive không chạy game.</p><small>Nếu đang mở website thật, gửi lại thông báo lỗi bên dưới để được kiểm tra.</small><pre id="bootError" style="white-space:pre-wrap"></pre></div>
@@ -4344,8 +4423,7 @@ function syncSeasonBorder(s,game,doc=document){
 
 function seasonHeaderPaint(){
  const game=$("game");if(game)game.dataset.season="everyday";
- syncSeasonBorder(state,game);
- document.querySelector(".season-header-art")?.remove();
+ syncSeasonBorder(state,game);syncCafeTheme(state);
  const p=activeDecoration(state),banner=$("holidayBanner");
  if(banner&&p){banner.hidden=false;banner.textContent=SEASON_PACKAGES[p.id].name+" · x2 đơn online · "+(p.end-state.day+1)+" ngày"}
 }
@@ -4866,18 +4944,88 @@ function croppedAssetSvg(a,crop,cls="",align="xMidYMid meet"){
 }
 function assetSvg(group,key,cls="",align="xMidYMid meet"){const a=CAFE_ASSETS[group];return croppedAssetSvg(a,a?.crops[key],cls,align)}
 
-function seasonScene(s,cls="season-scene"){return ""}
+
+/* ==================== SEASON THEME / PRESENTATION ONLY ====================
+ * No save field, clock, order multiplier, machine dimensions or input handlers.
+ * A single room and four small botanical SVGs; only the chosen motif is requested.
+ * Calendar and purchased package are read, never changed.
+ */
+const SeasonTheme=Object.freeze({
+ autumn:Object.freeze({id:"autumn",name:"Mùa Thu",background:"assets/bean-around/cafe-room.svg",headerDecor:"autumn",machineAreaDecor:"dried",orderDecor:"paper",ctaDecor:"autumn",navDecor:"autumn",particles:"leaf",lighting:"#f3dfb5",window:"#d6b586",accent:"#b78450",leaf:"#9b784f",wash:".11"}),
+ spring:Object.freeze({id:"spring",name:"Mùa Xuân",background:"assets/bean-around/cafe-room.svg",headerDecor:"spring",machineAreaDecor:"blossom",orderDecor:"paper",ctaDecor:"spring",navDecor:"spring",particles:"petal",lighting:"#fff3db",window:"#d5e0c9",accent:"#bd9382",leaf:"#829878",wash:".08"}),
+ summer:Object.freeze({id:"summer",name:"Mùa Hạ",background:"assets/bean-around/cafe-room.svg",headerDecor:"summer",machineAreaDecor:"green",orderDecor:"paper",ctaDecor:"summer",navDecor:"summer",particles:"sun",lighting:"#fff1c9",window:"#c7dadd",accent:"#7c986e",leaf:"#648566",wash:".09"}),
+ winter:Object.freeze({id:"winter",name:"Mùa Đông",background:"assets/bean-around/cafe-room.svg",headerDecor:"winter",machineAreaDecor:"pine",orderDecor:"paper",ctaDecor:"winter",navDecor:"winter",particles:"snow",lighting:"#fbe5bc",window:"#9cabb7",accent:"#7d8b99",leaf:"#5f7b67",wash:".13"})
+});
+const CAFE_PACKAGE_THEME=Object.freeze({summer:"summer",autumn:"autumn",midautumn:"autumn",tet:"spring",xmas:"winter"});
+function requestedCafeTheme(search){const m=String(search||"").match(/(?:^|[?&])season-theme=(spring|summer|autumn|winter|off)(?:&|$)/);return m?m[1]:null}
+let cafeThemeOverride=typeof window!=="undefined"?requestedCafeTheme(window.location?.search):null;
+const cafeSceneCache=new Map();
+function cafeThemeId(s){
+ if(cafeThemeOverride==="off")return null;
+ if(cafeThemeOverride&&Object.hasOwn(SeasonTheme,cafeThemeOverride))return cafeThemeOverride;
+ const p=activeDecoration(s);if(p)return CAFE_PACKAGE_THEME[p.id];
+ const month=seasonInfo(s).month;
+ return month<=3?"spring":month<=6?"summer":month<=10?"autumn":"winter";
+}
+function cafeMotifPath(id){return "assets/bean-around/season-"+id+".svg"}
+function cafeThemeStyle(t){
+ return "--cafe-light:"+t.lighting+";--cafe-window:"+t.window+";--cafe-accent:"+t.accent+";--cafe-leaf:"+t.leaf+";--cafe-wash:"+t.wash+";--cafe-header-decor:url("+cafeMotifPath(t.headerDecor)+");--cafe-cta-decor:url("+cafeMotifPath(t.ctaDecor)+");--cafe-nav-decor:url("+cafeMotifPath(t.navDecor)+")";
+}
+function cafeStageAccents(t){
+ // Absolute SVG decorations remain confined to the rear window and extreme edges.
+ // No animation or independent particle timers; machine/cup/input layers stay sharp.
+ const snow=t.particles==="snow",spring=t.particles==="petal",fall=t.particles==="leaf";
+ const weather=snow?'<path d="M764 324Q789 311 812 324T859 326T906 323T956 325V344H764Z" fill="#f4f2e8" opacity=".65"/>'+[[778,78],[892,86],[925,152],[822,239],[782,296],[944,291],[876,214],[820,129]].map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="2.5" fill="#f5f1e9" opacity=".68"/>').join(""):
+ spring?'<path d="M803 93q-10 2-8 11q10-1 8-11M923 258q-11-3-12 7q10 5 12-7" fill="#d7aaa3" opacity=".62"/>':
+ fall?'<path d="M784 251q-8-18 10-14q12 12-10 14M922 119q-3-15 10-9q5 12-10 9" fill="#b58d59" opacity=".6"/>':
+ '<ellipse cx="898" cy="104" rx="34" ry="32" fill="#fff3cd" opacity=".28"/><path d="M940 56L815 340H851L957 93" fill="#fff5d2" opacity=".14"/>';
+ const left=fall?'<g transform="translate(28 453)"><ellipse cy="18" rx="25" ry="5" fill="#674b31" opacity=".18"/><ellipse cy="1" rx="22" ry="19" fill="#bf8d58"/><ellipse cy="1" rx="12" ry="19" fill="#ce9e67"/><path d="M0-17q-2-10 5-13" fill="none" stroke="#6a7653" stroke-width="5"/><path d="M-11-13q-8 16 0 28M11-13q8 16 0 28" fill="none" stroke="#ac7745" stroke-width="1.5"/></g>':
+ '<g transform="translate(30 449)"><ellipse cy="21" rx="23" ry="4" fill="#6c583d" opacity=".16"/><path d="M-14-10H14L10 20H-10Z" fill="#d4c8ab"/><path d="M-8-7H-2V17" stroke="#eee5ce" stroke-width="2"/><path d="M0-10V-53M0-25L-13-44M0-36L13-57" fill="none" stroke="'+t.leaf+'" stroke-width="2"/>'+
+ (spring?'<g fill="#dcb7ae"><circle cx="-14" cy="-45" r="6"/><circle cx="13" cy="-57" r="6"/><circle cy="-53" r="7"/></g>':
+ snow?'<path d="M0-64L-13-46H-7L-20-27H20L7-46H13Z" fill="'+t.leaf+'"/><circle cx="-7" cy="-35" r="2" fill="#ccb77f"/>':
+ '<path d="M0-19Q-26-29-14-43Q4-35 0-19M0-35Q24-51 15-59Q-2-54 0-35" fill="'+t.leaf+'"/>')+'</g>';
+ const right='<g transform="translate(967 447)" opacity=".75"><ellipse cy="25" rx="22" ry="3" fill="#7a6247" opacity=".22"/><path d="M-16-19H15L10 21H-10Z" fill="#c7bda1"/><path d="M-10-18L-17-60M-3-19V-66M4-19L11-63M9-18L19-54" stroke="#a18b61" stroke-width="3" fill="none"/><path d="M-15-17L-9 20M13-17L9 20" stroke="#ece2c7" stroke-width="1.5"/></g>';
+ return '<svg class="cafe-season-props" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true" focusable="false"><rect x="762" y="50" width="195" height="294" fill="'+t.window+'" opacity=".18"/>'+weather+left+right+'</svg>';
+}
+function cafeSceneMarkup(s,scope="stage"){
+ const id=cafeThemeId(s);if(!id)return "";
+ const t=SeasonTheme[id],key=id+"|"+scope;let html=cafeSceneCache.get(key);if(html)return html;
+ html='<div class="cafe-atmosphere" data-cafe-art="'+id+'" style="'+cafeThemeStyle(t)+'" aria-hidden="true">'+
+ '<img class="cafe-room" src="'+t.background+'" width="1000" height="600" alt="" draggable="false" decoding="async"'+(scope==="postcard"?' loading="lazy"':"")+'>'+
+ cafeStageAccents(t)+'<i class="cafe-light-treatment"></i></div>';
+ cafeSceneCache.set(key,html);return html;
+}
+function syncCafeTheme(s,doc=document){
+ const game=doc.getElementById("game");if(!game)return;
+ const id=cafeThemeId(s),key=id||"off";
+ if(game.dataset.cafeTheme===key)return;
+ game.dataset.cafeTheme=key;
+ for(const name of ["light","window","accent","leaf","wash","header-decor","cta-decor","nav-decor"])game.style.removeProperty("--cafe-"+name);
+ if(id){
+  const t=SeasonTheme[id];
+  for(const[k,v]of Object.entries({light:t.lighting,window:t.window,accent:t.accent,leaf:t.leaf,wash:t.wash,"header-decor":"url("+cafeMotifPath(t.headerDecor)+")","cta-decor":"url("+cafeMotifPath(t.ctaDecor)+")","nav-decor":"url("+cafeMotifPath(t.navDecor)+")"}))game.style.setProperty("--cafe-"+k,v);
+ }
+ // These nodes are absolute overlays, never grid/flex items in the live layout.
+ for(const[selector,cls]of [[".topbar","cafe-header-decor"],[".navbar","cafe-nav-decor"]]){
+  const host=game.querySelector(selector);if(!host)continue;
+  let node=host.querySelector("."+cls);
+  if(!id){node?.remove();continue}
+  if(!node){node=doc.createElement("span");node.className=cls;node.setAttribute("aria-hidden","true");host.appendChild(node)}
+ }
+}
+
+function seasonScene(s,cls="season-scene"){return cafeSceneMarkup(s,cls==="postcard-background"?"postcard":"stage")}
 function counterSurface(s){return ""}
 function seasonalPackagesMarkup(){
  const s=state,p=activeDecoration(s),month=seasonInfo(s).month;
- return '<section class="season-shop"><h3>Gói mùa · Quán '+locationNumber(s)+'</h3><p>Tháng '+month+' · 30.000k/gói · 30 ngày liên tục từ ngày mua.</p><p><b>x2 số đơn online</b> sau khi tính thời tiết, nhu cầu và thưởng vô địch. Ví dụ 750 đơn → 1.500 đơn. Giới hạn nhận đơn do anh tự đặt vẫn áp dụng.</p><p>Gói hiện không thay đổi hình ảnh quán. Mỗi quán mua riêng, không tự gia hạn. Chuẩn bị đủ nguyên liệu để phục vụ lượng đơn tăng thêm.</p>'+
+ return '<section class="season-shop"><h3>Gói mùa · Quán '+locationNumber(s)+'</h3><p>Tháng '+month+' · 30.000k/gói · 30 ngày liên tục từ ngày mua.</p><p><b>x2 số đơn online</b> sau khi tính thời tiết, nhu cầu và thưởng vô địch. Ví dụ 750 đơn → 1.500 đơn. Giới hạn nhận đơn do anh tự đặt vẫn áp dụng.</p><p>Không gian quán theo mùa của lịch game; gói đang dùng chọn chủ đề tương ứng. Mỗi quán mua riêng, không tự gia hạn. Chuẩn bị đủ nguyên liệu để phục vụ lượng đơn tăng thêm.</p>'+
  (p?'<div class="season-active"><b>'+SEASON_PACKAGES[p.id].name+'</b> · x2 online · còn '+(p.end-s.day+1)+' ngày</div>':"")+
  Object.entries(SEASON_PACKAGES).map(([id,g])=>'<article class="season-package"><div class="season-package-copy"><h4>'+g.name+'</h4><small>Bán tháng '+g.months.join(", ")+' · 30 ngày · x2 đơn online</small>'+
  (p?.id===id?'<strong class="season-owned">Đang áp dụng cho quán này</strong>':p?'<span>Đợi gói hiện tại hết hạn</span>':!decorationAvailable(s,id)?'<span>Chưa đến tháng mở bán</span>':btn("Chi tiết · 30.000k","seasonPreview",id,"primary wide"))+'</div></article>').join("")+'</section>';
 }
 function seasonalPackageDialog(id){
  const g=SEASON_PACKAGES[id];if(!g)throw Error("Gói không hợp lệ.");
- showSheet("seasonPackage",g.name,'<p>Áp dụng riêng cho <b>Quán '+locationNumber(state)+'</b>, ngày '+state.day+'–'+(state.day+29)+'.</p><p>30.000k · <b>x2 đơn online</b>, tính sau thưởng vô địch. 750 đơn thành 1.500 đơn; mỗi đơn nhóm vẫn có nhiều ly. Giới hạn nhận đơn tự đặt vẫn giữ.</p><p>Không thay đổi hình ảnh quán, không tự gia hạn. Các đơn cần pha chế và dùng nguyên liệu thật. Gợi ý nhập hàng sẽ tính lượng đơn tăng thêm.</p>'+btn("Mua cho quán này · 30.000k","seasonBuy",id,"primary wide"));
+ showSheet("seasonPackage",g.name,'<p>Áp dụng riêng cho <b>Quán '+locationNumber(state)+'</b>, ngày '+state.day+'–'+(state.day+29)+'.</p><p>30.000k · <b>x2 đơn online</b>, tính sau thưởng vô địch. 750 đơn thành 1.500 đơn; mỗi đơn nhóm vẫn có nhiều ly. Giới hạn nhận đơn tự đặt vẫn giữ.</p><p>Chủ đề tương ứng chỉ thay đổi hình ảnh, giữ nguyên bố cục. Không tự gia hạn. Các đơn cần pha chế và dùng nguyên liệu thật. Gợi ý nhập hàng sẽ tính lượng đơn tăng thêm.</p>'+btn("Mua cho quán này · 30.000k","seasonBuy",id,"primary wide"));
 }
 
 function seasonSvg(s){return ""}
@@ -6558,6 +6706,36 @@ if(document.getElementById("bootNotice"))document.getElementById("bootNotice").h
 if(saveBlocked)showSheet("recovery","Bảo vệ save cũ",
  '<p>Không thể đọc save hiện tại. Dữ liệu gốc chưa bị ghi đè. Hãy xuất bản gốc hoặc nhập save hợp lệ.</p><button class="primary wide" data-action="exportSave">Xuất dữ liệu gốc</button><button class="wide" data-action="importSave">Nhập save</button><button class="wide" data-action="resetAsk">Tạo quán mới có xác nhận</button>');
 else if(!decorationPreview){if(state.phase==="prep"){intro();if(state.events.notice||state.events.active)showEvent()}else if(state.phase==="report")reportSheet();else menuSheet();}
+
+/* Read-only visual QA. Changing the theme does not purchase anything, mutate
+   state, call save(), advance time, or replace any interactive element. */
+window.BeanAroundSeasonTheme=Object.freeze({
+ names:Object.freeze(Object.keys(SeasonTheme)),
+ selected:()=>cafeThemeId(state),
+ setPreview(id){
+  if(id!==null&&id!=="off"&&!Object.hasOwn(SeasonTheme,id))throw Error("Unknown theme");
+  cafeThemeOverride=id;syncCafeTheme(state);
+  const layer=document.querySelector("#station .season-corners");
+  if(layer)layer.innerHTML=seasonScene(state);
+  return cafeThemeId(state);
+ },
+ snapshot(){
+  const selectors=[".topbar",".customer-queue",".compact-order",".bar-bench",".bar-progress",".visual-tabs",".ingredient-drawer",".finish-tray",".visual-serve",".deliver-art",".navbar",".cup-rack",".bar-machine",".cup-position"];
+  return Object.fromEntries(selectors.map(selector=>{const el=document.querySelector("#game "+selector);if(!el)return [selector,null];const r=el.getBoundingClientRect();return [selector,{x:r.x,y:r.y,width:r.width,height:r.height}]}));
+ },
+ audit(){
+  const game=document.getElementById("game"),machine=game.querySelector(".bar-machine"),cup=game.querySelector(".cup-position");
+  const boxes=[...game.querySelectorAll(".cafe-atmosphere,.cafe-atmosphere *,.cafe-header-decor,.cafe-nav-decor")];
+  const checks=[{name:"decorations cannot capture touches",ok:boxes.every(el=>getComputedStyle(el).pointerEvents==="none")},
+   {name:"no horizontal overflow",ok:document.documentElement.scrollWidth<=document.documentElement.clientWidth+1},
+   {name:"machine remains sharp and opaque",ok:!!machine&&getComputedStyle(machine).filter==="none"&&getComputedStyle(machine).opacity==="1"},
+   {name:"cup remains sharp and opaque",ok:!!cup&&getComputedStyle(cup).filter==="none"&&getComputedStyle(cup).opacity==="1"}];
+  const small=[];for(const el of game.querySelectorAll(".cup-rack button,.ingredient-tile,.finish-tray button,.visual-serve button,.navbar button")){const r=el.getBoundingClientRect();if(r.width&&r.height&&(r.width<43.5||r.height<43.5))small.push(el.dataset.action||el.textContent)}
+  checks.push({name:"44px touch targets",ok:small.length===0,details:small});
+  return checks;
+ }
+});
+
 /* ==================== REGRESSION CHECKS (ISOLATED STATES) ==================== */
 
 function runSteadyRenderChecks(){
@@ -6574,7 +6752,7 @@ function runSteadyRenderChecks(){
  test("200 automatic stage changes do not replace background",()=>{const b=node(bench()),bg=b.querySelector(".season-corners"),image=b.querySelector(".bar-machine").querySelector("image");for(let i=0;i<200;i++)patchBenchPanel(b,bench(["espresso","press","blend","","water"][i%5]));a(b.querySelector(".season-corners")===bg&&b.querySelector(".bar-machine").querySelector(".equipment-render").querySelector("image")===image)});
  test("shift timer text is retained while machine changes",()=>{const b=node(bench());b.querySelector(".shift-meter").textContent="2:12";patchBenchPanel(b,bench("blend"));a(b.querySelector(".shift-meter").textContent==="2:12")});
  test("season purchase does not replace bench or machine",()=>{const b=node(bench()),bg=b.querySelector(".season-corners"),m=b.querySelector(".bar-machine"),x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};patchBenchPanel(b,bench("espresso","Espresso",x));a(b.querySelector(".season-corners")===bg&&b.querySelector(".bar-machine")===m)});
- test("no seasonal images are inserted",()=>{const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};a(seasonBorderMarkup(x)===""&&seasonScene(x)==="")});
+ test("room is present but old borders are never inserted",()=>{const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};a(seasonBorderMarkup(x)===""&&seasonScene(x).includes("cafe-room.svg")&&!seasonScene(x).includes("full-frame.png"))});
  test("stale border is removed and normal width restored",()=>{const doc=document.implementation.createHTMLDocument("frame-test"),game=doc.createElement("div"),frame=doc.createElement("div");frame.id="seasonBorder";game.classList.add("has-season-border");doc.body.appendChild(game);doc.body.appendChild(frame);syncSeasonBorder(s,game,doc);a(!doc.getElementById("seasonBorder")&&!game.classList.contains("has-season-border"));syncSeasonBorder(s,game,doc);a(!doc.getElementById("seasonBorder"))});
  test("custom brand remains saved while border cleanup runs",()=>{const doc=document.implementation.createHTMLDocument("title-test"),game=doc.createElement("div"),x=clone(s);doc.body.appendChild(game);x.brand.name="Quán bên hồ";syncSeasonBorder(x,game,doc);a(x.brand.name==="Quán bên hồ"&&!doc.getElementById("seasonBorder"))});
  test("expired package cannot restore removed decoration",()=>{const doc=document.implementation.createHTMLDocument("frame-test"),game=doc.createElement("div"),x=clone(s);doc.body.appendChild(game);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};x.day=31;syncSeasonBorder(x,game,doc);a(!doc.getElementById("seasonBorder")&&!game.classList.contains("has-season-border"))});
@@ -6596,7 +6774,7 @@ window.BeanAroundRenderChecks={runBrowser:runSteadyRenderChecks,auditLayout(){
 
 window.BeanAroundSeasonFinishChecks={run(){
  const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{const root=visitRoot,preview=decorationPreview;try{visitRoot=null;decorationPreview=null;f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}finally{visitRoot=root;decorationPreview=preview}};
- test("paid packages never mount removed artwork",()=>{for(const id of Object.keys(SEASON_PACKAGES)){const s=newGame(()=>.5);s.seasonPackage={id,start:1,end:30,paid:30000};a(!hasDecorationFrame(s)&&seasonBorderMarkup(s)===""&&seasonScene(s)===""&&counterSurface(s)===""&&onlineDecorationFactor(s)===2)}});
+ test("paid packages use restrained room without the old surround",()=>{for(const id of Object.keys(SEASON_PACKAGES)){const s=newGame(()=>.5);s.seasonPackage={id,start:1,end:30,paid:30000};a(!hasDecorationFrame(s)&&seasonBorderMarkup(s)===""&&seasonScene(s).includes("cafe-room.svg")&&!seasonScene(s).includes("full-frame")&&counterSurface(s)===""&&onlineDecorationFactor(s)===2)}});
  test("removed frame sources cannot be requested by renderer",()=>{a(Object.keys(CAFE_ASSETS.fullFrames).length===0&&Object.keys(CAFE_ASSETS.frames.crops).length===0&&CAFE_ASSETS.scenes.src==="")});
  test("changing season does not replace saved branch brand palette",()=>{for(const district of Object.keys(DISTRICTS)){const s=newGame(()=>.5);s.isBranch=true;s.branchNo=2;s.district=district;s.brand.accent=DISTRICTS[district].accent;const before=JSON.stringify(shopThemeColors(s));for(const id of Object.keys(SEASON_PACKAGES)){s.seasonPackage={id,start:1,end:30,paid:30000};seasonBorderMarkup(s);a(JSON.stringify(shopThemeColors(s))===before&&s.brand.accent===DISTRICTS[district].accent)}}});
  test("custom branch accents determine dark and soft colors",()=>{const s=newGame(()=>.5);s.brand.accent="#226644";const p=shopThemeColors(s);a(p.accent==="#226644"&&p.dark!=="#651321");a(parseInt(p.dark.slice(3,5),16)>parseInt(p.dark.slice(1,3),16));a(/^#[a-f0-9]{6}$/.test(p.soft))});
@@ -6620,7 +6798,7 @@ window.BeanAroundDecorationActivationChecks={run(){
 window.BeanAroundInsetChecks={run(){
  const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{try{f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}};
  test("Mid-Autumn purchase preserves normal shop width",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"midautumn",start:1,end:30,paid:30000};a(!hasDecorationFrame(s)&&seasonBorderMarkup(s)==="")});
- test("other seasonal packages do not change bench imagery",()=>{const s=newGame(()=>.5),before=seasonScene(s);for(const id of ["summer","autumn","xmas","tet"]){s.seasonPackage={id,start:1,end:30,paid:30000};a(seasonScene(s)===before&&!hasDecorationFrame(s))}});
+ test("packages select accents within one shared cafe scene",()=>{const s=newGame(()=>.5);for(const id of ["summer","autumn","xmas","tet"]){s.seasonPackage={id,start:1,end:30,paid:30000};a(seasonScene(s).includes('data-cafe-art="'+CAFE_PACKAGE_THEME[id]+'"')&&!hasDecorationFrame(s))}});
  test("ingredient paging stays six with and without an active package",()=>{const s=newGame(()=>.5);a(stationPageSize(s)===6);s.seasonPackage={id:"xmas",start:1,end:30,paid:30000};a(stationPageSize(s)===6);s.day=31;a(stationPageSize(s)===6)});
  test("all ingredients remain reachable after compact pagination",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"midautumn",start:1,end:30,paid:30000};for(const r of R){const keys=r.steps.slice(),size=stationPageSize(s),pages=Math.ceil(keys.length/size),shown=[];for(let i=0;i<pages;i++)shown.push(...keys.slice(i*size,i*size+size));a(JSON.stringify(keys)===JSON.stringify(shown))}});
  test("frame selection and paging never alter saved progress",()=>{const s=newGame(()=>.5);s.seasonPackage={id:"xmas",start:1,end:30,paid:30000};const raw=JSON.stringify(s);stationPageSize(s);seasonBorderMarkup(s);a(JSON.stringify(s)===raw)});
@@ -6696,6 +6874,23 @@ window.BeanAroundOnlineSeasonChecks={run(){
  test("procurement includes the expanded drinks and cold brew forecast",()=>{const s=full();for(const k of Object.keys(s.stock))s.stock[k]=[];const before=stockPlan(s),cold=coldPreparationPlan(s);pack(s);const after=stockPlan(s),more=coldPreparationPlan(s);a(after.cup>before.cup&&more.target>=cold.target&&stockPackLimit(s)===1000&&bakeryPackLimit(s)===1000);const cart=suggestedCartUncapped(s);a(cart.bean*G.bean.pack>=more.beanService+more.beanForBrew)});
  test("separate branch doubles its own forecast and preserves parent",()=>{const s=full(61);networkBind(s);const b=maxTestBranch(s,openBranch(s,2));b.events.advertising=1;const before=branchForecast(s,2),main=onlineVolumeBase(s);b.seasonPackage={id:"tet",start:61,end:90,paid:30000};const after=branchForecast(s,2);a(after.online===2*before.online&&after.counter===before.counter&&onlineVolumeBase(s)===main);a(validCore(migrateSave(clone(s))))});
  test("1700 actual receipts complete with real stock fees and valid save",()=>{const s=full();pack(s);s.contest.promoStart=28;s.contest.promoEnd=42;s.business.counterLimit=1;openDay(s);s.order.needsClarification=false;simulationFill(s);deliver(s);let guard=100000,checked=false;while(s.phase==="open"&&guard--){s.cleanliness=100;clockStep(s,.2);if(!checked&&s.online.issued>1000){const m=migrateSave(clone(s));a(m.online.issued===s.online.issued&&m.online.dayQuota===1700);checked=true}}a(guard>0&&checked&&s.phase==="report"&&s.stats.onlineReceipts===1700&&s.stats.onlineFees>0&&quantity(s,"cup")<50000);a(validCore(migrateSave(clone(s))))});
+ return rows;
+}};
+
+
+window.BeanAroundAtmosphereChecks={run(){
+ const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{const before=cafeThemeOverride;try{cafeThemeOverride=null;f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}finally{cafeThemeOverride=before}};
+ test("four themes share one room and renderer",()=>{a(Object.keys(SeasonTheme).length===4&&new Set(Object.values(SeasonTheme).map(t=>t.background)).size===1);for(const t of Object.values(SeasonTheme))a(t.background.endsWith(".svg")&&t.headerDecor===t.id&&t.ctaDecor===t.id&&t.navDecor===t.id)});
+ test("calendar uses game month, not computer month",()=>{for(let month=1;month<=12;month++){const s=newGame(()=>.5);s.day=((month-11+12)%12)*30+1;const id=month<=3?"spring":month<=6?"summer":month<=10?"autumn":"winter";a(cafeThemeId(s)===id)}});
+ test("active paid package selects matching season until expiry",()=>{const s=newGame(()=>.5);for(const[id,theme]of Object.entries(CAFE_PACKAGE_THEME)){s.seasonPackage={id,start:1,end:30,paid:30000};a(cafeThemeId(s)===theme);s.day=31;a(cafeThemeId(s)==="winter");s.day=1}});
+ test("preview query accepts only known themes without interpreting HTML",()=>{for(const id of [...Object.keys(SeasonTheme),"off"])a(requestedCafeTheme("?season-theme="+id)===id);for(const value of ["spring-extra","<script>","__proto__","constructor"])a(requestedCafeTheme("?season-theme="+value)===null)});
+ test("visual theme override is not a gameplay or save change",()=>{const s=chainTestShop(28);s.online.tablet=s.online.enabled=true;const raw=JSON.stringify(s),revenue=onlineVolume(s),duration=actionSeconds(s,"espresso");for(const id of Object.keys(SeasonTheme)){cafeThemeOverride=id;const html=seasonScene(s);a(html.includes('data-cafe-art="'+id+'"')&&JSON.stringify(s)===raw&&onlineVolume(s)===revenue&&actionSeconds(s,"espresso")===duration)}});
+ test("theme palette never overrides shop brand variables",()=>{for(const t of Object.values(SeasonTheme)){const style=cafeThemeStyle(t);a(!style.includes("--brand-")&&!style.includes("--wood:")&&style.includes("--cafe-light:"))}});
+ test("branch-specific brand remains untouched",()=>{const s=newGame(()=>.5);s.isBranch=true;s.branchNo=2;s.brand.accent="#253b53";const raw=JSON.stringify(s.brand);for(const id of Object.keys(SeasonTheme)){cafeThemeOverride=id;seasonScene(s);a(JSON.stringify(s.brand)===raw)}});
+ test("decorations contain no machine, controls, captions or event handlers",()=>{const s=newGame(()=>.5);for(const id of Object.keys(SeasonTheme)){cafeThemeOverride=id;const html=seasonScene(s);a(!/<button|data-action=|<text|onclick=|equipment-vector|<canvas/.test(html));a(html.includes('aria-hidden="true"')&&html.includes('draggable="false"'))}});
+ test("off restores the undecorated renderer without save writes",()=>{const s=newGame(()=>.5),raw=JSON.stringify(s);cafeThemeOverride="off";a(seasonScene(s)===""&&cafeThemeId(s)===null&&JSON.stringify(s)===raw)});
+ test("one cached room markup per season and display scope",()=>{const s=newGame(()=>.5);cafeSceneCache.clear();for(const id of Object.keys(SeasonTheme)){cafeThemeOverride=id;const first=seasonScene(s);a(first===seasonScene(s));seasonScene(s,"postcard-background")}a(cafeSceneCache.size===8)});
+ test("seasonal package economics remain x2 only for online",()=>{const s=chainTestShop(28);s.online.tablet=s.online.enabled=true;const online=onlineVolume(s),walk=trafficDemand(s);s.seasonPackage={id:"xmas",start:28,end:57,paid:30000};for(const id of Object.keys(SeasonTheme)){cafeThemeOverride=id;seasonScene(s);a(onlineVolume(s)===online*2&&trafficDemand(s)===walk)}});
  return rows;
 }};
 
