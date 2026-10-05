@@ -762,6 +762,8 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 @media(max-height:620px){.service-mode #station.owner-manual-view{grid-template-rows:56px 46px minmax(82px,1fr) 60px 44px 48px 48px 44px}.owner-next-action b{font-size:14px}}
 /* Shop scenes share the existing eight-row mobile workbench. */
 .shop-postcard{display:block;width:100%;height:auto;max-height:158px;border-radius:15px;margin:0 auto 8px}.location-intro{padding:10px 12px;background:var(--cream)}.location-intro small,.visit-choice small{display:block;font-size:12px;margin:5px 0}.visit-picker{display:grid;gap:10px}.visit-choice{display:block;width:100%;min-height:44px;text-align:left;border:2px solid var(--wood);border-radius:16px;padding:10px;background:var(--cream);color:var(--coffee)}.visit-choice.selected{border-color:var(--brand-red);box-shadow:0 0 0 2px var(--brand-red-light)}.bar-bench{position:relative;isolation:isolate}.service-mode .bar-bench[data-finish="stone"]{background:linear-gradient(165deg,#fcf6e9 0%,#e4dace 76%,var(--wood) 77%)}.service-mode .bar-bench[data-location="2"]{border-radius:3px;border-width:3px}.service-mode .bar-bench[data-location="3"]{border-radius:18px 18px 6px 6px}.service-mode .bar-bench[data-finish="wood"]{background:repeating-linear-gradient(0deg,var(--wood) 0 22px,#ad7b57 23px 24px)}.season-corners{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;opacity:.8}.season-corners svg{width:100%;height:48px}.bar-bench>.cup-rack,.bar-bench>.bar-machine,.bar-bench>.cup-position{position:relative;z-index:1}.shift-meter{position:absolute;bottom:1px;right:5px;z-index:2;padding:1px 4px;border-radius:4px;background:var(--brand-red-dark);color:#fff8ec;font-size:9px;pointer-events:none;line-height:12px}.bar-machine>svg{max-width:100%;object-fit:contain}.branch-summary small{display:block}@media(prefers-reduced-motion:reduce){.shop-postcard *{animation:none!important}}
+
+.cold-preparation{margin:12px 0;padding:14px;border:1px solid var(--brand-red-light,#e8c1b9);border-radius:16px;background:var(--cream,#fff4e6)}.cold-preparation p{margin:7px 0}.cold-preparation small{display:block;margin-top:8px}.cold-preparation button{min-height:44px}
 </style>
 </head>
 <body><div id="bootNotice"><b>BEAN AROUND · Đang khởi động…</b><p>Nếu thông báo này không biến mất và nút không hoạt động: hãy mở link game bằng Safari. Bản xem trước của ứng dụng Tệp / Google Drive không chạy game.</p><small>Nếu đang mở website thật, gửi lại thông báo lỗi bên dưới để được kiểm tra.</small><pre id="bootError" style="white-space:pre-wrap"></pre></div>
@@ -2154,9 +2156,44 @@ function stockPlan(s,totalOverride=null){
  for(const k of Object.keys(need))need[k]=Math.ceil(need[k]);
  return need;
 }
+
+/* ==================== COLD BREW PROCUREMENT ==================== */
+function coldPreparationPlan(s){
+ const needs=stockPlan(s),target=s.menu.cold?.unlocked?Math.max(0,needs.brew||0):0;
+ const batches=Math.ceil(Math.max(0,target-quantity(s,"brew"))/4);
+ return {target,batches,portions:batches*4,beanForBrew:batches*2,waterForBrew:batches*2,beanService:needs.bean||0,waterService:needs.water||0};
+}
+function prepareColdReserve(s,plan=coldPreparationPlan(s)){
+ prepOnly(s);
+ if(!plan.batches)return 0;
+ if(quantity(s,"bean")<plan.beanForBrew+plan.beanService||quantity(s,"water")<plan.waterForBrew+plan.waterService)
+  throw Error("Chưa đủ cà phê/nước để ủ và giữ dự phòng pha các món khác. Bấm Gợi ý nhập hàng rồi xác nhận nhập; hàng đang giao chưa được tính vào kho.");
+ for(let i=0;i<plan.batches;i++)brewBatch(s);
+ return plan.batches;
+}
+function buyAndPrepareCold(s,items){
+ prepOnly(s);
+ const plan=coldPreparationPlan(s),trial=clone(s);
+ if(Object.values(items).some(n=>n>0))buyCart(trial,items);
+ const pending=!!trial.ops.incoming;
+ const batches=pending?0:prepareColdReserve(trial,plan);
+ // Commit both purchase and preparation only after all validations succeed.
+ Object.assign(s,trial);
+ return {batches,pending};
+}
+function coldPreparationMarkup(){
+ const p=coldPreparationPlan(state);
+ if(!p.target)return "";
+ const ready=quantity(state,"bean")>=p.beanForBrew+p.beanService&&quantity(state,"water")>=p.waterForBrew+p.waterService;
+ return '<section class="cold-preparation"><strong>Cold brew · chuẩn bị trước ca</strong><p>Có '+quantity(state,"brew")+' / cần '+p.target+' phần, gồm dự phòng.</p>'+
+ (p.batches?'<p>Ủ '+p.batches+' mẻ → '+p.portions+' phần · dùng '+p.beanForBrew+' phần cà phê + '+p.waterForBrew+' phần nước.</p><p>Sau khi ủ cần giữ ít nhất <b>'+p.beanService+' phần cà phê</b> và '+p.waterService+' phần nước cho các món khác.</p>'+
+ btn("Ủ đủ "+p.batches+" mẻ","brewReserve","","primary")+(!ready?'<small>Chưa đủ nguyên liệu và dự phòng: nhập hàng trước. Hàng đang giao chưa dùng để ủ được.</small>':""):
+ '<p>Đã đủ cold brew theo kế hoạch hiện tại.</p>')+'</section>';
+}
+
 function suggestedCartUncapped(s){
  const need=stockPlan(s),result={};
- if((need.brew||0)>quantity(s,"brew")){const batches=Math.ceil((need.brew-quantity(s,"brew"))/4);for(const k of ["bean","water"])need[k]=(need[k]||0)+batches*2}
+ const cold=coldPreparationPlan(s);if(cold.batches){need.bean=(need.bean||0)+cold.beanForBrew;need.water=(need.water||0)+cold.waterForBrew}
  for(const [k,n]of Object.entries(need))if(k!=="brew"&&ingredientAvailable(s,k)){const q=Math.ceil(Math.max(0,n-quantity(s,k))/(G[k].pack-(s.events.delay?1:0)));if(q)result[k]=Math.min(stockPackLimit(s),q)}
  for(const[k,n]of Object.entries(bakerySuggestions(s)))if(n)result["bake:"+k]=Math.min(500,n);
  return result;
@@ -2248,7 +2285,7 @@ function stockMarkupV7(){
  const visible=keys.filter(k=>stockFilter==="all"||quantity(state,k)<(needed[k]||0));
  const price=cartCost(state,cart);
  return '<div class="stock-summary"><h3>Kho & nhập hàng</h3><p class="small">Kế hoạch '+plannedTraffic(state)+' cốc tại quầy + '+onlineVolume(state)+' đơn Shopee ≈ '+forecastOnlineCups(state)+' ly. Gợi ý tính size L, topping và dự phòng pha lại; trừ tồn kho còn hạn. Số gói được điền vào ô bên dưới.</p><div class="flex">'+btn("Cần bổ sung","stockFilter","needed",stockFilter==="needed"?"primary":"")+btn("Tất cả","stockFilter","all",stockFilter==="all"?"primary":"")+btn("✦ Gợi ý nhập hàng","suggestCart")+'</div></div>'+
- bakeryStockMarkup()+'<div class="stock-list">'+visible.map(k=>{
+ coldPreparationMarkup()+bakeryStockMarkup()+'<div class="stock-list">'+visible.map(k=>{
  const g=G[k],q=quantity(state,k),lots=state.stock[k].filter(b=>b.expiry>=state.day),expiry=lots.length?Math.min(...lots.map(b=>b.expiry))-state.day+1:0;
  return '<article class="stock-line">'+icon(g.icon)+'<div><b>'+g.name+'</b><p class="small">Có '+q+' / dự kiến '+(needed[k]||0)+' · '+(g.life>=999?"Không hỏng":q?"Còn "+expiry+" ngày":"Hết hàng")+'</p><small>'+g.pack+' phần/gói · '+MONEY(packPrice(state,k))+' · Lô mới: '+(storageLife(state,k)>=999?'không hỏng':storageLife(state,k)+' ngày')+'</small></div><div class="quantity-control">'+(k==="brew"?btn("Ủ","brew"):btn("−","cartRemove",k)+'<input id="cartQty-'+k+'" class="stock-quantity-input" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" autocomplete="off" data-stock-quantity="'+k+'" aria-label="Số gói '+escapeHTML(g.name)+' (0 đến '+stockPackLimit(state)+')" value="'+(cart[k]||0)+'">'+btn("+","cartAdd",k))+'</div></article>';
  }).join("")+'</div><div class="cart-footer"><b id="stockCartTotal">Giỏ hàng: '+MONEY(price)+'</b><span>Ví '+MONEY(state.cash)+'</span>'+btn("Xem & nhập hàng","cartConfirm","","primary")+'</div>'+
@@ -2290,7 +2327,9 @@ async function actV6(action,key){
    case "cartAdd":cart[key]=Math.min(cartLimit(state,key),(cart[key]||0)+1);break;
    case "cartRemove":cart[key]=Math.max(0,(cart[key]||0)-1);if(!cart[key])delete cart[key];break;
    case "suggestCart":fillSuggestedCart();break;
-   case "cartConfirm":showSheet("cart","Xác nhận nhập hàng",Object.entries(cart).map(([k,n])=>'<p>'+escapeHTML(cartItem(state,k).name)+' × '+n+(cartBakeId(k)?' chiếc · ':' gói · ')+MONEY(cartUnitPrice(state,k)*n)+'</p>').join("")+'<b>Tổng '+MONEY(cartCost(state,cart))+'</b>'+btn("Nhập hàng","cartBuy","","primary wide"));break;
+   case "cartConfirm":showSheet("cart","Xác nhận nhập hàng",Object.entries(cart).map(([k,n])=>'<p>'+escapeHTML(cartItem(state,k).name)+' × '+n+(cartBakeId(k)?' chiếc · ':' gói · ')+MONEY(cartUnitPrice(state,k)*n)+'</p>').join("")+'<b>Tổng '+MONEY(cartCost(state,cart))+'</b>'+btn("Chỉ nhập hàng","cartBuy","","wide")+(coldPreparationPlan(state).batches?'<p>Ủ '+coldPreparationPlan(state).batches+' mẻ từ nguyên liệu nhập và tồn kho; giữ lại dự phòng pha các món khác. Nếu giao trễ, chỉ đặt hàng và chờ nguyên liệu về trước khi ủ.</p>'+btn("Nhập & ủ đủ dự phòng","cartBuyBrew","","primary wide"):""));break;
+   case "brewReserve":{const n=prepareColdReserve(state);stockSuggestionNotice="";toast(n?"Đã ủ "+n+" mẻ; giữ đủ cà phê cho các món khác.":"Cold brew đã đủ dự phòng.");break;}
+   case "cartBuyBrew":{const result=buyAndPrepareCold(state,cart);cart={};stockSuggestionNotice=result.pending?"Đã đặt hàng nhưng nguyên liệu chưa về. Nhận hàng trước rồi bấm Ủ đủ dự phòng; chưa có thêm cold brew.":"";closeSheet();toast(result.pending?"Hàng đang giao · chưa ủ cold brew.":"Đã nhập và ủ "+result.batches+" mẻ cold brew.");break;}
    case "cartBuy":buyCart(state,cart);cart={};stockSuggestionNotice="";closeSheet();toast("Đã nhập hàng, kiểm tra mẻ cold brew nếu có.");break;
    case "clean":cleanShop(state);toast("Quầy sạch sẽ!");break;
    case "repair":repairShop(state);toast("Máy hoạt động tốt.");break;
@@ -3373,7 +3412,7 @@ function fillSuggestedCart(){
  cart=full;stockFilter="all";
  const packs=Object.values(cart).reduce((a,b)=>a+b,0);
  stockSuggestionNotice=limited?"Ngân sách chưa đủ: giỏ giữ đầy đủ lượng dự phòng, chưa trừ tiền. Cần thêm "+MONEY(Math.max(0,cartCost(state,full)-affordableStockBudget(state)))+". Giảm số đơn hoặc tạm tắt bớt món rồi gợi ý lại.":packs?"Đã điền "+packs+" gói, đã có dự phòng 40% và biên dao động từng món, cho "+plannedTraffic(state)+" cốc tại quầy + "+onlineVolume(state)+" đơn online ≈ "+forecastOnlineCups(state)+" ly. Xem số gói và xác nhận để nhập.":"Kho đủ theo dự kiến và mức dự phòng hiện tại. Không cần nhập thêm.";
- if((stockPlan(state).brew||0)>quantity(state,"brew"))stockSuggestionNotice+=" Cold brew: nhớ bấm Ủ trước khi mở cửa.";
+ const cold=coldPreparationPlan(state);if(cold.batches)stockSuggestionNotice+=" Cold brew: đã tính "+cold.beanForBrew+" phần cà phê + "+cold.waterForBrew+" phần nước để ủ "+cold.batches+" mẻ ("+cold.portions+" phần). Sau ủ vẫn giữ "+cold.beanService+" phần cà phê cho các món khác. Chọn Nhập & ủ đủ dự phòng khi xác nhận.";
  toast(limited?"Đã điền đủ dự phòng · thiếu vốn, xem số tiền trong kho.":packs?"Đã tự điền "+packs+" gói · chưa trừ tiền.":"Kho đủ cho dự kiến và dự phòng.");
 }
 function ownerOpportunityMarkup(){
@@ -6284,6 +6323,26 @@ if(saveBlocked)showSheet("recovery","Bảo vệ save cũ",
  '<p>Không thể đọc save hiện tại. Dữ liệu gốc chưa bị ghi đè. Hãy xuất bản gốc hoặc nhập save hợp lệ.</p><button class="primary wide" data-action="exportSave">Xuất dữ liệu gốc</button><button class="wide" data-action="importSave">Nhập save</button><button class="wide" data-action="resetAsk">Tạo quán mới có xác nhận</button>');
 else if(state.phase==="prep"){intro();if(state.events.notice||state.events.active)showEvent()}else if(state.phase==="report")reportSheet();else menuSheet();
 /* ==================== REGRESSION CHECKS (ISOLATED STATES) ==================== */
+
+window.BeanAroundColdProcurementChecks={run(){
+ const rows=[],assert=(v,m="assertion")=>{if(!v)throw Error(m)},check=(name,f)=>{try{f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}};
+ const setup=()=>{const s=newGame(()=>.5);s.cash=100000;s.menu.cold.unlocked=s.menu.cold.enabled=true;s.events.preparedDay=s.day;s.events.delay=false;s.ops.deliveryDelay=false;for(const k of Object.keys(s.stock))s.stock[k]=[];return s};
+ const throws=f=>{let hit=false;try{f()}catch(e){hit=true}assert(hit,"expected error")};
+ check("suggestion buys coffee for brewing AND all other coffee drinks",()=>{const s=setup(),p=coldPreparationPlan(s),cart=suggestedCartUncapped(s);assert(p.batches>0);assert(cart.bean*G.bean.pack>=p.beanService+p.beanForBrew);assert(cart.water*G.water.pack>=p.waterService+p.waterForBrew)});
+ check("one confirmation purchases and brews reserved portions",()=>{const s=setup(),p=coldPreparationPlan(s),cart=suggestedCartUncapped(s),cost=cartCost(s,cart),cash=s.cash;const out=buyAndPrepareCold(s,cart);assert(out.batches===p.batches&&!out.pending);assert(quantity(s,"brew")>=p.target);assert(quantity(s,"bean")>=p.beanService);assert(quantity(s,"water")>=p.waterService);assert(s.cash===roundK(cash-cost))});
+ check("brewing cost comes from real beans/water and is not an extra cash charge",()=>{const s=setup(),cart=suggestedCartUncapped(s);buyCart(s,cart);const p=coldPreparationPlan(s),cash=s.cash,beans=quantity(s,"bean"),water=quantity(s,"water");prepareColdReserve(s,p);assert(s.cash===cash);assert(quantity(s,"bean")===beans-p.beanForBrew&&quantity(s,"water")===water-p.waterForBrew);assert(s.stock.brew.every(l=>l.unitCost>0&&l.expiry>=s.day))});
+ check("repeat preparation cannot create extra brew or spend extra beans",()=>{const s=setup();buyAndPrepareCold(s,suggestedCartUncapped(s));const raw=JSON.stringify(s);assert(prepareColdReserve(s)===0&&JSON.stringify(s)===raw)});
+ check("existing valid brew reduces batch count; expired brew does not",()=>{const s=setup(),initial=coldPreparationPlan(s).batches;s.stock.brew=[{n:4,expiry:s.day,unitCost:1},{n:500,expiry:s.day-1,unitCost:1}];assert(coldPreparationPlan(s).batches===Math.max(0,initial-1))});
+ check("locked or disabled cold brew does not reserve ingredients for brewing",()=>{const s=setup();s.menu.cold.enabled=false;assert(coldPreparationPlan(s).batches===0);s.menu.cold.unlocked=false;assert(coldPreparationPlan(s).target===0)});
+ check("insufficient cart leaves cash, inventory and expense ledger unchanged",()=>{const s=setup(),raw=JSON.stringify(s);throws(()=>buyAndPrepareCold(s,{bean:1}));assert(JSON.stringify(s)===raw)});
+ check("no budget never creates brew or partial purchases",()=>{const s=setup();s.cash=0;const raw=JSON.stringify(s);throws(()=>buyAndPrepareCold(s,suggestedCartUncapped(s)));assert(JSON.stringify(s)===raw)});
+ check("delivery delay buys only; no phantom brew from incoming stock",()=>{const s=setup();s.ops.deliveryDelay=true;const out=buyAndPrepareCold(s,suggestedCartUncapped(s));assert(out.pending&&out.batches===0&&quantity(s,"brew")===0);throws(()=>prepareColdReserve(s));receiveDelivery(s);assert(prepareColdReserve(s)>0)});
+ check("cannot brew or purchase preparation during service",()=>{const s=setup();s.phase="open";const raw=JSON.stringify(s);throws(()=>buyAndPrepareCold(s,{}));throws(()=>prepareColdReserve(s));assert(JSON.stringify(s)===raw)});
+ check("save/load retains brewed stock and suggestion stays idempotent",()=>{const s=setup();buyAndPrepareCold(s,suggestedCartUncapped(s));const m=migrateSave(JSON.parse(JSON.stringify(s)));assert(quantity(m,"brew")===quantity(s,"brew")&&quantity(m,"bean")===quantity(s,"bean"));assert(coldPreparationPlan(m).batches===0)});
+ check("maximum online demand retains enough coffee after planned brewing",()=>{const s=chainTestShop(30);s.upgrades.coldStation=true;s.online.tablet=s.online.enabled=true;for(const k of Object.keys(s.stock))s.stock[k]=[];const p=coldPreparationPlan(s);buyAndPrepareCold(s,suggestedCartUncapped(s));assert(quantity(s,"brew")>=p.target&&quantity(s,"bean")>=p.beanService)});
+ return rows;
+}};
+
 window.BeanAroundVisitChecks={run(){
  const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{try{f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}finally{visitRoot=null}},fails=f=>{let hit=false;try{f()}catch(e){hit=true}a(hit,"expected rejection")};
  const full=(day=63)=>{const s=chainTestShop(day);for(const k of Object.keys(EQUIPMENT))s.upgrades[k]=true;s.online.tablet=s.online.enabled=true;Object.assign(s.events,{weather:"sun",traffic:1.2,advertising:1,preparedDay:day});networkBind(s);return s};
