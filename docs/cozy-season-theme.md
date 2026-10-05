@@ -72,11 +72,22 @@ The original equipment/source files are not modified.
 - New SVG tag balance, unique IDs and internal gradient references passed checks.
 - Optional browser runner JavaScript syntax passed.
 
-This repo has no package.json, build/lint/typecheck configuration. There is no
-browser, shell or screenshot renderer available in this session, so the following
-have NOT been run: Playwright, Safari/WebKit, touch hit-testing, geometry comparison,
-screenshot inspection or idle/working visual review. No screenshot is fabricated
-or represented as a running-game capture.
+This repo has no package.json or build/lint/typecheck configuration.
+There is no local shell/browser, but GitHub Actions successfully ran the actual
+Playwright browser suite in BOTH Chromium and WebKit:
+https://github.com/tungtran2512/beanaround/actions/runs/37343997278
+
+Both passed at 390x844, 375x812 and 430x932:
+- positions and sizes of all 14 regions unchanged from baseline (0.75px tolerance);
+- no horizontal overflow; primary targets at least 44px;
+- decoration layers cannot intercept touches; hit-testing reaches live buttons;
+- machine and cup have no filter and remain fully opaque;
+- switching devices preserves the room and equipment image nodes;
+- no page errors, console errors or missing asset responses.
+
+Each browser captured 12 seasonal screenshots, 6 idle/working equipment screenshots
+and 3 baseline screenshots from the real game. These are not generated mockups.
+WebKit is an automated Linux WebKit build, not physical iPhone Safari.
 
 ## Reproducible browser / screenshot checks
 tests/season-theme-browser.cjs serves this branch and the base HTML locally,
@@ -96,14 +107,32 @@ Run from a clone containing the base commit (Playwright >=1.45):
     BROWSER=webkit node tests/season-theme-browser.cjs
 
 Results are written to artifacts/season-theme/<browser>/results.json and PNGs.
-These files are not present until the runner is actually executed.
+The first successful run's captured images are available here:
+- Chromium: https://github.com/tungtran2512/beanaround/actions/runs/37343997278/artifacts/11360350094
+- WebKit: https://github.com/tungtran2512/beanaround/actions/runs/37343997278/artifacts/11360005732
+
+The CI workflow has read-only repository permissions and only uploads test artifacts;
+it never pushes a branch, merges a PR, deploys a site or accesses production saves.
 
 For manual review on the preview deployment, open ?season-theme=autumn, then
 the Quán tab; switch to the other query values. The page still uses normal game
 navigation and storage. Do not treat this as a read-only gameplay mode.
 
-## Review status
-Implementation and logic checks complete; visual approval pending real browser
-screenshots. Check that the room is subdued enough behind the machine, that the
-cup remains readable, and that no new filter creates a mobile rendering problem.
-Do not merge/deploy production before this visual review.
+## Visual review
+The first four-season 390x844 contact sheet was opened and visually inspected.
+The machine/cup and order were clear and controls stayed clean, but differences
+between seasons were too subtle. A follow-up changed rear-window colors/foliage,
+placed one small seasonal object on the rear shelf and slightly increased
+header corner ornament visibility. Machine and live control geometry remained
+unchanged. Subsequent browser checks and contact sheets are recorded below.
+
+Remaining limits: no physical iPhone, Safari chrome/keyboard/orientation testing,
+extended play performance measurements, or accessibility contrast instrumentation.
+375x812 and 430x932 have automated layout/touch checks and real screenshots; they
+are not a claim of hands-on device testing. Production remains unchanged.
+
+The refined 390x844 contact sheet and six equipment-stage captures were opened
+and inspected. No decoration obscures the machine, cup, order or controls. A final
+paint-only contact shadow strengthens the device/worktop relationship. Real
+contact sheets are committed under docs/screenshots; full-resolution individual
+screens and other viewport captures are in the CI artifacts.

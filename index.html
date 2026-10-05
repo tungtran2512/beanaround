@@ -869,6 +869,17 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
  .cafe-atmosphere *,.cafe-header-decor,.cafe-nav-decor{animation:none!important;transition:none!important}
 }
 
+
+/* Contact shadows sit on the existing worktop, behind the active machine only. */
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .bar-machine:before{
+ content:"";position:absolute;left:50%;bottom:25px;width:68%;height:9px;
+ transform:translateX(-50%);background:radial-gradient(ellipse,#4932213d 0%,#49322112 48%,transparent 73%);
+ z-index:-1;pointer-events:none;
+}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .bar-machine[data-machine="press"]:before,
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .bar-machine[data-machine="blend"]:before{width:36%}
+#game[data-cafe-theme]:not([data-cafe-theme="off"]) .bar-machine[data-machine=""]:before{display:none}
+
 </style>
 </head>
 <body><div id="bootNotice"><b>BEAN AROUND · Đang khởi động…</b><p>Nếu thông báo này không biến mất và nút không hoạt động: hãy mở link game bằng Safari. Bản xem trước của ứng dụng Tệp / Google Drive không chạy game.</p><small>Nếu đang mở website thật, gửi lại thông báo lỗi bên dưới để được kiểm tra.</small><pre id="bootError" style="white-space:pre-wrap"></pre></div>
