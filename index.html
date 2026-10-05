@@ -810,6 +810,16 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 @media(max-height:620px){#game.has-season-border{--trim-side:10px;--trim-top:8px;--trim-bottom:6px}}
 @media(prefers-reduced-motion:reduce){.season-border,.season-border *{animation:none!important;transition:none!important}}
 
+
+/* The frame is a body-level HTML-image overlay: unaffected by game/SVG clipping. */
+body>.season-border{--trim-side:clamp(12px,3.6vw,18px);--trim-top:20px;--trim-bottom:16px;position:fixed;top:0;bottom:0;left:50%;width:min(470px,100vw);transform:translateX(-50%);z-index:40;display:grid;pointer-events:none!important}
+body>.season-border[hidden]{display:none!important}
+.border-image-window{display:block;position:relative;width:100%;height:100%;overflow:hidden;pointer-events:none}
+.border-image-window img{display:block;object-fit:fill;pointer-events:none;user-select:none}
+@media(max-height:720px){body>.season-border{--trim-side:12px;--trim-top:12px;--trim-bottom:10px}}
+@media(max-height:620px){body>.season-border{--trim-side:10px;--trim-top:8px;--trim-bottom:6px}}
+.service-mode .bar-bench,.service-mode .bar-machine,.service-mode .bar-machine svg{transition:none!important;animation:none!important}
+
 </style>
 </head>
 <body><div id="bootNotice"><b>BEAN AROUND · Đang khởi động…</b><p>Nếu thông báo này không biến mất và nút không hoạt động: hãy mở link game bằng Safari. Bản xem trước của ứng dụng Tệp / Google Drive không chạy game.</p><small>Nếu đang mở website thật, gửi lại thông báo lỗi bên dưới để được kiểm tra.</small><pre id="bootError" style="white-space:pre-wrap"></pre></div>
@@ -4333,7 +4343,7 @@ function seasonBorderMarkup(s){
  [x,y+t,t,h-2*t],null,[x+w-t,y+t,t,h-2*t],
  [x,y+h-t,t,t],[x+t,y+h-t,w-2*t,t],[x+w-t,y+h-t,t,t]
  ];
- return pieces.map((crop,i)=>crop?'<span class="season-border-piece border-piece-'+i+'">'+croppedAssetSvg(a,crop,"season-border-art","none")+'</span>':'<span class="season-border-center"></span>').join("");
+ return pieces.map((crop,i)=>crop?'<span class="season-border-piece border-piece-'+i+'">'+htmlAssetCrop(a,crop)+'</span>':'<span class="season-border-center"></span>').join("");
 }
 function machineForStage(s){
  if(!s.order)return "";
@@ -4351,11 +4361,27 @@ function machineForStage(s){
  return r.steps.slice(steps.length).map(k=>map[k]).find(Boolean)||"";
 }
 
+
+function htmlAssetCrop(a,crop){
+ const [x,y,w,h]=crop;
+ return '<span class="border-image-window"><img src="'+a.src+'" alt="" aria-hidden="true" draggable="false" decoding="async" style="position:absolute;width:'+(a.width/w*100)+'%;height:'+(a.height/h*100)+'%;left:'+(-x/w*100)+'%;top:'+(-y/h*100)+'%;max-width:none;max-height:none"></span>';
+}
+function syncSeasonBorder(s,game,doc=document){
+ if(!game)return;
+ const id=seasonDecor(s),active=!!CAFE_ASSETS.frames.crops[id],key=locationNumber(s)+"|"+id+"|html-frame-v2";
+ let trim=doc.getElementById("seasonBorder");
+ if(!trim){trim=doc.querySelector(".season-border");if(!trim){trim=doc.createElement("div");trim.className="season-border"}trim.id="seasonBorder";trim.setAttribute("aria-hidden","true")}
+ // Attach outside the clipped service grid, not inside #game.
+ if(trim.parentNode!==doc.body)doc.body.appendChild(trim);
+ if(trim.dataset.artKey!==key){trim.innerHTML=active?seasonBorderMarkup(s):"";trim.dataset.artKey=key}
+ trim.hidden=!active;game.classList.toggle("has-season-border",active);
+}
+
 function seasonHeaderPaint(){
  const p=activeDecoration(state),id=seasonDecor(state),key=locationNumber(state)+"|"+id;
  const game=$("game");if(game&&game.dataset.season!==id)game.dataset.season=id;
+ syncSeasonBorder(state,game);
  if(key!==seasonHeaderKey){
-  if(game){let trim=game.querySelector(".season-border");if(!trim){trim=document.createElement("div");trim.className="season-border";trim.setAttribute("aria-hidden","true");game.appendChild(trim)}const html=seasonBorderMarkup(state);trim.innerHTML=html;trim.hidden=!html;game.classList.toggle("has-season-border",!!html)}
   const bar=document.querySelector(".topbar");
   if(bar){let decor=bar.querySelector(".season-header-art");if(!decor){decor=document.createElement("div");decor.className="season-header-art";decor.setAttribute("aria-hidden","true");bar.prepend(decor)}decor.innerHTML=seasonScene(state,"season-header-scene")}
   seasonHeaderKey=key;headerLayoutKey="";
@@ -4963,6 +4989,54 @@ function protectLegacyCoffee(s){
 const renderMetrics={fullMounts:0,panelUpdates:0,skippedPanels:0,saveWrites:0,saveBytes:0};
 let stationPanelCache=null,lastSavedPayload="",brandPaintKey="",headerLayoutKey="",headerReviewCache=null,lastViewportHeight=0;
 function textIfChanged(id,value){const el=$(id),s=String(value??"");if(el&&el.textContent!==s)el.textContent=s}
+
+function syncElementAttributes(target,source){
+ for(const attr of Array.from(target.attributes))if(!source.hasAttribute(attr.name))target.removeAttribute(attr.name);
+ for(const attr of Array.from(source.attributes))if(target.getAttribute(attr.name)!==attr.value)target.setAttribute(attr.name,attr.value);
+}
+function patchMachineElement(current,next){
+ syncElementAttributes(current,next);
+ const desiredSvg=next.querySelector("svg"),isRaster=!!desiredSvg?.classList.contains("equipment-render");
+ let raster=current.querySelector("svg.equipment-render"),vector=Array.from(current.children).find(n=>n.tagName.toLowerCase()==="svg"&&!n.classList.contains("equipment-render"));
+ if(isRaster){
+  if(!raster){raster=desiredSvg.cloneNode(true);current.prepend(raster)}
+  else{
+   syncElementAttributes(raster,desiredSvg);
+   const crop=raster.querySelector("svg"),wanted=desiredSvg.querySelector("svg");
+   if(crop&&wanted)syncElementAttributes(crop,wanted);
+  }
+  raster.style.removeProperty("display");
+  if(vector)vector.style.display="none";
+ }else{
+  if(raster)raster.style.display="none";
+  if(desiredSvg){
+   if(!vector){vector=desiredSvg.cloneNode(true);current.prepend(vector)}
+   else if(!vector.isEqualNode(desiredSvg)){const replacement=desiredSvg.cloneNode(true);vector.replaceWith(replacement);vector=replacement}
+   if(vector)vector.style.removeProperty("display");
+  }else if(vector)vector.style.display="none";
+ }
+ // Keep the decoded raster image node alive across espresso/juicer/blender
+ // changes, kettle stages and finishing, while showing only the active SVG.
+ const oldLabel=Array.from(current.children).find(n=>n.tagName.toLowerCase()==="span");
+ const newLabel=Array.from(next.children).find(n=>n.tagName.toLowerCase()==="span");
+ if(oldLabel&&newLabel){if(oldLabel.textContent!==newLabel.textContent)oldLabel.textContent=newLabel.textContent}
+ else if(newLabel)current.appendChild(newLabel.cloneNode(true));
+}
+function patchBenchPanel(current,markup){
+ const template=document.createElement("template");template.innerHTML=markup;
+ const next=template.content.firstElementChild;if(!next||!next.classList.contains("bar-bench"))return false;
+ syncElementAttributes(current,next);
+ const before=Array.from(current.children),after=Array.from(next.children);
+ if(before.length!==after.length)return false;
+ for(let i=0;i<after.length;i++){
+  const old=before[i],fresh=after[i];
+  if(old.classList.contains("bar-machine")&&fresh.classList.contains("bar-machine")){patchMachineElement(old,fresh);continue}
+  if(old.classList.contains("shift-meter")&&fresh.classList.contains("shift-meter"))continue;
+  if(!old.isEqualNode(fresh))old.replaceWith(fresh.cloneNode(true));
+ }
+ return true;
+}
+
 function patchServicePanels(host,markup){
  const panels=markup.split(/(?=<(?:div class="(?:customer-queue|bar-bench|bar-progress(?: [^"]*)?|ingredient-drawer|finish-tray|visual-serve)"|button class="compact-order"|nav class="visual-tabs"))/);
  if(panels.length!==8||!stationPanelCache||host.children.length!==8){
@@ -4970,7 +5044,9 @@ function patchServicePanels(host,markup){
  }
  for(let i=0;i<8;i++){
   if(stationPanelCache[i]===panels[i]){renderMetrics.skippedPanels++;continue}
-  host.children[i].outerHTML=panels[i];renderMetrics.panelUpdates++;
+  const panel=host.children[i];
+  if(panel.classList.contains("bar-bench")&&patchBenchPanel(panel,panels[i])){renderMetrics.panelUpdates++;continue}
+  panel.outerHTML=panels[i];renderMetrics.panelUpdates++;
  }
  stationPanelCache=panels;
 }
@@ -6471,6 +6547,28 @@ if(saveBlocked)showSheet("recovery","Bảo vệ save cũ",
  '<p>Không thể đọc save hiện tại. Dữ liệu gốc chưa bị ghi đè. Hãy xuất bản gốc hoặc nhập save hợp lệ.</p><button class="primary wide" data-action="exportSave">Xuất dữ liệu gốc</button><button class="wide" data-action="importSave">Nhập save</button><button class="wide" data-action="resetAsk">Tạo quán mới có xác nhận</button>');
 else if(state.phase==="prep"){intro();if(state.events.notice||state.events.active)showEvent()}else if(state.phase==="report")reportSheet();else menuSheet();
 /* ==================== REGRESSION CHECKS (ISOLATED STATES) ==================== */
+
+function runSteadyRenderChecks(){
+ const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{try{f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}};
+ const node=html=>{const t=document.createElement("template");t.innerHTML=html;return t.content.firstElementChild};
+ const s=newGame(()=>.5);
+ const bench=(art="espresso",label="Espresso",season=s)=>'<div class="bar-bench" data-finish="wood" data-location="1"><div class="season-corners">'+seasonScene(season)+counterSurface(season)+'</div><span class="shift-meter">timer</span><div class="cup-rack"><button>M</button></div><button class="bar-machine" data-machine="'+art+'" '+(art?'':'disabled')+'>'+ (art==="water"?'<svg viewBox="0 0 100 100"><use href="#kettle"/></svg>':art?assetSvg("equipment",art,"equipment-render"):"")+'<span>'+label+'</span></button><div class="cup-position"><svg><text>Ly</text></svg></div></div>';
+ test("background DOM remains identical during equipment switch",()=>{const b=node(bench()),bg=b.querySelector(".season-corners"),im=bg.querySelector("image");a(patchBenchPanel(b,bench("press","Ép")));a(b.querySelector(".season-corners")===bg&&bg.querySelector("image")===im)});
+ test("decoded equipment image survives espresso to press to blend",()=>{const b=node(bench()),image=b.querySelector(".bar-machine").querySelector("image");for(const id of ["press","blend","espresso"]){patchBenchPanel(b,bench(id,id));a(b.querySelector(".bar-machine").querySelector("image")===image)}});
+ test("crop coordinates change without recreating raster",()=>{const b=node(bench());patchBenchPanel(b,bench("press","Ép"));const root=b.querySelector(".equipment-render"),crop=root.querySelector("svg");a(crop.getAttribute("viewBox")===CAFE_ASSETS.equipment.crops.press.join(" "))});
+ test("finishing hides only machine, keeps background and decoded image",()=>{const b=node(bench()),bg=b.querySelector(".season-corners"),img=b.querySelector(".bar-machine").querySelector("image");patchBenchPanel(b,bench("","Hoàn thiện ly"));a(b.querySelector(".equipment-render").style.display==="none"&&b.querySelector(".season-corners")===bg);patchBenchPanel(b,bench("espresso"));a(b.querySelector(".bar-machine").querySelector("image")===img&&b.querySelector(".equipment-render").style.display!=="none")});
+ test("kettle and raster are never visible at the same time",()=>{const b=node(bench());for(const id of ["water","press","","blend","water"]){patchBenchPanel(b,bench(id));const visible=Array.from(b.querySelector(".bar-machine").children).filter(n=>n.tagName.toLowerCase()==="svg"&&n.style.display!=="none");a(visible.length===(id?1:0))}});
+ test("disabled/action/label update without replacing button",()=>{const b=node(bench()),button=b.querySelector(".bar-machine");patchBenchPanel(b,bench("","Hoàn thiện ly"));a(b.querySelector(".bar-machine")===button&&button.hasAttribute("disabled")&&button.querySelector("span").textContent==="Hoàn thiện ly");patchBenchPanel(b,bench("blend","Xay"));a(!button.hasAttribute("disabled")&&button.getAttribute("data-machine")==="blend")});
+ test("200 automatic stage changes do not replace background",()=>{const b=node(bench()),bg=b.querySelector(".season-corners"),image=b.querySelector(".bar-machine").querySelector("image");for(let i=0;i<200;i++)patchBenchPanel(b,bench(["espresso","press","blend","","water"][i%5]));a(b.querySelector(".season-corners")===bg&&b.querySelector(".bar-machine").querySelector(".equipment-render").querySelector("image")===image)});
+ test("shift timer text is retained while machine changes",()=>{const b=node(bench());b.querySelector(".shift-meter").textContent="2:12";patchBenchPanel(b,bench("blend"));a(b.querySelector(".shift-meter").textContent==="2:12")});
+ test("season changes replace scenery once while preserving machine",()=>{const b=node(bench()),bg=b.querySelector(".season-corners"),m=b.querySelector(".bar-machine");const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};patchBenchPanel(b,bench("espresso","Espresso",x));a(b.querySelector(".season-corners")!==bg&&b.querySelector(".bar-machine")===m);const next=b.querySelector(".season-corners");patchBenchPanel(b,bench("blend","Xay",x));a(b.querySelector(".season-corners")===next)});
+ test("borders use clipped HTML images instead of nested SVG",()=>{const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};const html=seasonBorderMarkup(x);a((html.match(/<img /g)||[]).length===8&&!html.includes("<svg")&&html.includes('max-width:none'))});
+ test("frame mounts outside clipped game and repairs missing DOM",()=>{const doc=document.implementation.createHTMLDocument("frame-test"),game=doc.createElement("div");doc.body.appendChild(game);const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};syncSeasonBorder(x,game,doc);const frame=doc.getElementById("seasonBorder");a(frame.parentNode===doc.body&&!frame.hidden&&game.classList.contains("has-season-border"));const img=frame.querySelector("img");syncSeasonBorder(x,game,doc);a(frame.querySelector("img")===img);frame.remove();syncSeasonBorder(x,game,doc);a(doc.getElementById("seasonBorder")&&!doc.getElementById("seasonBorder").hidden)});
+ test("expired frame hides and removes reserved padding",()=>{const doc=document.implementation.createHTMLDocument("frame-test"),game=doc.createElement("div");doc.body.appendChild(game);const x=clone(s);x.seasonPackage={id:"xmas",start:1,end:30,paid:30000};syncSeasonBorder(x,game,doc);x.day=31;syncSeasonBorder(x,game,doc);a(doc.getElementById("seasonBorder").hidden&&!game.classList.contains("has-season-border"))});
+ return rows;
+}
+window.BeanAroundRenderChecks={runBrowser:runSteadyRenderChecks};
+
 
 window.BeanAroundBorderChecks={run(){
  const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{try{f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}};
