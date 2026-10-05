@@ -29,7 +29,7 @@ const server=http.createServer((req,res)=>{
 });
 async function setup(page,recipe="latte",working=false){
  await page.evaluate(({recipe,working})=>{
-  gameRandom=()=>.5;
+  let qaSeed=123456789;gameRandom=()=>((qaSeed=(Math.imul(qaSeed,1664525)+1013904223)>>>0)/4294967296);
   const s=newGame(()=>.5);
   for(const[k,g]of Object.entries(G))s.stock[k]=[{n:1000,expiry:s.day+30,unitCost:g.unitCost}];
   s.events.preparedDay=s.day;s.events.active=null;s.events.broken=false;s.ops.active=null;s.ops.scheduled=null;
@@ -102,6 +102,7 @@ function sameRects(before,after,label){
      await setup(page,recipe,working);
      const file="equipment-"+recipe+"-"+(working?"working":"idle")+".png";
      await page.screenshot({path:path.join(output,file),fullPage:true});report.screenshots.push(file);
+     await page.locator(".bar-bench").screenshot({path:path.join(output,"stage-"+file)});
      const active=await page.locator(".bar-machine").getAttribute("data-machine");
      assert(active===(recipe==="latte"?"espresso":recipe==="apple"?"press":"blend"),"wrong machine");
     }
@@ -132,6 +133,15 @@ function sameRects(before,after,label){
    fs.writeFileSync(path.join(output,"four-seasons-contact-sheet.jpg"),Buffer.from(jpeg.split(",")[1],"base64"));
    // Enables the assistant to inspect actual captured pixels through text-only CI tools.
    console.log("CAFE_VISUAL_REVIEW_IMAGE="+jpeg);
+   const devices=["latte","apple","mangoCoconut"];
+   const stages=devices.flatMap(id=>["idle","working"].map(work=>({id:id+" / "+work,data:"data:image/png;base64,"+fs.readFileSync(path.join(output,"stage-equipment-"+id+"-"+work+".png")).toString("base64")})));
+   const machineJpeg=await sheet.evaluate(async stages=>{
+    const canvas=document.getElementById("review");canvas.width=1170;canvas.height=660;const ctx=canvas.getContext("2d");ctx.fillStyle="#fff4e6";ctx.fillRect(0,0,1170,660);ctx.font="bold 16px sans-serif";
+    for(let i=0;i<stages.length;i++){const im=new Image();im.src=stages[i].data;await im.decode();const x=Math.floor(i/2)*390,y=i%2*330;ctx.fillStyle="#762020";ctx.fillText(stages[i].id,x+12,y+21);ctx.drawImage(im,x,y+30,390,Math.min(300,390*im.height/im.width))}
+    return canvas.toDataURL("image/jpeg",.87);
+   },stages);
+   fs.writeFileSync(path.join(output,"equipment-contact-sheet.jpg"),Buffer.from(machineJpeg.split(",")[1],"base64"));
+   console.log("CAFE_MACHINE_REVIEW_IMAGE="+machineJpeg);
    await sheet.close();
   }
   report.status="passed";

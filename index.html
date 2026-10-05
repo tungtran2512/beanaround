@@ -826,8 +826,8 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 #game[data-cafe-theme]:not([data-cafe-theme="off"]) .topbar>*:not(.cafe-header-decor){z-index:1}
 .cafe-header-decor{position:absolute!important;inset:0;z-index:0;overflow:hidden}
 .cafe-header-decor:before,.cafe-header-decor:after{
- content:"";position:absolute;top:0;width:clamp(22px,7vw,34px);height:10px;
- background-image:var(--cafe-header-decor);background-size:contain;background-repeat:no-repeat;opacity:.48;pointer-events:none;
+ content:"";position:absolute;top:0;width:clamp(28px,10vw,46px);height:16px;
+ background-image:var(--cafe-header-decor);background-size:contain;background-repeat:no-repeat;opacity:.58;pointer-events:none;
 }
 .cafe-header-decor:before{left:0}
 .cafe-header-decor:after{right:0;transform:scaleX(-1)}
@@ -4979,13 +4979,15 @@ function cafeStageAccents(t){
  spring?'<path d="M803 93q-10 2-8 11q10-1 8-11M923 258q-11-3-12 7q10 5 12-7" fill="#d7aaa3" opacity=".62"/>':
  fall?'<path d="M784 251q-8-18 10-14q12 12-10 14M922 119q-3-15 10-9q5 12-10 9" fill="#b58d59" opacity=".6"/>':
  '<ellipse cx="898" cy="104" rx="34" ry="32" fill="#fff3cd" opacity=".28"/><path d="M940 56L815 340H851L957 93" fill="#fff5d2" opacity=".14"/>';
- const left=fall?'<g transform="translate(28 453)"><ellipse cy="18" rx="25" ry="5" fill="#674b31" opacity=".18"/><ellipse cy="1" rx="22" ry="19" fill="#bf8d58"/><ellipse cy="1" rx="12" ry="19" fill="#ce9e67"/><path d="M0-17q-2-10 5-13" fill="none" stroke="#6a7653" stroke-width="5"/><path d="M-11-13q-8 16 0 28M11-13q8 16 0 28" fill="none" stroke="#ac7745" stroke-width="1.5"/></g>':
- '<g transform="translate(30 449)"><ellipse cy="21" rx="23" ry="4" fill="#6c583d" opacity=".16"/><path d="M-14-10H14L10 20H-10Z" fill="#d4c8ab"/><path d="M-8-7H-2V17" stroke="#eee5ce" stroke-width="2"/><path d="M0-10V-53M0-25L-13-44M0-36L13-57" fill="none" stroke="'+t.leaf+'" stroke-width="2"/>'+
+ const trees=snow?'<path d="M916 326V217m0 41-26-24m26 45 22-30m-22 54-35-19" fill="none" stroke="#7f8e97" stroke-width="3" opacity=".45"/><path d="M879 321q15-9 32-1t35 1" stroke="#faf7ed" stroke-width="7" fill="none" opacity=".7"/>':
+ '<g opacity=".38"><path d="M915 329V239M914 286L889 263M915 275L938 251" fill="none" stroke="#9b8261" stroke-width="3"/><ellipse cx="915" cy="236" rx="23" ry="39" fill="'+(fall?"#c1945e":spring?"#ceb7ad":"#759677")+'"/><ellipse cx="889" cy="261" rx="16" ry="26" fill="'+(fall?"#cfaa75":spring?"#d9c5b6":"#8da782")+'"/><ellipse cx="937" cy="251" rx="16" ry="28" fill="'+(fall?"#bd965f":spring?"#c5c4a6":"#7c9d85")+'"/></g>';
+ const left=fall?'<g transform="translate(238 144) scale(.85)"><ellipse cy="18" rx="25" ry="5" fill="#674b31" opacity=".18"/><ellipse cy="1" rx="22" ry="19" fill="#bf8d58"/><ellipse cy="1" rx="12" ry="19" fill="#ce9e67"/><path d="M0-17q-2-10 5-13" fill="none" stroke="#6a7653" stroke-width="5"/><path d="M-11-13q-8 16 0 28M11-13q8 16 0 28" fill="none" stroke="#ac7745" stroke-width="1.5"/></g>':
+ '<g transform="translate(238 134) scale(.85)"><ellipse cy="21" rx="23" ry="4" fill="#6c583d" opacity=".16"/><path d="M-14-10H14L10 20H-10Z" fill="#d4c8ab"/><path d="M-8-7H-2V17" stroke="#eee5ce" stroke-width="2"/><path d="M0-10V-53M0-25L-13-44M0-36L13-57" fill="none" stroke="'+t.leaf+'" stroke-width="2"/>'+
  (spring?'<g fill="#dcb7ae"><circle cx="-14" cy="-45" r="6"/><circle cx="13" cy="-57" r="6"/><circle cy="-53" r="7"/></g>':
  snow?'<path d="M0-64L-13-46H-7L-20-27H20L7-46H13Z" fill="'+t.leaf+'"/><circle cx="-7" cy="-35" r="2" fill="#ccb77f"/>':
  '<path d="M0-19Q-26-29-14-43Q4-35 0-19M0-35Q24-51 15-59Q-2-54 0-35" fill="'+t.leaf+'"/>')+'</g>';
  const right='<g transform="translate(967 447)" opacity=".75"><ellipse cy="25" rx="22" ry="3" fill="#7a6247" opacity=".22"/><path d="M-16-19H15L10 21H-10Z" fill="#c7bda1"/><path d="M-10-18L-17-60M-3-19V-66M4-19L11-63M9-18L19-54" stroke="#a18b61" stroke-width="3" fill="none"/><path d="M-15-17L-9 20M13-17L9 20" stroke="#ece2c7" stroke-width="1.5"/></g>';
- return '<svg class="cafe-season-props" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true" focusable="false"><rect x="762" y="50" width="195" height="294" fill="'+t.window+'" opacity=".18"/>'+weather+left+right+'</svg>';
+ return '<svg class="cafe-season-props" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true" focusable="false"><rect x="762" y="50" width="195" height="294" fill="'+t.window+'" opacity=".43"/>'+trees+weather+left+right+'</svg>';
 }
 function cafeSceneMarkup(s,scope="stage"){
  const id=cafeThemeId(s);if(!id)return "";
