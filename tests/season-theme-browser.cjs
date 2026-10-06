@@ -471,6 +471,12 @@ function sameRects(before,after,label){
   await stabilityPage.screenshot({path:path.join(output,"kettle-water-stage.png")});
   console.log("KETTLE_GAME_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"kettle-water-stage.png")).toString("base64"));
   await stabilityPage.evaluate(()=>{managementVisible=true;managementTab="stock";paint()});
+  await stabilityPage.evaluate(()=>window.scrollTo(0,0));
+  const headerStart=await stabilityPage.locator(".topbar").evaluate(el=>el.getBoundingClientRect().top);
+  await stabilityPage.evaluate(()=>window.scrollTo(0,120));await stabilityPage.waitForTimeout(150);
+  const headerScroll=await stabilityPage.locator(".topbar").evaluate(el=>({top:el.getBoundingClientRect().top,scroll:window.scrollY,position:getComputedStyle(el).position}));
+  assert(headerScroll.scroll>0&&Math.abs(headerStart-headerScroll.top-headerScroll.scroll)<1&&headerScroll.position==="relative","header must scroll naturally with the document: "+JSON.stringify(headerScroll));
+  report.renderStability.headerScroll=headerScroll;
   for(const y of [0,120,300,100,0]){await stabilityPage.evaluate(y=>window.scrollTo(0,y),y);await stabilityPage.waitForTimeout(80)}
   assert(await stabilityPage.locator(".topbar .cafe-component-skin").count()===1,"scroll recreated header skin");
   report.renderStability.scroll="management scroll up/down completed";
