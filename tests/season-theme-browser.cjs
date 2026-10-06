@@ -190,6 +190,7 @@ function sameRects(before,after,label){
    return {count:rows.length,failed:rows.filter(x=>x.ok===false||x.passed===false)};
   });
 
+  assert(report.regression.failed.length===0,"regression: "+JSON.stringify(report.regression.failed));
   await opsContext.close();
 
   for(const viewport of [{width:390,height:844},{width:375,height:812},{width:430,height:932}]){
@@ -320,7 +321,7 @@ function sameRects(before,after,label){
    await page.locator(".deliver-art").click();
    const saleAfter=await page.evaluate(()=>({uid:state.order?.uid,revenue:state.lifetimeRevenue}));
    assert(saleAfter.uid!==saleBefore.uid&&saleAfter.revenue>saleBefore.revenue,"decorated delivery CTA failed to settle order");
-   await page.evaluate(()=>window.BeanAroundSeasonTheme.setPreview("summer"));
+   await page.evaluate(()=>window.BeanAroundSeasonTheme.setPreview("off"));
    assert(await page.locator(".cafe-component-skin").count()===0,"component art did not unmount");
    report.liveLabels=await page.evaluate(()=>Object.fromEntries(["#headerStars","#rating",".navbar button:nth-child(4) svg"].map(selector=>{const el=document.querySelector(selector),r=el.getBoundingClientRect(),s=getComputedStyle(el);return [selector,{text:el.textContent,display:s.display,opacity:s.opacity,visibility:s.visibility,zIndex:s.zIndex,rect:{x:r.x,y:r.y,width:r.width,height:r.height}}]})));
    report.viewports.push({viewport,geometry:"unchanged",touch:"passed",delivery:"real completed recipe served"});
