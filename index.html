@@ -942,6 +942,22 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 #game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .navbar>button:not(.active){text-shadow:0 1px 2px #061B2C,0 0 5px #061B2C}
 #game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .navbar>button.active{background:var(--cream);text-shadow:none}
 
+
+/* Keep live labels in their existing positions, above the artwork.
+   Local paper/ink backplates protect real text without washing out entire ends. */
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .topbar>:is(.hud-left,.brand,.hud-rating),
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .navbar>button{position:relative;z-index:7}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .compact-order :is(b,strong,small,em){
+ text-shadow:none;background:#F7FBFFF0;border-radius:3px;box-shadow:0 0 3px 1px #F7FBFFC9;
+}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .compact-order :is(small,em){width:fit-content;max-width:100%}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .topbar :is(#dayLabel,#phaseLabel,#headerStars,#rating,#reviewTotal){
+ background:#0C2B46D6;border-radius:3px;box-shadow:0 0 3px 1px #0C2B46A0;
+}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .topbar :is(#phaseLabel,#headerStars,#reviewTotal){width:fit-content;max-width:100%}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .topbar :is(#headerStars,#reviewTotal){margin-left:auto}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .navbar>button>svg{position:relative;z-index:1}
+
 </style>
 </head>
 <body><div id="bootNotice"><b>BEAN AROUND · Đang khởi động…</b><p>Nếu thông báo này không biến mất và nút không hoạt động: hãy mở link game bằng Safari. Bản xem trước của ứng dụng Tệp / Google Drive không chạy game.</p><small>Nếu đang mở website thật, gửi lại thông báo lỗi bên dưới để được kiểm tra.</small><pre id="bootError" style="white-space:pre-wrap"></pre></div>

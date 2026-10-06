@@ -41,7 +41,7 @@ async function setup(page,recipe="latte",working=false){
   const steps=recipeForOrder(state.order).steps,at=steps.indexOf(device);
   for(const key of steps.slice(0,Math.max(0,at)))ingredient(state,key);
   if(working){startIngredient(state,device);state.job.remaining=state.job.total/2}
-  closeSheet();managementVisible=false;stationPanelCache=null;paint();
+  closeSheet();document.getElementById("toast").classList.remove("show");managementVisible=false;stationPanelCache=null;paint();
  },{recipe,working});
  await page.waitForLoadState("networkidle");
  await page.evaluate(()=>document.fonts.ready);
@@ -215,6 +215,7 @@ function sameRects(before,after,label){
    assert(saleAfter.uid!==saleBefore.uid&&saleAfter.revenue>saleBefore.revenue,"decorated delivery CTA failed to settle order");
    await page.evaluate(()=>window.BeanAroundSeasonTheme.setPreview("spring"));
    assert(await page.locator(".winter-component-skin").count()===0,"winter art did not unmount");
+   report.liveLabels=await page.evaluate(()=>Object.fromEntries(["#headerStars","#rating",".navbar button:nth-child(4) svg"].map(selector=>{const el=document.querySelector(selector),r=el.getBoundingClientRect(),s=getComputedStyle(el);return [selector,{text:el.textContent,display:s.display,opacity:s.opacity,visibility:s.visibility,zIndex:s.zIndex,rect:{x:r.x,y:r.y,width:r.width,height:r.height}}]})));
    report.viewports.push({viewport,geometry:"unchanged",touch:"passed",delivery:"real completed recipe served"});
 
    await context.close();
@@ -273,6 +274,7 @@ function sameRects(before,after,label){
    }
    await sheet.close();
   }
+  if(process.env.REVIEW_IMAGE_LOG==="1"&&process.env.BROWSER==="webkit")console.log("WINTER_WEBKIT_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-ready-390.png")).toString("base64"));
   report.status="passed";
  }catch(error){report.status="failed";report.failure=error.message;process.exitCode=1}
  finally{await browser.close();server.close();fs.writeFileSync(path.join(output,"results.json"),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2))}
