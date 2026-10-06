@@ -16,7 +16,7 @@ const root=path.resolve(__dirname,"..");
 const baseline=execFileSync("git",["show","578ef27013e71ac65ee658b09297ff6f1ac0b88d:index.html"],{cwd:root,maxBuffer:4*1024*1024});
 const output=path.join(root,"artifacts","season-theme",process.env.BROWSER||"chromium");
 fs.mkdirSync(output,{recursive:true});
-const types={".html":"text/html; charset=utf-8",".svg":"image/svg+xml",".png":"image/png",".js":"text/javascript",".css":"text/css"};
+const types={".html":"text/html; charset=utf-8",".svg":"image/svg+xml",".webp":"image/webp",".png":"image/png",".js":"text/javascript",".css":"text/css"};
 const selectors=[".topbar",".customer-queue",".compact-order",".bar-bench",".bar-progress",".visual-tabs",".ingredient-drawer",".finish-tray",".visual-serve",".deliver-art",".navbar",".cup-rack",".bar-machine",".cup-position"];
 function assert(value,message){if(!value)throw Error(message)}
 const server=http.createServer((req,res)=>{
@@ -92,6 +92,7 @@ function sameRects(before,after,label){
     assert(visual.header===expectedColors[theme],"season header color missing "+JSON.stringify(visual));
     assert(visual.room===visual.expectedRoom,"wrong seasonal environment");
     assert(visual.note==="show","simple order should show safe note");
+    if(theme==="winter"){const props=await page.evaluate(()=>getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display);assert(props==="none","wide espresso must not compete with tree/chalkboard")}
     await page.waitForLoadState("networkidle");
     sameRects(before,await rects(page),theme+"/"+viewport.width);
     const audit=await page.evaluate(()=>window.BeanAroundSeasonTheme.audit());
@@ -105,7 +106,7 @@ function sameRects(before,after,label){
    }
    // Real recipe stages, idle and working, at the reference viewport.
    if(viewport.width===390){
-    await page.evaluate(()=>window.BeanAroundSeasonTheme.setPreview("autumn"));
+    await page.evaluate(()=>window.BeanAroundSeasonTheme.setPreview("winter"));
     for(const recipe of ["latte","apple","mangoCoconut"])for(const working of [false,true]){
      await setup(page,recipe,working);
      const file="equipment-"+recipe+"-"+(working?"working":"idle")+".png";
@@ -113,6 +114,8 @@ function sameRects(before,after,label){
      await page.locator(".bar-bench").screenshot({path:path.join(output,"stage-"+file)});
      const active=await page.locator(".bar-machine").getAttribute("data-machine");
      assert(active===(recipe==="latte"?"espresso":recipe==="apple"?"press":"blend"),"wrong machine");
+     const visibleProps=await page.evaluate(()=>getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display!=="none");
+     assert(visibleProps===(recipe!=="latte"),"winter props must adapt to equipment silhouette");
     }
     await setup(page,"latte");
     const noteSafety=await page.evaluate(()=>{
