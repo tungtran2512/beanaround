@@ -113,6 +113,25 @@ function sameRects(before,after,label){
   }
  }
 
+
+ const redSource=path.join(root,"assets/bean-around/sources/winter-red-ui-atlas-2026.png");
+ if(fs.existsSync(redSource)){
+  const source="data:image/png;base64,"+fs.readFileSync(redSource).toString("base64");
+  const strips=await artPage.evaluate(async source=>{
+   const im=new Image();im.src=source;await im.decode();
+   return [[0,267],[268,500],[502,745],[748,1018]].map(([a,b])=>{
+    const c=document.createElement("canvas");c.width=1170;c.height=Math.round(1170*(b-a)/1536);
+    c.getContext("2d").drawImage(im,0,a,1536,b-a,0,0,c.width,c.height);
+    return c.toDataURL("image/webp",.93);
+   });
+  },source);
+  for(let i=0;i<strips.length;i++){
+   const name=["header","deliver","order","footer"][i],target=path.join(root,"assets/bean-around/winter-red-ui-"+name+".webp");
+   if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(strips[i].split(",")[1],"base64"));
+   if(process.env.BROWSER!=="webkit")console.log("WINTER_RED_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
+  }
+ }
+
  await artPage.close();
 
  try{
