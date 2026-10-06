@@ -46,12 +46,12 @@ async function setup(page,recipe="latte",working=false){
  await page.waitForLoadState("networkidle");
  await page.evaluate(()=>document.fonts.ready);
  await page.locator(".cafe-atmosphere img").evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
- await waitWinterArtwork(page);
+ await waitCafeArtwork(page);
 }
-async function waitWinterArtwork(page){
+async function waitCafeArtwork(page){
  await page.evaluate(async()=>{
-  if(document.getElementById("game").dataset.cafeTheme!=="winter")return;
-  await Promise.all(Object.values(SeasonTheme.winter.uiArtwork).map(src=>{const im=new Image();im.src=src;return im.decode()}));
+  const theme=SeasonTheme[document.getElementById("game").dataset.cafeTheme];if(!theme?.uiArtwork)return;
+  await Promise.all(Object.values(theme.uiArtwork).map(src=>{const im=new Image();im.src=src;return im.decode()}));
  });
 }
 async function rects(page){
@@ -140,19 +140,19 @@ function sameRects(before,after,label){
      const game=document.getElementById("game"),t=SeasonTheme[game.dataset.cafeTheme],order=game.querySelector(".compact-order");
      return {header:getComputedStyle(game.querySelector(".topbar")).backgroundColor,room:game.querySelector(".cafe-room").getAttribute("src"),note:order.dataset.cafeNote,expectedRoom:t.background};
     });
-    const expectedColors={spring:"rgb(142, 32, 50)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(24, 52, 76)"};
+    const expectedColors={spring:"rgb(255, 247, 235)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(24, 52, 76)"};
     assert(visual.header===expectedColors[theme],"season header color missing "+JSON.stringify(visual));
     assert(visual.room===visual.expectedRoom,"wrong seasonal environment");
     assert(visual.note==="show","simple order should show safe note");
-    if(theme==="winter"){
-     const art=await page.evaluate(()=>({parts:Array.from(document.querySelectorAll(".winter-component-skin")).map(el=>el.dataset.skin).sort(),note:getComputedStyle(document.querySelector(".compact-order"),"::after").content,props:getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display}));
+    if(theme==="winter"||theme==="spring"){
+     const art=await page.evaluate(()=>({parts:Array.from(document.querySelectorAll(".cafe-component-skin")).map(el=>el.dataset.skin).sort(),note:getComputedStyle(document.querySelector(".compact-order"),"::after").content,props:document.querySelector(".cafe-winter-counter-props")?getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display:"none"}));
      assert(JSON.stringify(art.parts)===JSON.stringify(["cta","header","nav","order"]),"missing winter component art: "+JSON.stringify(art));
      assert(art.note==="none","old decorative note overlaps the approved order design");
-     assert(art.props==="none","wide espresso must not compete with tree/chalkboard");
-    }else assert(await page.locator(".winter-component-skin").count()===0,"winter art leaked into another season");
+     if(theme==="winter")assert(art.props==="none","wide espresso must not compete with tree/chalkboard");
+    }else assert(await page.locator(".cafe-component-skin").count()===0,"winter art leaked into another season");
     await page.waitForLoadState("networkidle");
     await page.locator(".cafe-atmosphere img").evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
-    await waitWinterArtwork(page);
+    await waitCafeArtwork(page);
     sameRects(before,await rects(page),theme+"/"+viewport.width);
     const audit=await page.evaluate(()=>window.BeanAroundSeasonTheme.audit());
     assert(audit.every(x=>x.ok),"audit failed "+theme+": "+JSON.stringify(audit.filter(x=>!x.ok)));
@@ -222,18 +222,24 @@ function sameRects(before,after,label){
     }
     paint();
    });
-   await waitWinterArtwork(page);
+   await waitCafeArtwork(page);
    assert(await page.locator(".deliver-art").isEnabled(),"finished recipe must enable delivery");
    await page.screenshot({path:path.join(output,"winter-ready-"+viewport.width+".png"),fullPage:true});
    for(const[part,selector]of [["header",".topbar"],["order",".compact-order"],["deliver",".deliver-art"],["footer",".navbar"]]){
     await page.locator(selector).screenshot({path:path.join(output,"winter-component-"+part+"-"+viewport.width+".png")});
    }
+   await page.evaluate(()=>window.BeanAroundSeasonTheme.setPreview("spring"));
+   await waitCafeArtwork(page);
+   await page.screenshot({path:path.join(output,"spring-ready-"+viewport.width+".png"),fullPage:true});
+   for(const[part,selector]of [["header",".topbar"],["order",".compact-order"],["deliver",".deliver-art"],["footer",".navbar"]]){
+    await page.locator(selector).screenshot({path:path.join(output,"spring-component-"+part+"-"+viewport.width+".png")});
+   }
    const saleBefore=await page.evaluate(()=>({uid:state.order.uid,revenue:state.lifetimeRevenue}));
    await page.locator(".deliver-art").click();
    const saleAfter=await page.evaluate(()=>({uid:state.order?.uid,revenue:state.lifetimeRevenue}));
    assert(saleAfter.uid!==saleBefore.uid&&saleAfter.revenue>saleBefore.revenue,"decorated delivery CTA failed to settle order");
-   await page.evaluate(()=>window.BeanAroundSeasonTheme.setPreview("spring"));
-   assert(await page.locator(".winter-component-skin").count()===0,"winter art did not unmount");
+   await page.evaluate(()=>window.BeanAroundSeasonTheme.setPreview("summer"));
+   assert(await page.locator(".cafe-component-skin").count()===0,"component art did not unmount");
    report.liveLabels=await page.evaluate(()=>Object.fromEntries(["#headerStars","#rating",".navbar button:nth-child(4) svg"].map(selector=>{const el=document.querySelector(selector),r=el.getBoundingClientRect(),s=getComputedStyle(el);return [selector,{text:el.textContent,display:s.display,opacity:s.opacity,visibility:s.visibility,zIndex:s.zIndex,rect:{x:r.x,y:r.y,width:r.width,height:r.height}}]})));
    report.viewports.push({viewport,geometry:"unchanged",touch:"passed",delivery:"real completed recipe served"});
 
@@ -276,6 +282,21 @@ function sameRects(before,after,label){
     return c.toDataURL("image/jpeg",.95);
    },parts);
    console.log("WINTER_COMPONENT_REVIEW_IMAGE="+componentReview);
+
+   const springParts=["header","order","deliver","footer"].map(id=>({id,data:"data:image/png;base64,"+fs.readFileSync(path.join(output,"spring-component-"+id+"-390.png")).toString("base64")}));
+   const springReview=await sheet.evaluate(async parts=>{
+    const c=document.getElementById("review");c.width=780;c.height=740;const ctx=c.getContext("2d");ctx.fillStyle="#fff4e6";ctx.fillRect(0,0,c.width,c.height);ctx.font="bold 18px sans-serif";
+    let y=0;for(const p of parts){const im=new Image();im.src=p.data;await im.decode();ctx.fillStyle="#762C37";ctx.fillText(p.id,12,y+23);ctx.drawImage(im,0,y+32,im.width*2,im.height*2);y+=im.height*2+43}
+    return c.toDataURL("image/jpeg",.95);
+   },springParts);
+   console.log("SPRING_COMPONENT_REVIEW_IMAGE="+springReview);
+   const springSamples=[[375,812],[390,844],[430,932]].map(([w,h])=>({w,h,data:"data:image/png;base64,"+fs.readFileSync(path.join(output,"spring-"+w+"x"+h+".png")).toString("base64")}));
+   const springResponsive=await sheet.evaluate(async samples=>{
+    const c=document.getElementById("review");c.width=1195;c.height=962;const ctx=c.getContext("2d");ctx.fillStyle="#fff4e6";ctx.fillRect(0,0,1195,962);let x=0;
+    for(const s of samples){const im=new Image();im.src=s.data;await im.decode();ctx.drawImage(im,x,0,s.w,s.h);x+=s.w}return c.toDataURL("image/jpeg",.91);
+   },springSamples);
+   console.log("SPRING_RESPONSIVE_REVIEW_IMAGE="+springResponsive);
+
    const ready="data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-ready-390.png")).toString("base64");
    console.log("WINTER_READY_REVIEW_IMAGE="+ready);
 
@@ -294,6 +315,7 @@ function sameRects(before,after,label){
    await sheet.close();
   }
   if(process.env.REVIEW_IMAGE_LOG==="1"&&process.env.BROWSER==="webkit")console.log("WINTER_WEBKIT_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-ready-390.png")).toString("base64"));
+  if(process.env.REVIEW_IMAGE_LOG==="1")console.log("SPRING_READY_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"spring-ready-390.png")).toString("base64"));
   report.status="passed";
  }catch(error){report.status="failed";report.failure=error.message;process.exitCode=1}
  finally{await browser.close();server.close();fs.writeFileSync(path.join(output,"results.json"),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2))}

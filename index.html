@@ -909,24 +909,24 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 
 /* Winter component artwork V3. Every layer is absolute: host geometry, labels,
    active/disabled state and all action hit boxes remain owned by the game. */
-.winter-component-skin,.winter-component-skin *{
+.cafe-component-skin,.cafe-component-skin *{
  pointer-events:none!important;user-select:none;-webkit-user-select:none;
 }
-#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .winter-component-skin{
+#game:is([data-cafe-theme="winter"],[data-cafe-theme="spring"]) .cafe-component-skin{
  position:absolute!important;inset:0;display:block;z-index:0!important;
  margin:0;padding:0;border:0;border-radius:inherit;overflow:hidden;
  opacity:1;container-type:size;
 }
-.winter-skin-slices{position:absolute;inset:0;display:grid;grid-template-columns:17% minmax(0,1fr) 17%;font-style:normal}
-.winter-skin-slices>i{display:block;min-width:0;height:100%;background-image:var(--winter-component-image);background-repeat:no-repeat;background-size:600% 100%}
-.winter-skin-slices>i:first-child{background-position:left center}
-.winter-skin-slices>i:nth-child(2){background-size:150% 100%;background-position:center}
-.winter-skin-slices>i:last-child{background-position:right center}
-@supports(width:1cqh){.winter-skin-slices{grid-template-columns:min(24cqw,100cqh) minmax(0,1fr) min(24cqw,100cqh)}}
-[data-skin="header"]{--winter-component-image:var(--cafe-skin-header)}
-[data-skin="order"]{--winter-component-image:var(--cafe-skin-order)}
-[data-skin="cta"]{--winter-component-image:var(--cafe-skin-cta)}
-[data-skin="nav"]{--winter-component-image:var(--cafe-skin-nav)}
+.cafe-skin-slices{position:absolute;inset:0;display:grid;grid-template-columns:17% minmax(0,1fr) 17%;font-style:normal}
+.cafe-skin-slices>i{display:block;min-width:0;height:100%;background-image:var(--cafe-component-image);background-repeat:no-repeat;background-size:600% 100%}
+.cafe-skin-slices>i:first-child{background-position:left center}
+.cafe-skin-slices>i:nth-child(2){background-size:150% 100%;background-position:center}
+.cafe-skin-slices>i:last-child{background-position:right center}
+@supports(width:1cqh){.cafe-skin-slices{grid-template-columns:min(24cqw,100cqh) minmax(0,1fr) min(24cqw,100cqh)}}
+[data-skin="header"]{--cafe-component-image:var(--cafe-skin-header)}
+[data-skin="order"]{--cafe-component-image:var(--cafe-skin-order)}
+[data-skin="cta"]{--cafe-component-image:var(--cafe-skin-cta)}
+[data-skin="nav"]{--cafe-component-image:var(--cafe-skin-nav)}
 #game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) :is(.cafe-header-decor,.cafe-nav-decor){display:none}
 #game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .compact-order:after,
 #game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .deliver-art:before,
@@ -957,6 +957,34 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 #game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .topbar :is(#phaseLabel,#headerStars,#reviewTotal){width:fit-content;max-width:100%}
 #game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .topbar :is(#headerStars,#reviewTotal){margin-left:auto}
 #game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .navbar>button>svg{position:relative;z-index:1}
+
+
+/* Spring reference: cream/sky header, green delivery, cream wood-tag order,
+   dark walnut footer. Geometry is shared with the existing winter skin. */
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) :is(.cafe-header-decor,.cafe-nav-decor){display:none}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .compact-order:after,
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .deliver-art:before,
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .deliver-art:after{content:none!important}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) :is(.topbar,.navbar,.deliver-art,.compact-order){background-image:none;box-shadow:none;border-color:#A76C3C}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .topbar>:is(.hud-left,.brand,.hud-rating),
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .navbar>button{position:relative;z-index:7}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .topbar{color:#654333}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .topbar :is(#shopSign,#money,#dayLabel,#rating){color:#762C37;text-shadow:0 0 3px #FFF7EB}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .topbar :is(#phaseLabel,#reviewTotal){color:#654333;opacity:1}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .topbar #headerStars{color:#8C5A13}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .topbar :is(#dayLabel,#phaseLabel,#headerStars,#rating,#reviewTotal){
+ background:#FFF7EBEB;border-radius:3px;box-shadow:0 0 3px 1px #FFF7EBC9;
+}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .topbar :is(#phaseLabel,#headerStars,#reviewTotal){width:fit-content;max-width:100%}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .topbar :is(#headerStars,#reviewTotal){margin-left:auto}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .compact-order :is(b,strong,small,em){
+ text-shadow:none;background:#FFF7EBEF;border-radius:3px;box-shadow:0 0 3px 1px #FFF7EBC9;
+}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .compact-order :is(small,em){width:fit-content;max-width:100%}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .deliver-art>b{color:#FFF7EB;text-shadow:0 1px 2px #173D26,0 0 5px #173D26}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .navbar>button:not(.active){text-shadow:0 1px 2px #29120B,0 0 5px #29120B}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .navbar>button.active{background:var(--cream);color:#762C37;text-shadow:none}
+#game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .navbar>button>svg{position:relative;z-index:1}
 
 </style>
 </head>
@@ -5048,7 +5076,7 @@ function assetSvg(group,key,cls="",align="xMidYMid meet"){const a=CAFE_ASSETS[gr
  * Calendar and purchased package are read, never changed.
  */
 const SeasonTheme=Object.freeze({
-spring:Object.freeze({"id":"spring","name":"Mùa Xuân","lighting":"#fff1dd","window":"#d5e0c9","accent":"#EAA6B8","leaf":"#91AD78","header":"#8E2032","cta":"#8E2032","nav":"#8E2032","paper":"#FFF7EB","particles":"petal","wash":".035","note":"pink","background":"assets/bean-around/spring-cafe-room.svg","headerDecor":"spring","machineAreaDecor":"assets/bean-around/season-spring-props.svg","orderDecor":"assets/bean-around/season-spring-note.svg","ctaDecor":"spring","navDecor":"spring"}),
+spring:Object.freeze({"uiArtwork":{"header":"assets/bean-around/spring-ui-header.webp","order":"assets/bean-around/spring-ui-order.webp","cta":"assets/bean-around/spring-ui-deliver.webp","nav":"assets/bean-around/spring-ui-footer.webp"},"id":"spring","name":"Mùa Xuân","lighting":"#fff1dd","window":"#d5e0c9","accent":"#EAA6B8","leaf":"#91AD78","header":"#FFF7EB","cta":"#397347","nav":"#623622","paper":"#FFF7EB","particles":"petal","wash":".035","note":"pink","background":"assets/bean-around/spring-cafe-room.svg","headerDecor":"spring","machineAreaDecor":"assets/bean-around/season-spring-props.svg","orderDecor":"assets/bean-around/season-spring-note.svg","ctaDecor":"spring","navDecor":"spring"}),
 summer:Object.freeze({"id":"summer","name":"Mùa Hạ","lighting":"#fff1c9","window":"#AFCFD1","accent":"#F4C85A","leaf":"#4F8A64","header":"#165A46","cta":"#17624C","nav":"#154F40","paper":"#FFF6DF","particles":"none","wash":".02","note":"yellow","background":"assets/bean-around/summer-cafe-room.svg","headerDecor":"summer","machineAreaDecor":"assets/bean-around/season-summer-props.svg","orderDecor":"assets/bean-around/season-summer-note.svg","ctaDecor":"summer","navDecor":"summer"}),
 autumn:Object.freeze({"id":"autumn","name":"Mùa Thu","lighting":"#f6d9ab","window":"#D7AE79","accent":"#D97A2B","leaf":"#C75C2A","header":"#7E1F28","cta":"#8C2F26","nav":"#6F2B25","paper":"#FFF1D8","particles":"maple","wash":".04","note":"kraft","background":"assets/bean-around/autumn-cafe-room.svg","headerDecor":"autumn","machineAreaDecor":"assets/bean-around/season-autumn-props.svg","orderDecor":"assets/bean-around/season-autumn-note.svg","ctaDecor":"autumn","navDecor":"autumn"}),
 winter:Object.freeze({"uiArtwork":{"header":"assets/bean-around/winter-ui-header.webp","order":"assets/bean-around/winter-ui-order.webp","cta":"assets/bean-around/winter-ui-deliver.webp","nav":"assets/bean-around/winter-ui-footer.webp"},"id":"winter","name":"Mùa Đông","lighting":"#fff1d8","window":"#28455F","accent":"#BFDCE8","leaf":"#527F64","header":"#18344C","cta":"#21445F","nav":"#162F46","paper":"#FFF8EC","particles":"snow","wash":".025","note":"ice","background":"assets/bean-around/winter-cafe-room.webp","headerDecor":"winter","machineAreaDecor":"assets/bean-around/season-winter-props.svg","orderDecor":"assets/bean-around/season-winter-note.svg","ctaDecor":"winter","navDecor":"winter"})
@@ -5104,7 +5132,7 @@ function syncCafeTheme(s,doc=document){
    if(!node._cafeObserver&&typeof ResizeObserver!=="undefined"){node._cafeObserver=new ResizeObserver(()=>cafeMaskHeader(host,node));node._cafeObserver.observe(host)}
   }
  }
- syncWinterComponentArt(doc);
+ syncCafeComponentArt(doc);
 }
 function cafeMaskHeader(host,node){
  const base=host.getBoundingClientRect();if(!base.width||!base.height)return;
@@ -5121,26 +5149,26 @@ function cafeMaskHeader(host,node){
  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+base.width+'" height="'+base.height+'"><defs><mask id="text-safe"><rect width="100%" height="100%" fill="white"/><path fill="black" d="'+path+'"/></mask></defs><rect width="100%" height="100%" fill="white" mask="url(#text-safe)"/></svg>';
  const mask='url("data:image/svg+xml,'+encodeURIComponent(svg)+'")';node.style.maskImage=mask;node.style.webkitMaskImage=mask;
 }
-/* Four user-approved winter component illustrations. No text is baked into art.
+/* Shared reference-based seasonal component illustrations. No text is baked into art.
    Mount only when a host is replaced; CSS keeps endcaps separate from the center.
    This function neither reads nor writes gameplay/save state. */
-function syncWinterComponentArt(doc=document){
+function syncCafeComponentArt(doc=document){
  const game=doc.getElementById("game");if(!game)return;
- const active=game.dataset.cafeTheme==="winter";
+ const active=!!SeasonTheme[game.dataset.cafeTheme]?.uiArtwork;
  for(const[part,selector]of [["header",".topbar"],["order","#station .compact-order"],["cta","#station .deliver-art"],["nav",".navbar"]]){
   const host=game.querySelector(selector);if(!host)continue;
-  let node=host.querySelector(":scope > .winter-component-skin");
+  let node=host.querySelector(":scope > .cafe-component-skin");
   if(!active){node?.remove();continue}
   if(node)continue;
-  node=doc.createElement("span");node.className="winter-component-skin";node.dataset.skin=part;
+  node=doc.createElement("span");node.className="cafe-component-skin";node.dataset.skin=part;
   node.setAttribute("aria-hidden","true");
-  node.innerHTML='<i class="winter-skin-slices"><i></i><i></i><i></i></i>';
+  node.innerHTML='<i class="cafe-skin-slices"><i></i><i></i><i></i></i>';
   host.appendChild(node);
  }
 }
 
 function syncCafeOrderNote(){
- syncWinterComponentArt();
+ syncCafeComponentArt();
  const order=document.querySelector("#station .compact-order");if(!order)return;
  const winter=document.getElementById("game")?.dataset.cafeTheme==="winter";
  const key=order.textContent+"|"+order.clientWidth+"|"+order.clientHeight+"|"+winter;
@@ -6875,7 +6903,7 @@ window.BeanAroundSeasonTheme=Object.freeze({
  },
  audit(){
   const game=document.getElementById("game"),machine=game.querySelector(".bar-machine"),cup=game.querySelector(".cup-position");
-  const boxes=[...game.querySelectorAll(".cafe-atmosphere,.cafe-atmosphere *,.cafe-header-decor,.cafe-nav-decor,.winter-component-skin,.winter-component-skin *")];
+  const boxes=[...game.querySelectorAll(".cafe-atmosphere,.cafe-atmosphere *,.cafe-header-decor,.cafe-nav-decor,.cafe-component-skin,.cafe-component-skin *")];
   const checks=[{name:"decorations cannot capture touches",ok:boxes.every(el=>getComputedStyle(el).pointerEvents==="none")},
    {name:"no horizontal overflow",ok:document.documentElement.scrollWidth<=document.documentElement.clientWidth+1},
    {name:"machine remains sharp and opaque",ok:!!machine&&getComputedStyle(machine).filter==="none"&&getComputedStyle(machine).opacity==="1"},
