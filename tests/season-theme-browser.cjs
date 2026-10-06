@@ -50,6 +50,7 @@ async function setup(page,recipe="latte",working=false){
 }
 async function waitCafeArtwork(page){
  await page.evaluate(async()=>{
+  if(typeof SeasonTheme==="undefined")return; // Older comparison baseline predates the theme system.
   const theme=SeasonTheme[document.getElementById("game").dataset.cafeTheme];if(!theme?.uiArtwork)return;
   await Promise.all(Object.values(theme.uiArtwork).map(src=>{const im=new Image();im.src=src;return im.decode()}));
  });
