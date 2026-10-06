@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 1024">
+<defs>
+ <linearGradient id="red" x1="0" y1=".2" x2="1" y2=".35" gradientUnits="objectBoundingBox"><stop stop-color="#410309"/><stop offset=".1" stop-color="#9b071a"/><stop offset=".23" stop-color="#f44b57"/><stop offset=".36" stop-color="#b20c22"/><stop offset=".57" stop-color="#710413"/><stop offset=".76" stop-color="#d32337"/><stop offset=".89" stop-color="#ef4252"/><stop offset="1" stop-color="#650512"/></linearGradient>
+ <linearGradient id="lid" x2="0" y2="1"><stop stop-color="#ed4c52"/><stop offset=".36" stop-color="#b00e22"/><stop offset=".75" stop-color="#75000d"/><stop offset=".91" stop-color="#fa6670"/><stop offset="1" stop-color="#63000b"/></linearGradient>
+ <linearGradient id="base" x2="0" y2="1"><stop stop-color="#fb6266"/><stop offset=".12" stop-color="#9f0014"/><stop offset=".45" stop-color="#c0182b"/><stop offset="1" stop-color="#46030b"/></linearGradient>
+ <linearGradient id="gold"><stop stop-color="#624115"/><stop offset=".19" stop-color="#b78636"/><stop offset=".37" stop-color="#fff5c4"/><stop offset=".54" stop-color="#d7a54f"/><stop offset=".7" stop-color="#a56a23"/><stop offset=".9" stop-color="#fce5a0"/><stop offset="1" stop-color="#775022"/></linearGradient>
+ <linearGradient id="wood"><stop stop-color="#251009"/><stop offset=".18" stop-color="#79401f"/><stop offset=".4" stop-color="#a56337"/><stop offset=".58" stop-color="#613016"/><stop offset=".85" stop-color="#30170e"/><stop offset="1" stop-color="#8e512b"/></linearGradient>
+ <linearGradient id="woodtop" x2=".8" y2="1"><stop stop-color="#b07d50"/><stop offset=".4" stop-color="#704025"/><stop offset="1" stop-color="#30180d"/></linearGradient>
+ <pattern id="grain" width="32" height="130" patternUnits="userSpaceOnUse"><path d="M2 0Q23 29 9 65T8 130M13 0Q-3 35 22 70T19 130M29 0Q15 45 28 83T30 130" fill="none" stroke="#e0a56b" stroke-opacity=".28" stroke-width="1.5"/><path d="M8 0Q29 40 16 92T14 130M22 0Q5 25 14 66T4 130" fill="none" stroke="#1d0b05" stroke-opacity=".5" stroke-width="2"/></pattern>
+ <path id="body" d="M569 225Q580 203 620 202L973 202Q1010 203 1022 233L1186 856Q1197 902 1123 930Q825 1014 454 921Q402 907 399 865Z"/>
+ <path id="handle" d="M1193 207Q1183 181 1201 171L1297 137Q1324 127 1339 155L1509 589Q1522 620 1492 638L1447 661Q1414 679 1396 645L1283 310Q1277 288 1246 288L1214 280Z"/>
+ <clipPath id="bodyclip"><use href="#body"/></clipPath>
+</defs>
+<!-- Gold tube and solid walnut handle -->
+<path d="M1016 267L1199 195L1227 258L1042 334Z" fill="url(#gold)" stroke="#6f4419" stroke-width="3"/>
+<path d="M1032 270L1200 207" stroke="#fff0ae" stroke-width="4" opacity=".8"/>
+<ellipse cx="1040" cy="303" rx="13" ry="53" transform="rotate(-18 1040 303)" fill="url(#gold)" stroke="#6a3d10" stroke-width="3"/>
+<use href="#handle" fill="url(#wood)" stroke="#3e2012" stroke-width="4"/>
+<use href="#handle" fill="url(#grain)"/>
+<path d="M1200 182Q1266 148 1309 151Q1323 154 1330 170L1499 596" fill="none" stroke="#d4a478" stroke-width="5" opacity=".5"/>
+<path d="M1256 290Q1291 283 1366 249" stroke="#201108" stroke-width="5" fill="none"/>
+<!-- Continuous narrow curved spout -->
+<path d="M444 668C365 656 335 626 320 558L261 310C240 222 187 173 133 150L52 158C145 185 176 235 197 320L255 574C277 672 334 709 429 724Z" fill="url(#red)" stroke="#660610" stroke-width="3"/>
+<path d="M432 685C349 673 315 628 297 557L240 313C218 228 177 183 109 161" fill="none" stroke="#ff8c87" stroke-width="5" opacity=".48"/>
+<path d="M437 712C341 703 294 667 273 573L211 322" fill="none" stroke="#590009" stroke-width="5" opacity=".65"/>
+<ellipse cx="94" cy="157" rx="51" ry="10" transform="rotate(-13 94 157)" fill="#251514" stroke="url(#gold)" stroke-width="6"/>
+<path d="M49 166L135 146" stroke="#fff3d0" stroke-width="2"/>
+<!-- Tapered metal body -->
+<use href="#body" fill="url(#red)" stroke="#780812" stroke-width="3"/>
+<g clip-path="url(#bodyclip)" opacity=".22" fill="none"><path d="M610 225L457 860" stroke="#ffd7b4" stroke-width="4"/><path d="M1007 237L1168 850" stroke="#ffc2ac" stroke-width="3"/><path d="M682 238L616 928" stroke="#ff7d77" stroke-width="2"/></g>
+<path d="M399 851Q431 914 790 922Q1114 926 1188 853L1184 890Q1176 967 817 979Q471 978 414 914Z" fill="url(#base)" stroke="#600611" stroke-width="3"/>
+<path d="M405 858Q479 923 800 923Q1080 922 1181 864" fill="none" stroke="#250206" stroke-width="7"/>
+<path d="M406 866Q498 932 806 931Q1096 927 1180 873" fill="none" stroke="#ff897f" stroke-width="3"/>
+<ellipse cx="438" cy="699" rx="7" ry="35" transform="rotate(13 438 699)" fill="#67000a" stroke="#f77b78" stroke-width="2"/>
+<!-- Lid gasket and red lid -->
+<ellipse cx="790" cy="209" rx="217" ry="30" fill="#24070b"/>
+<path d="M578 184Q576 154 790 153Q1004 152 1008 184L1008 201Q995 226 794 226Q593 226 578 202Z" fill="url(#lid)" stroke="#780710" stroke-width="3"/>
+<ellipse cx="793" cy="181" rx="215" ry="28" fill="#c72233" stroke="#e0555b" stroke-width="2"/>
+<path d="M590 204Q783 236 998 204" fill="none" stroke="#ff9e96" stroke-width="3"/>
+<g fill="#2b070a" stroke="#ed7974" stroke-width="1.5"><ellipse cx="925" cy="174" rx="8" ry="2.5"/><ellipse cx="931" cy="182" rx="8" ry="2.5"/><ellipse cx="936" cy="191" rx="8" ry="2.5"/></g>
+<!-- Walnut knob and gold collar -->
+<path d="M737 157L845 157L848 180Q796 192 738 180Z" fill="url(#gold)" stroke="#644015" stroke-width="2"/>
+<path d="M715 80Q793 67 875 81L847 172Q801 184 740 172Z" fill="url(#wood)" stroke="#472413" stroke-width="3"/>
+<path d="M715 80Q793 67 875 81L847 172Q801 184 740 172Z" fill="url(#grain)"/>
+<ellipse cx="795" cy="81" rx="80" ry="13" fill="url(#woodtop)" stroke="#d1a176" stroke-width="2"/>
+<path d="M734 80Q795 68 857 80M753 85Q802 76 843 83" fill="none" stroke="#d4a474" opacity=".4" stroke-width="2"/>
+<!-- Gold brand mark, crisp scalable lettering -->
+<g fill="#e9bf72" stroke="#f9dda0" stroke-width="1">
+<path d="M797 439Q757 475 797 510Q834 474 797 439Z"/><path d="M788 529Q744 529 749 476Q787 478 788 529Z"/><path d="M802 530Q801 490 844 478Q850 522 802 530Z"/>
+</g>
+<g fill="#f0c77e" font-family="Arial,sans-serif" text-anchor="middle"><text x="798" y="582" font-size="44" letter-spacing="5">BEAN</text><text x="798" y="630" font-size="44" letter-spacing="4">AROUND</text><path d="M763 651H833" stroke="#eec474" stroke-width="2"/><text x="798" y="696" font-size="25" letter-spacing="5">GOOD COFFEE</text><text x="798" y="730" font-size="25" letter-spacing="4">BRIGHTER DAYS</text></g>
+</svg>

@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
+<link rel="preload" as="image" href="assets/bean-around/bean-around-red-kettle.svg">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#821f2b">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1030,6 +1031,7 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 
 #game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .topbar :is(#shopSign,#money){background:transparent;box-shadow:none;color:#FFF5DD;text-shadow:0 1px 2px #32170D,0 0 4px #32170D,0 0 7px #32170D}
 </style>
+<style id="stable-paint">.topbar{transform:translateZ(0);backface-visibility:hidden}.cafe-component-skin,.cafe-atmosphere{pointer-events:none!important}</style>
 </head>
 <body><div id="bootNotice"><b>BEAN AROUND · Đang khởi động…</b><p>Nếu thông báo này không biến mất và nút không hoạt động: hãy mở link game bằng Safari. Bản xem trước của ứng dụng Tệp / Google Drive không chạy game.</p><small>Nếu đang mở website thật, gửi lại thông báo lỗi bên dưới để được kiểm tra.</small><pre id="bootError" style="white-space:pre-wrap"></pre></div>
 <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" style="position:absolute;overflow:hidden">
@@ -1102,15 +1104,7 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
  <path d="M65 76q23-3 19 14l-10 4" fill="none" stroke="#acbdad" stroke-width="4"/>
  <path d="M42 77l-8 20" stroke="white" opacity=".7"/>
  </g></symbol>
- <symbol id="kettle" viewBox="0 0 100 100">
- <g stroke="#795339" stroke-width="2.5" stroke-linecap="round">
- <path d="M26 38Q-7 32 6 73" fill="none" stroke-width="7"/>
- <path d="M29 36h37l11 45q-26 15-57 0Z" fill="#c79266"/>
- <path d="M66 52Q85 57 88 19q2-10 7-4" fill="none" stroke="#a86e45" stroke-width="8"/>
- <path d="M65 50Q85 57 88 18" fill="none" stroke="#efd2a7" stroke-width="2"/>
- <ellipse cx="48" cy="36" rx="21" ry="5" fill="#e7c395"/><path d="M44 29q-2-11 7-9l2 10" fill="#7d5a42"/>
- <path d="M33 45l-5 30" stroke="#efd4b1" stroke-width="4"/>
- </g></symbol>
+ <symbol id="kettle" viewBox="0 0 1536 1024"><image href="assets/bean-around/bean-around-red-kettle.svg" width="1536" height="1024" preserveAspectRatio="xMidYMid meet"/></symbol>
  <symbol id="cold" viewBox="0 0 100 140">
  <g stroke="#74543f" stroke-width="2" stroke-linejoin="round">
  <path d="M15 119h71v13H15Z" fill="#bc8a61"/><path d="M25 132v6m49-6v6" stroke-width="6"/>
@@ -2656,16 +2650,16 @@ function reviewSummary(s){
 }
 function starsText(score){const n=Math.round(score);return "★".repeat(n)+"☆".repeat(5-n)}
 function headerPaintV9(){
- const layoutKey=[managementVisible,state.phase,state.brand.name,window.innerWidth,window.innerHeight].join("|");
+ const layoutKey=[managementVisible,state.phase,state.brand.name,window.innerWidth].join("|");
  if(headerLayoutKey!==layoutKey){const bar=document.querySelector(".topbar");if(bar)document.documentElement.style.setProperty("--header-height",Math.ceil(bar.getBoundingClientRect().height)+"px");headerLayoutKey=layoutKey}
  const tail=state.reviews[state.reviews.length-1],reviewKey=[state.reviews.length,tail?.id,tail?.stars,state.reviewCounts.join(",")].join("|");
  if(!headerReviewCache||headerReviewCache.list!==state.reviews||headerReviewCache.key!==reviewKey)headerReviewCache={list:state.reviews,key:reviewKey,value:reviewSummary(state)};
  const r=headerReviewCache.value;
- $("phaseLabel").textContent=state.phase==="prep"?"Chuẩn bị":state.phase==="open"?"Đang mở cửa":"Đã đóng cửa";
- const star=$("headerStars"),before=Number(star.dataset.score)||0;star.textContent=starsText(r.average);
+ textIfChanged("phaseLabel",state.phase==="prep"?"Chuẩn bị":state.phase==="open"&&!managementVisible?"Lượt "+state.served+"/"+state.dayGoal:state.phase==="open"?"Đang mở cửa":"Đã đóng cửa");
+ const star=$("headerStars"),before=Number(star.dataset.score)||0;textIfChanged("headerStars",starsText(r.average));
  if(r.average>before&&before>0){star.classList.add("header-rating-up");setTimeout(()=>star.classList.remove("header-rating-up"),500)}star.dataset.score=String(r.average);
- $("rating").textContent=r.count?r.average.toLocaleString("vi-VN",{minimumFractionDigits:1,maximumFractionDigits:1}):"—";
- $("reviewTotal").textContent=r.count.toLocaleString("vi-VN")+" đánh giá";
+ textIfChanged("rating",r.count?r.average.toLocaleString("vi-VN",{minimumFractionDigits:1,maximumFractionDigits:1}):"—");
+ textIfChanged("reviewTotal",r.count.toLocaleString("vi-VN")+" đánh giá");
  $("dayCount").textContent=state.served+" / "+(state.phase==="prep"?plannedTraffic(state):state.dayGoal)+" lượt tại quầy";
 }
 function menuBoardMarkupV10(){
@@ -4592,7 +4586,7 @@ function teamMarkup(){
  ((state.frontJob&&!working(state,"barista")||state.job?.staffOwned&&!working(state,state.job.staffOwner||"barista"))?btn("Tự tiếp quản","frontTakeover"):"")+'</div>';
 }
 function renderStationV112(){renderStationV9();const host=$("station");if(host)host.insertAdjacentHTML("afterbegin",teamMarkup())}
-function headerPaintV10(){headerPaintV9();const time=$("shopClock");if(time)time.textContent=shopTime(state);const banner=$("holidayBanner");if(banner){banner.hidden=!holidayActive(state);banner.textContent=(state.holiday.kind==="tet"?"🧧":"🎊")+" +50% nhu cầu · "+Math.max(0,state.holiday.end-state.day+1)+" ngày"}}
+function headerPaintV10(){headerPaintV9();const time=$("shopClock");if(time)textIfChanged("shopClock",shopTime(state));const banner=$("holidayBanner");if(banner){banner.hidden=!holidayActive(state);banner.textContent=(state.holiday.kind==="tet"?"🧧":"🎊")+" +50% nhu cầu · "+Math.max(0,state.holiday.end-state.day+1)+" ngày"}}
 function validCoreV112(s){
  if(!validCoreV9(s)||!s.shift||!Number.isFinite(s.shift.elapsed)||s.shift.elapsed<0||!Number.isFinite(s.shift.minute)||s.shift.minute<420||s.shift.minute>1320||!s.holiday||!Array.isArray(s.holiday.claimed))return false;
  if(s.frontJob&&(!Array.isArray(s.frontJob.plan)||!Number.isInteger(s.frontJob.cursor)||s.frontJob.cursor<0||s.frontJob.cursor>s.frontJob.plan.length||!Number.isFinite(s.frontJob.extraRemaining)))return false;
@@ -4662,7 +4656,7 @@ function seasonHeaderPaint(){
 }
 
 let seasonHeaderKey="";
-function headerPaint(){headerPaintV10();seasonHeaderPaint();const el=$("dayLabel");if(el)el.textContent="Ngày "+state.day;if(state.phase==="open"&&!managementVisible)$("phaseLabel").textContent="Lượt "+state.served+"/"+state.dayGoal;}
+function headerPaint(){headerPaintV10();seasonHeaderPaint();const el=$("dayLabel");if(el)textIfChanged("dayLabel","Ngày "+state.day);if(state.phase==="open"&&!managementVisible)textIfChanged("phaseLabel","Lượt "+state.served+"/"+state.dayGoal);}
 /* V12 SINGLE-SCREEN SERVICE / FIVE-CUSTOMER QUEUE / STOCK CLOSURE */
 function counterActive(s){
  return [s.order,s.heldOrder,s.heldRecoveryOrder,s.staffJob?.order].filter(o=>o&&o.channel!=="online");
@@ -4812,7 +4806,7 @@ function paintSkillNeedle(){
 function machineIllustration(art){
  if(!art)return "";
  if(CAFE_ASSETS.equipment.crops[art])return assetSvg("equipment",art,"equipment-render","xMidYMax meet");
- const boxes={pour:"0 0 100 120",cold:"0 0 100 140"};
+ const boxes={pour:"0 0 100 120",cold:"0 0 100 140",kettle:"0 0 1536 1024"};
  return '<svg viewBox="'+(boxes[art]||"0 0 100 100")+'" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><use href="#'+art+'"/></svg>';
 }
 function renderStation(){
@@ -5444,7 +5438,7 @@ function patchMachineElement(current,next){
   if(raster)raster.style.display="none";
   if(desiredSvg){
    if(!vector){vector=desiredSvg.cloneNode(true);current.prepend(vector)}
-   else if(!vector.isEqualNode(desiredSvg)){const replacement=desiredSvg.cloneNode(true);vector.replaceWith(replacement);vector=replacement}
+   else if(!vector.isEqualNode(desiredSvg))patchPaintNode(vector,desiredSvg);
    if(vector)vector.style.removeProperty("display");
   }else if(vector)vector.style.display="none";
  }
@@ -5465,7 +5459,7 @@ function patchBenchPanel(current,markup){
   const old=before[i],fresh=after[i];
   if(old.classList.contains("bar-machine")&&fresh.classList.contains("bar-machine")){patchMachineElement(old,fresh);continue}
   if(old.classList.contains("shift-meter")&&fresh.classList.contains("shift-meter"))continue;
-  if(!old.isEqualNode(fresh))old.replaceWith(fresh.cloneNode(true));
+  if(!old.isEqualNode(fresh))patchPaintNode(old,fresh);
  }
  return true;
 }
@@ -5479,9 +5473,27 @@ function patchServicePanels(host,markup){
   if(stationPanelCache[i]===panels[i]){renderMetrics.skippedPanels++;continue}
   const panel=host.children[i];
   if(panel.classList.contains("bar-bench")&&patchBenchPanel(panel,panels[i])){renderMetrics.panelUpdates++;continue}
-  panel.outerHTML=panels[i];renderMetrics.panelUpdates++;
+  const template=document.createElement("template");template.innerHTML=panels[i];
+  patchPaintNode(panel,template.content.firstElementChild);renderMetrics.panelUpdates++;
  }
  stationPanelCache=panels;
+}
+function patchPaintNode(current,next){
+ if(!current||!next)return;
+ if(current.nodeType!==next.nodeType||current.nodeName!==next.nodeName){current.replaceWith(next.cloneNode(true));return}
+ if(current.nodeType===3){if(current.nodeValue!==next.nodeValue)current.nodeValue=next.nodeValue;return}
+ if(current.nodeType!==1)return;
+ // These are presentation-owned children/attributes, absent from gameplay markup.
+ const keep=new Set(["data-cafe-note","data-note-layout"]);
+ for(const a of Array.from(current.attributes))if(!next.hasAttribute(a.name)&&!keep.has(a.name))current.removeAttribute(a.name);
+ for(const a of Array.from(next.attributes))if(current.getAttribute(a.name)!==a.value)current.setAttribute(a.name,a.value);
+ const art=n=>n.nodeType===1&&n.classList.contains("cafe-component-skin");
+ const old=Array.from(current.childNodes).filter(n=>!art(n)),fresh=Array.from(next.childNodes);
+ for(let i=0;i<Math.max(old.length,fresh.length);i++){
+  if(!fresh[i])old[i].remove();
+  else if(!old[i])current.insertBefore(fresh[i].cloneNode(true),current.querySelector(":scope > .cafe-component-skin"));
+  else patchPaintNode(old[i],fresh[i]);
+ }
 }
 function syncScreenVisibility(){
  const management=$("management"),cafe=$("cafeArea");
@@ -7001,8 +7013,10 @@ window.addEventListener("pagehide",()=>{stopStockHold();save(true)});
 window.addEventListener("blur",()=>stopStockHold());
 document.addEventListener("contextmenu",event=>{if(event.target.closest('[data-action="cartAdd"],[data-action="cartRemove"]'))event.preventDefault()});
 updateServiceViewport();
-window.addEventListener("resize",updateServiceViewport);
-if(window.visualViewport)window.visualViewport.addEventListener("resize",updateServiceViewport);
+let viewportResizeTimer;
+function scheduleServiceViewport(){clearTimeout(viewportResizeTimer);viewportResizeTimer=setTimeout(()=>{if(!window.visualViewport||window.visualViewport.scale===1)updateServiceViewport()},120)}
+window.addEventListener("resize",scheduleServiceViewport);
+if(window.visualViewport)window.visualViewport.addEventListener("resize",scheduleServiceViewport);
 document.addEventListener("input",event=>{
  const el=event.target;if(el?.dataset?.stockQuantity)stockQuantityInput(el);
 });
