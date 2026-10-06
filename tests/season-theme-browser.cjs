@@ -181,6 +181,18 @@ function sameRects(before,after,label){
    },responsiveSamples);
    console.log("CAFE_RESPONSIVE_REVIEW_IMAGE="+responsive);
    fs.writeFileSync(path.join(output,"responsive-contact-sheet.jpg"),Buffer.from(responsive.split(",")[1],"base64"));
+   // Derive a mobile-sized WebP from the untouched generated source; no runtime dependency.
+   const artSource=path.join(root,"assets/bean-around/sources/winter-cafe-2026.png");
+   if(fs.existsSync(artSource)){
+    const source="data:image/png;base64,"+fs.readFileSync(artSource).toString("base64");
+    const webp=await sheet.evaluate(async source=>{
+     const im=new Image();im.src=source;await im.decode();
+     const c=document.createElement("canvas");c.width=780;c.height=Math.round(780*im.height/im.width);
+     c.getContext("2d").drawImage(im,0,0,c.width,c.height);return c.toDataURL("image/webp",.9);
+    },source);
+    console.log("WINTER_OPTIMIZED_ASSET="+webp);
+    fs.writeFileSync(path.join(output,"winter-cafe-room.webp"),Buffer.from(webp.split(",")[1],"base64"));
+   }
    await sheet.close();
   }
   report.status="passed";
