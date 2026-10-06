@@ -144,6 +144,12 @@ function sameRects(before,after,label){
   for(const a of out){const target=path.join(root,"assets/bean-around",a.name+".webp");if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(a.data.split(",")[1],"base64"));if(process.env.BROWSER!=="webkit")console.log("PACKAGE_ASSET_"+a.name+"="+a.data)}
  }
 
+
+ const pourSource="data:image/png;base64,"+fs.readFileSync(path.join(root,"assets/bean-around/sources/red-pour-2026.png")).toString("base64");
+ const pourAsset=await artPage.evaluate(async source=>{const im=new Image();im.src=source;await im.decode();const c=document.createElement("canvas");c.width=640;c.height=Math.round(640*im.height/im.width);const ctx=c.getContext("2d");ctx.drawImage(im,0,0,c.width,c.height);const pixels=ctx.getImageData(0,0,c.width,c.height).data;let alpha=0;for(let i=3;i<pixels.length;i+=4)if(pixels[i]===0)alpha++;if(alpha<pixels.length/4*.1)throw Error("pour asset lacks transparent background");return c.toDataURL("image/webp",.94)},pourSource);
+ const pourTarget=path.join(root,"assets/bean-around/bean-around-red-pour.webp");if(!fs.existsSync(pourTarget))fs.writeFileSync(pourTarget,Buffer.from(pourAsset.split(",")[1],"base64"));
+ console.log("POUR_OPTIMIZED_ASSET="+pourAsset);
+
  await artPage.close();
 
  try{
