@@ -3018,6 +3018,9 @@ function maintainServiceQuality(s){
  if(s.phase==="open"&&(working(s,"helper")||working(s,"helper2")||working(s,"manager"))){
   s.cleanliness=Math.max(s.cleanliness,95);
  }
+ if(s.phase==="open"&&working(s,"manager")&&(managerActive(s)||s.backgroundManaged)&&s.condition<75&&s.cash>=80){
+  pay(s,80,"repair");s.condition=100;s.ops.maintenanceDay=s.day;
+ }
 }
 function networkOperation(kind,items={},source=state){
  const root=networkOwner(source),results=[];
@@ -4890,7 +4893,7 @@ function setManagerDuty(s,on){
 }
 function managerDutyMarkup(){
  const d=managerDuty(state),available=working(state,"manager");
- return '<section class="business-card"><h3>ỦY QUYỀN QUẢN LÝ '+(d.enabled?(available?"· ĐANG BẬT":"· TẠM DỪNG"):"· ĐANG TẮT")+'</h3><p>Quản lý lấy ly, hoàn thiện và giao đồ; kiểm tra, làm lại khi cần, xử lý phản ánh và sự cố trong ca, giữ quầy sạch từ 95/100. Nguyên liệu và thời gian pha vẫn tính thật.</p><p>550k/ca ngoài lương. Thu một lần khi bật; tắt/bật lại không thu thêm. Ngày mới tự tắt. Giữ nguyên kế hoạch bán hàng, giá và nâng cấp.</p><small>Không tự mua hàng vượt giỏ đã duyệt. Thiếu kho hoặc thiếu người: hiện cảnh báo để anh xử lý.</small><p>'+escapeHTML(d.status||(!available?"Cần Quản lý đang đi làm.":"Chủ quán đang tự điều hành."))+'</p>'+btn(d.enabled?"TẮT · TÔI TIẾP QUẢN":d.paid?"BẬT LẠI · ĐÃ TRẢ PHÍ":"BẬT · 550k","managerDelegate","",d.enabled?"wide":"primary wide")+'</section>';
+ return '<section class="business-card"><h3>ỦY QUYỀN QUẢN LÝ '+(d.enabled?(available?"· ĐANG BẬT":"· TẠM DỪNG"):"· ĐANG TẮT")+'</h3><p>Quản lý lấy ly, hoàn thiện và giao đồ; kiểm tra, làm lại khi cần, xử lý phản ánh và sự cố trong ca, giữ quầy sạch từ 95/100; tự bảo trì 80k/lần khi tình trạng máy dưới 75 và quán đủ tiền. Nguyên liệu và thời gian pha vẫn tính thật.</p><p>550k/ca ngoài lương. Thu một lần khi bật; tắt/bật lại không thu thêm. Ngày mới tự tắt. Giữ nguyên kế hoạch bán hàng, giá và nâng cấp.</p><small>Không tự mua hàng vượt giỏ đã duyệt. Thiếu kho hoặc thiếu người: hiện cảnh báo để anh xử lý.</small><p>'+escapeHTML(d.status||(!available?"Cần Quản lý đang đi làm.":"Chủ quán đang tự điều hành."))+'</p>'+btn(d.enabled?"TẮT · TÔI TIẾP QUẢN":d.paid?"BẬT LẠI · ĐÃ TRẢ PHÍ":"BẬT · 550k","managerDelegate","",d.enabled?"wide":"primary wide")+'</section>';
 }
 function managerStep(s,dt){
  maintainServiceQuality(s);

@@ -179,8 +179,8 @@ function sameRects(before,after,label){
     const root=full();networkBind(root);const b2=maxTestBranch(root,openBranch(root,2));stock(b2);const b3=maxTestBranch(root,openBranch(root,3));stock(b3);
     state=networkBind(root);openDay(state);setManagerDuty(state,true);for(const s of networkShops(root)){s.ops.active=null;s.ops.scheduled=null;s.events.active=null;}
     let ticks=0;while(root.phase==="open"&&!root.cadence.awaiting&&ticks++<1600){clockStep(root,.2);if(root.order?.needsClarification)confirmOrder(root)}
-    const results=networkShops(root).map(s=>({shop:locationNumber(s),target:s===root?s.online.dayQuota:s.branchControl.onlineGoal,receipts:s.stats.onlineReceipts,phase:s.phase,clean:s.cleanliness,pending:s.online.remaining}));
-    for(const row of results){assert(row.receipts===row.target,"network "+JSON.stringify(results));assert(row.clean>=94,"network dirty")}
+    const results=networkShops(root).map(s=>({shop:locationNumber(s),target:s===root?s.online.dayQuota:s.branchControl.onlineGoal,receipts:s.stats.onlineReceipts,phase:s.phase,clean:s.cleanliness,condition:s.condition,repair:s.stats.repair,pending:s.online.remaining}));
+    for(const row of results){assert(row.receipts===row.target,"network "+JSON.stringify(results));assert(row.clean>=94,"network dirty");assert(row.condition>=74,"managed machine neglected")}
     return results;
    });
 
