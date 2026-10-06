@@ -5198,8 +5198,7 @@ function cafeThemeId(s){
  if(cafeThemeOverride==="off")return null;
  if(cafeThemeOverride&&Object.hasOwn(SeasonTheme,cafeThemeOverride))return cafeThemeOverride;
  const p=activeDecoration(s);if(p)return CAFE_PACKAGE_THEME[p.id];
- const month=seasonInfo(s).month;
- return month<=3?"spring":month<=6?"summer":month<=10?"autumn":"winter";
+ return null; // Purchased per-shop packages own the visual skin; previews never charge or save.
 }
 function cafeMotifPath(id){return "assets/bean-around/season-"+id+".svg"}
 function cafeThemeStyle(t){
@@ -5297,7 +5296,7 @@ function seasonScene(s,cls="season-scene"){return cafeSceneMarkup(s,cls==="postc
 function counterSurface(s){return ""}
 function seasonalPackagesMarkup(){
  const s=state,p=activeDecoration(s),month=seasonInfo(s).month;
- return '<section class="season-shop"><h3>Gói mùa · Quán '+locationNumber(s)+'</h3><p>Tháng '+month+' · 30.000k/gói · 30 ngày liên tục từ ngày mua.</p><p><b>x2 số đơn online</b> sau khi tính thời tiết, nhu cầu và thưởng vô địch. Ví dụ 750 đơn → 1.500 đơn. Giới hạn nhận đơn do anh tự đặt vẫn áp dụng.</p><p>Không gian quán theo mùa của lịch game; gói đang dùng chọn chủ đề tương ứng. Mỗi quán mua riêng, không tự gia hạn. Chuẩn bị đủ nguyên liệu để phục vụ lượng đơn tăng thêm.</p>'+
+ return '<section class="season-shop"><h3>Gói mùa · Quán '+locationNumber(s)+'</h3><p>Tháng '+month+' · 30.000k/gói · 30 ngày liên tục từ ngày mua.</p><p><b>x2 số đơn online</b> sau khi tính thời tiết, nhu cầu và thưởng vô địch. Ví dụ 750 đơn → 1.500 đơn. Giới hạn nhận đơn do anh tự đặt vẫn áp dụng.</p><p>Hình ảnh áp dụng khi quán sở hữu gói còn hiệu lực; lịch game quyết định tháng mở bán. Mỗi quán mua riêng, không tự gia hạn. Chuẩn bị đủ nguyên liệu để phục vụ lượng đơn tăng thêm.</p>'+
  (p?'<div class="season-active"><b>'+SEASON_PACKAGES[p.id].name+'</b> · x2 online · còn '+(p.end-s.day+1)+' ngày</div>':"")+
  Object.entries(SEASON_PACKAGES).filter(([id,g])=>g.months.length||p?.id===id).map(([id,g])=>'<article class="season-package"><div class="season-package-copy"><h4>'+g.name+'</h4><small>Bán tháng '+g.months.join(", ")+' · 30 ngày · x2 đơn online</small>'+
  (p?.id===id?'<strong class="season-owned">Đang áp dụng cho quán này</strong>':p?'<span>Đợi gói hiện tại hết hạn</span>':!decorationAvailable(s,id)?'<span>Chưa đến tháng mở bán</span>':btn("Chi tiết · 30.000k","seasonPreview",id,"primary wide"))+'</div></article>').join("")+'</section>';
@@ -7243,8 +7242,8 @@ window.BeanAroundOnlineSeasonChecks={run(){
 window.BeanAroundAtmosphereChecks={run(){
  const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{const before=cafeThemeOverride;try{cafeThemeOverride=null;f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}finally{cafeThemeOverride=before}};
  test("four distinct environments share one renderer",()=>{a(Object.keys(SeasonTheme).length===4&&new Set(Object.values(SeasonTheme).map(t=>t.background)).size===4);for(const t of Object.values(SeasonTheme))a(/\.(svg|webp)$/.test(t.background)&&t.headerDecor===t.id&&t.ctaDecor===t.id&&t.navDecor===t.id)});
- test("calendar uses game month, not computer month",()=>{for(let month=1;month<=12;month++){const s=newGame(()=>.5);s.day=((month-11+12)%12)*30+1;const id=month<=3?"spring":month<=6?"summer":month<=10?"autumn":"winter";a(cafeThemeId(s)===id)}});
- test("active paid package selects matching season until expiry",()=>{const s=newGame(()=>.5);for(const[id,theme]of Object.entries(CAFE_PACKAGE_THEME)){s.seasonPackage={id,start:1,end:30,paid:30000};a(cafeThemeId(s)===theme);s.day=31;a(cafeThemeId(s)==="winter");s.day=1}});
+ test("unpaid shops do not receive a package skin from the calendar",()=>{for(let month=1;month<=12;month++){const s=newGame(()=>.5);s.day=((month-11+12)%12)*30+1;a(cafeThemeId(s)===null)}});
+ test("active paid package selects matching season until expiry",()=>{const s=newGame(()=>.5);for(const[id,theme]of Object.entries(CAFE_PACKAGE_THEME)){s.seasonPackage={id,start:1,end:30,paid:30000};a(cafeThemeId(s)===theme);s.day=31;a(cafeThemeId(s)===null);s.day=1}});
  test("preview query accepts only known themes without interpreting HTML",()=>{for(const id of [...Object.keys(SeasonTheme),"off"])a(requestedCafeTheme("?season-theme="+id)===id);for(const value of ["spring-extra","<script>","__proto__","constructor"])a(requestedCafeTheme("?season-theme="+value)===null)});
  test("visual theme override is not a gameplay or save change",()=>{const s=chainTestShop(28);s.online.tablet=s.online.enabled=true;const raw=JSON.stringify(s),revenue=onlineVolume(s),duration=actionSeconds(s,"espresso");for(const id of Object.keys(SeasonTheme)){cafeThemeOverride=id;const html=seasonScene(s);a(html.includes('data-cafe-art="'+id+'"')&&JSON.stringify(s)===raw&&onlineVolume(s)===revenue&&actionSeconds(s,"espresso")===duration)}});
  test("theme palette never overrides shop brand variables",()=>{for(const t of Object.values(SeasonTheme)){const style=cafeThemeStyle(t);a(!style.includes("--brand-")&&!style.includes("--wood:")&&style.includes("--cafe-light:"))}});
