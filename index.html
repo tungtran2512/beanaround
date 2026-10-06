@@ -906,6 +906,42 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 #game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .cafe-nav-decor:after{background-image:url(assets/bean-around/season-winter-nav-right.svg);width:26px;height:25px;right:-6px;bottom:0;opacity:.8;transform:none}
 @media(max-width:380px){#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .cafe-atmosphere>.cafe-season-props{opacity:.78}.cafe-winter-counter-props{opacity:.78}}
 
+
+/* Winter component artwork V3. Every layer is absolute: host geometry, labels,
+   active/disabled state and all action hit boxes remain owned by the game. */
+.winter-component-skin,.winter-component-skin *{
+ pointer-events:none!important;user-select:none;-webkit-user-select:none;
+}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .winter-component-skin{
+ position:absolute!important;inset:0;display:block;z-index:0!important;
+ margin:0;padding:0;border:0;border-radius:inherit;overflow:hidden;
+ opacity:1;container-type:size;
+}
+.winter-skin-slices{position:absolute;inset:0;display:grid;grid-template-columns:17% minmax(0,1fr) 17%;font-style:normal}
+.winter-skin-slices>i{display:block;min-width:0;height:100%;background-image:var(--winter-component-image);background-repeat:no-repeat;background-size:600% 100%}
+.winter-skin-slices>i:first-child{background-position:left center}
+.winter-skin-slices>i:nth-child(2){background-size:150% 100%;background-position:center}
+.winter-skin-slices>i:last-child{background-position:right center}
+@supports(width:1cqh){.winter-skin-slices{grid-template-columns:min(24cqw,100cqh) minmax(0,1fr) min(24cqw,100cqh)}}
+[data-skin="header"]{--winter-component-image:var(--cafe-skin-header)}
+[data-skin="order"]{--winter-component-image:var(--cafe-skin-order)}
+[data-skin="cta"]{--winter-component-image:var(--cafe-skin-cta)}
+[data-skin="nav"]{--winter-component-image:var(--cafe-skin-nav)}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) :is(.cafe-header-decor,.cafe-nav-decor){display:none}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .compact-order:after,
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .deliver-art:before,
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .deliver-art:after{content:none!important}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) :is(.topbar,.navbar,.deliver-art,.compact-order){background-image:none;box-shadow:none}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) :is(.topbar,.navbar){border-color:#91CDE6}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .compact-order{border-color:#19466A}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .topbar :is(.brand,.hud-left,.hud-rating){text-shadow:0 1px 2px #061727,0 0 4px #061727,0 0 7px #061727}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .compact-order :is(b,strong,small,em){
+ text-shadow:1px 0 1px #F7FBFF,-1px 0 1px #F7FBFF,0 1px 1px #F7FBFF,0 -1px 1px #F7FBFF,0 0 4px #F7FBFF,0 0 7px #F7FBFF;
+}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .deliver-art>b{text-shadow:0 1px 3px #09253E,0 0 6px #09253E}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .navbar>button:not(.active){text-shadow:0 1px 2px #061B2C,0 0 5px #061B2C}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .navbar>button.active{background:var(--cream);text-shadow:none}
+
 </style>
 </head>
 <body><div id="bootNotice"><b>BEAN AROUND · Đang khởi động…</b><p>Nếu thông báo này không biến mất và nút không hoạt động: hãy mở link game bằng Safari. Bản xem trước của ứng dụng Tệp / Google Drive không chạy game.</p><small>Nếu đang mở website thật, gửi lại thông báo lỗi bên dưới để được kiểm tra.</small><pre id="bootError" style="white-space:pre-wrap"></pre></div>
@@ -4999,7 +5035,7 @@ const SeasonTheme=Object.freeze({
 spring:Object.freeze({"id":"spring","name":"Mùa Xuân","lighting":"#fff1dd","window":"#d5e0c9","accent":"#EAA6B8","leaf":"#91AD78","header":"#8E2032","cta":"#8E2032","nav":"#8E2032","paper":"#FFF7EB","particles":"petal","wash":".035","note":"pink","background":"assets/bean-around/spring-cafe-room.svg","headerDecor":"spring","machineAreaDecor":"assets/bean-around/season-spring-props.svg","orderDecor":"assets/bean-around/season-spring-note.svg","ctaDecor":"spring","navDecor":"spring"}),
 summer:Object.freeze({"id":"summer","name":"Mùa Hạ","lighting":"#fff1c9","window":"#AFCFD1","accent":"#F4C85A","leaf":"#4F8A64","header":"#165A46","cta":"#17624C","nav":"#154F40","paper":"#FFF6DF","particles":"none","wash":".02","note":"yellow","background":"assets/bean-around/summer-cafe-room.svg","headerDecor":"summer","machineAreaDecor":"assets/bean-around/season-summer-props.svg","orderDecor":"assets/bean-around/season-summer-note.svg","ctaDecor":"summer","navDecor":"summer"}),
 autumn:Object.freeze({"id":"autumn","name":"Mùa Thu","lighting":"#f6d9ab","window":"#D7AE79","accent":"#D97A2B","leaf":"#C75C2A","header":"#7E1F28","cta":"#8C2F26","nav":"#6F2B25","paper":"#FFF1D8","particles":"maple","wash":".04","note":"kraft","background":"assets/bean-around/autumn-cafe-room.svg","headerDecor":"autumn","machineAreaDecor":"assets/bean-around/season-autumn-props.svg","orderDecor":"assets/bean-around/season-autumn-note.svg","ctaDecor":"autumn","navDecor":"autumn"}),
-winter:Object.freeze({"id":"winter","name":"Mùa Đông","lighting":"#fff1d8","window":"#28455F","accent":"#BFDCE8","leaf":"#527F64","header":"#18344C","cta":"#21445F","nav":"#162F46","paper":"#FFF8EC","particles":"snow","wash":".025","note":"ice","background":"assets/bean-around/winter-cafe-room.webp","headerDecor":"winter","machineAreaDecor":"assets/bean-around/season-winter-props.svg","orderDecor":"assets/bean-around/season-winter-note.svg","ctaDecor":"winter","navDecor":"winter"})
+winter:Object.freeze({"uiArtwork":{"header":"assets/bean-around/winter-ui-header.webp","order":"assets/bean-around/winter-ui-order.webp","cta":"assets/bean-around/winter-ui-deliver.webp","nav":"assets/bean-around/winter-ui-footer.webp"},"id":"winter","name":"Mùa Đông","lighting":"#fff1d8","window":"#28455F","accent":"#BFDCE8","leaf":"#527F64","header":"#18344C","cta":"#21445F","nav":"#162F46","paper":"#FFF8EC","particles":"snow","wash":".025","note":"ice","background":"assets/bean-around/winter-cafe-room.webp","headerDecor":"winter","machineAreaDecor":"assets/bean-around/season-winter-props.svg","orderDecor":"assets/bean-around/season-winter-note.svg","ctaDecor":"winter","navDecor":"winter"})
 });
 const CAFE_PACKAGE_THEME=Object.freeze({summer:"summer",autumn:"autumn",midautumn:"autumn",tet:"spring",xmas:"winter"});
 function requestedCafeTheme(search){const m=String(search||"").match(/(?:^|[?&])season-theme=(spring|summer|autumn|winter|off)(?:&|$)/);return m?m[1]:null}
@@ -5020,7 +5056,8 @@ function cafeThemeVariables(t){
  return {light:t.lighting,window:t.window,accent:t.accent,leaf:t.leaf,wash:t.wash,header:t.header,cta:t.cta,nav:t.nav,paper:t.paper,
  "header-decor":"url(assets/bean-around/season-"+t.id+"-header.svg)",
  "cta-decor":"url("+cafeMotifPath(t.id)+")","nav-decor":"url("+cafeMotifPath(t.id)+")",
- "order-note":"url("+t.orderDecor+")"};
+ "order-note":"url("+t.orderDecor+")",
+ ...Object.fromEntries(["header","order","cta","nav"].map(part=>["skin-"+part,t.uiArtwork?"url("+t.uiArtwork[part]+")":"none"]))};
 }
 function cafeStageAccents(t){
  return '<img class="cafe-season-props" src="'+t.machineAreaDecor+'" width="390" height="260" alt="" aria-hidden="true" draggable="false" decoding="async">'+
@@ -5051,6 +5088,7 @@ function syncCafeTheme(s,doc=document){
    if(!node._cafeObserver&&typeof ResizeObserver!=="undefined"){node._cafeObserver=new ResizeObserver(()=>cafeMaskHeader(host,node));node._cafeObserver.observe(host)}
   }
  }
+ syncWinterComponentArt(doc);
 }
 function cafeMaskHeader(host,node){
  const base=host.getBoundingClientRect();if(!base.width||!base.height)return;
@@ -5067,7 +5105,26 @@ function cafeMaskHeader(host,node){
  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+base.width+'" height="'+base.height+'"><defs><mask id="text-safe"><rect width="100%" height="100%" fill="white"/><path fill="black" d="'+path+'"/></mask></defs><rect width="100%" height="100%" fill="white" mask="url(#text-safe)"/></svg>';
  const mask='url("data:image/svg+xml,'+encodeURIComponent(svg)+'")';node.style.maskImage=mask;node.style.webkitMaskImage=mask;
 }
+/* Four user-approved winter component illustrations. No text is baked into art.
+   Mount only when a host is replaced; CSS keeps endcaps separate from the center.
+   This function neither reads nor writes gameplay/save state. */
+function syncWinterComponentArt(doc=document){
+ const game=doc.getElementById("game");if(!game)return;
+ const active=game.dataset.cafeTheme==="winter";
+ for(const[part,selector]of [["header",".topbar"],["order","#station .compact-order"],["cta","#station .deliver-art"],["nav",".navbar"]]){
+  const host=game.querySelector(selector);if(!host)continue;
+  let node=host.querySelector(":scope > .winter-component-skin");
+  if(!active){node?.remove();continue}
+  if(node)continue;
+  node=doc.createElement("span");node.className="winter-component-skin";node.dataset.skin=part;
+  node.setAttribute("aria-hidden","true");
+  node.innerHTML='<i class="winter-skin-slices"><i></i><i></i><i></i></i>';
+  host.appendChild(node);
+ }
+}
+
 function syncCafeOrderNote(){
+ syncWinterComponentArt();
  const order=document.querySelector("#station .compact-order");if(!order)return;
  const winter=document.getElementById("game")?.dataset.cafeTheme==="winter";
  const key=order.textContent+"|"+order.clientWidth+"|"+order.clientHeight+"|"+winter;
@@ -6802,7 +6859,7 @@ window.BeanAroundSeasonTheme=Object.freeze({
  },
  audit(){
   const game=document.getElementById("game"),machine=game.querySelector(".bar-machine"),cup=game.querySelector(".cup-position");
-  const boxes=[...game.querySelectorAll(".cafe-atmosphere,.cafe-atmosphere *,.cafe-header-decor,.cafe-nav-decor")];
+  const boxes=[...game.querySelectorAll(".cafe-atmosphere,.cafe-atmosphere *,.cafe-header-decor,.cafe-nav-decor,.winter-component-skin,.winter-component-skin *")];
   const checks=[{name:"decorations cannot capture touches",ok:boxes.every(el=>getComputedStyle(el).pointerEvents==="none")},
    {name:"no horizontal overflow",ok:document.documentElement.scrollWidth<=document.documentElement.clientWidth+1},
    {name:"machine remains sharp and opaque",ok:!!machine&&getComputedStyle(machine).filter==="none"&&getComputedStyle(machine).opacity==="1"},

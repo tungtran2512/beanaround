@@ -46,6 +46,13 @@ async function setup(page,recipe="latte",working=false){
  await page.waitForLoadState("networkidle");
  await page.evaluate(()=>document.fonts.ready);
  await page.locator(".cafe-atmosphere img").evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
+ await waitWinterArtwork(page);
+}
+async function waitWinterArtwork(page){
+ await page.evaluate(async()=>{
+  if(document.getElementById("game").dataset.cafeTheme!=="winter")return;
+  await Promise.all(Object.values(SeasonTheme.winter.uiArtwork).map(src=>{const im=new Image();im.src=src;return im.decode()}));
+ });
 }
 async function rects(page){
  return page.evaluate(selectors=>Object.fromEntries(selectors.map(selector=>{
@@ -87,6 +94,7 @@ function sameRects(before,after,label){
   }
  }
  await artPage.close();
+
  try{
   for(const viewport of [{width:390,height:844},{width:375,height:812},{width:430,height:932}]){
    const context=await browser.newContext({viewport,deviceScaleFactor:1,isMobile:true,hasTouch:true,reducedMotion:"reduce"});
@@ -117,9 +125,15 @@ function sameRects(before,after,label){
     assert(visual.header===expectedColors[theme],"season header color missing "+JSON.stringify(visual));
     assert(visual.room===visual.expectedRoom,"wrong seasonal environment");
     assert(visual.note==="show","simple order should show safe note");
-    if(theme==="winter"){const note=await page.locator(".compact-order").evaluate(el=>({right:getComputedStyle(el,"::after").right,width:getComputedStyle(el,"::after").width}));assert(note.right==="54px"&&note.width==="50px","winter note CSS overridden: "+JSON.stringify(note));const props=await page.evaluate(()=>getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display);assert(props==="none","wide espresso must not compete with tree/chalkboard")}
+    if(theme==="winter"){
+     const art=await page.evaluate(()=>({parts:Array.from(document.querySelectorAll(".winter-component-skin")).map(el=>el.dataset.skin).sort(),note:getComputedStyle(document.querySelector(".compact-order"),"::after").content,props:getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display}));
+     assert(JSON.stringify(art.parts)===JSON.stringify(["cta","header","nav","order"]),"missing winter component art: "+JSON.stringify(art));
+     assert(art.note==="none","old decorative note overlaps the approved order design");
+     assert(art.props==="none","wide espresso must not compete with tree/chalkboard");
+    }else assert(await page.locator(".winter-component-skin").count()===0,"winter art leaked into another season");
     await page.waitForLoadState("networkidle");
     await page.locator(".cafe-atmosphere img").evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
+    await waitWinterArtwork(page);
     sameRects(before,await rects(page),theme+"/"+viewport.width);
     const audit=await page.evaluate(()=>window.BeanAroundSeasonTheme.audit());
     assert(audit.every(x=>x.ok),"audit failed "+theme+": "+JSON.stringify(audit.filter(x=>!x.ok)));
@@ -177,7 +191,32 @@ function sameRects(before,after,label){
     });
     assert(retention,"device switch replaced room/equipment image");
    }
-   report.viewports.push({viewport,geometry:"unchanged",touch:"passed"});
+   // A completed real recipe enables the decorated CTA. Clicking it must still
+   // settle exactly one real order and not consume the illustration as an action.
+   await setup(page,"latte");
+   await page.evaluate(()=>{
+    state.order.bakery=null;
+    for(let n=0;n<20;n++){
+     const step=expectedStep(state);
+     if(step==="serve")break;
+     if(step==="lid")closeCup(state);else if(step.startsWith("topping-"))topping(state,step.slice(8));else if(step==="extraShot")extraShot(state);else ingredient(state,step);
+    }
+    paint();
+   });
+   await waitWinterArtwork(page);
+   assert(await page.locator(".deliver-art").isEnabled(),"finished recipe must enable delivery");
+   await page.screenshot({path:path.join(output,"winter-ready-"+viewport.width+".png"),fullPage:true});
+   for(const[part,selector]of [["header",".topbar"],["order",".compact-order"],["deliver",".deliver-art"],["footer",".navbar"]]){
+    await page.locator(selector).screenshot({path:path.join(output,"winter-component-"+part+"-"+viewport.width+".png")});
+   }
+   const saleBefore=await page.evaluate(()=>({uid:state.order.uid,revenue:state.lifetimeRevenue}));
+   await page.locator(".deliver-art").click();
+   const saleAfter=await page.evaluate(()=>({uid:state.order?.uid,revenue:state.lifetimeRevenue}));
+   assert(saleAfter.uid!==saleBefore.uid&&saleAfter.revenue>saleBefore.revenue,"decorated delivery CTA failed to settle order");
+   await page.evaluate(()=>window.BeanAroundSeasonTheme.setPreview("spring"));
+   assert(await page.locator(".winter-component-skin").count()===0,"winter art did not unmount");
+   report.viewports.push({viewport,geometry:"unchanged",touch:"passed",delivery:"real completed recipe served"});
+
    await context.close();
   }
   assert(report.errors.length===0,"Browser errors: "+report.errors.join("\n"));
@@ -210,6 +249,16 @@ function sameRects(before,after,label){
    },responsiveSamples);
    console.log("CAFE_RESPONSIVE_REVIEW_IMAGE="+responsive);
    fs.writeFileSync(path.join(output,"responsive-contact-sheet.jpg"),Buffer.from(responsive.split(",")[1],"base64"));
+   const parts=["header","order","deliver","footer"].map(id=>({id,data:"data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-component-"+id+"-390.png")).toString("base64")}));
+   const componentReview=await sheet.evaluate(async parts=>{
+    const c=document.getElementById("review");c.width=780;c.height=740;const ctx=c.getContext("2d");ctx.fillStyle="#fff4e6";ctx.fillRect(0,0,c.width,c.height);ctx.font="bold 18px sans-serif";
+    let y=0;for(const p of parts){const im=new Image();im.src=p.data;await im.decode();ctx.fillStyle="#18344c";ctx.fillText(p.id,12,y+23);ctx.drawImage(im,0,y+32,im.width*2,im.height*2);y+=im.height*2+43}
+    return c.toDataURL("image/jpeg",.95);
+   },parts);
+   console.log("WINTER_COMPONENT_REVIEW_IMAGE="+componentReview);
+   const ready="data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-ready-390.png")).toString("base64");
+   console.log("WINTER_READY_REVIEW_IMAGE="+ready);
+
    // Derive a mobile-sized WebP from the untouched generated source; no runtime dependency.
    const artSource=path.join(root,"assets/bean-around/sources/winter-cafe-2026.png");
    if(fs.existsSync(artSource)){
