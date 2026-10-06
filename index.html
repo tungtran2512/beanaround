@@ -4807,7 +4807,7 @@ function machineIllustration(art){
  if(!art)return "";
  if(CAFE_ASSETS.equipment.crops[art])return assetSvg("equipment",art,"equipment-render","xMidYMax meet");
  const boxes={pour:"0 0 100 120",cold:"0 0 100 140",kettle:"0 0 1536 1024"};
- return '<svg viewBox="'+(boxes[art]||"0 0 100 100")+'" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><use href="#'+art+'"/></svg>';
+ return '<svg viewBox="'+(boxes[art]||"0 0 100 100")+'" preserveAspectRatio="'+(art==="kettle"?"xMidYMax meet":"xMidYMid meet")+'" aria-hidden="true"><use href="#'+art+'"/></svg>';
 }
 function renderStation(){
  const host=$("station");if(!host)return;
