@@ -45,6 +45,7 @@ async function setup(page,recipe="latte",working=false){
  },{recipe,working});
  await page.waitForLoadState("networkidle");
  await page.evaluate(()=>document.fonts.ready);
+ await page.locator(".cafe-atmosphere img").evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
 }
 async function rects(page){
  return page.evaluate(selectors=>Object.fromEntries(selectors.map(selector=>{
@@ -92,8 +93,9 @@ function sameRects(before,after,label){
     assert(visual.header===expectedColors[theme],"season header color missing "+JSON.stringify(visual));
     assert(visual.room===visual.expectedRoom,"wrong seasonal environment");
     assert(visual.note==="show","simple order should show safe note");
-    if(theme==="winter"){const props=await page.evaluate(()=>getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display);assert(props==="none","wide espresso must not compete with tree/chalkboard")}
+    if(theme==="winter"){const note=await page.locator(".compact-order").evaluate(el=>({right:getComputedStyle(el,"::after").right,width:getComputedStyle(el,"::after").width}));assert(note.right==="54px"&&note.width==="50px","winter note CSS overridden: "+JSON.stringify(note));const props=await page.evaluate(()=>getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display);assert(props==="none","wide espresso must not compete with tree/chalkboard")}
     await page.waitForLoadState("networkidle");
+    await page.locator(".cafe-atmosphere img").evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
     sameRects(before,await rects(page),theme+"/"+viewport.width);
     const audit=await page.evaluate(()=>window.BeanAroundSeasonTheme.audit());
     assert(audit.every(x=>x.ok),"audit failed "+theme+": "+JSON.stringify(audit.filter(x=>!x.ok)));
@@ -176,9 +178,9 @@ function sameRects(before,after,label){
    },stages);
    fs.writeFileSync(path.join(output,"equipment-contact-sheet.jpg"),Buffer.from(machineJpeg.split(",")[1],"base64"));
    console.log("CAFE_MACHINE_REVIEW_IMAGE="+machineJpeg);
-   const responsiveSamples=[["spring",375,812],["summer",430,932],["autumn",375,812],["winter",430,932]].map(([id,w,h])=>({id,w,h,data:"data:image/png;base64,"+fs.readFileSync(path.join(output,id+"-"+w+"x"+h+".png")).toString("base64")}));
+   const responsiveSamples=[["winter",375,812],["winter",390,844],["winter",430,932]].map(([id,w,h])=>({id,w,h,data:"data:image/png;base64,"+fs.readFileSync(path.join(output,id+"-"+w+"x"+h+".png")).toString("base64")}));
    const responsive=await sheet.evaluate(async samples=>{
-    const canvas=document.getElementById("review");canvas.width=1610;canvas.height=962;const ctx=canvas.getContext("2d");ctx.fillStyle="#fff4e6";ctx.fillRect(0,0,1610,962);ctx.font="bold 16px sans-serif";let x=0;
+    const canvas=document.getElementById("review");canvas.width=1195;canvas.height=962;const ctx=canvas.getContext("2d");ctx.fillStyle="#fff4e6";ctx.fillRect(0,0,1195,962);ctx.font="bold 16px sans-serif";let x=0;
     for(const s of samples){const im=new Image();im.src=s.data;await im.decode();ctx.fillStyle="#762020";ctx.fillText(s.id+" / "+s.w,x+10,21);ctx.drawImage(im,x,30,s.w,s.h);x+=s.w}
     return canvas.toDataURL("image/jpeg",.85);
    },responsiveSamples);

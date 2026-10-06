@@ -859,52 +859,52 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 
 /* Winter reference refinement. Paint-only overrides: never size the host rows,
    controls, machine or active cup. Additional props load only for winter. */
-#game[data-cafe-theme="winter"] .topbar{
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .topbar{
  background-image:radial-gradient(ellipse at 55% 85%,#23547770,transparent 70%),linear-gradient(180deg,#0B22365C,transparent 65%);
  box-shadow:inset 0 1px 0 #BFDCE844,inset 0 -1px 0 #D7E9EC55;
 }
-#game[data-cafe-theme="winter"] .cafe-atmosphere>.cafe-room{
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .cafe-atmosphere>.cafe-room{
  object-fit:cover;filter:blur(1.5px) saturate(.8) brightness(.88);opacity:1;
 }
-#game[data-cafe-theme="winter"] .cafe-light-treatment{
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .cafe-light-treatment{
  background:radial-gradient(ellipse at 51% 66%,#FFF1D4A8 0%,#FCE6BB61 28%,#E8D8BB0D 57%,transparent 76%);
 }
-#game[data-cafe-theme="winter"] .cafe-atmosphere>.cafe-season-props{opacity:.92;filter:saturate(.88)}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .cafe-atmosphere>.cafe-season-props{opacity:.92;filter:saturate(.88)}
 .cafe-winter-counter-props{position:absolute;bottom:0;left:0;width:100%;height:auto;max-width:none;z-index:2;opacity:.9;pointer-events:none;display:none;filter:saturate(.88)}
 .bar-bench:has(.bar-machine[data-machine="press"]) .cafe-winter-counter-props,
 .bar-bench:has(.bar-machine[data-machine="blend"]) .cafe-winter-counter-props{display:block}
-#game[data-cafe-theme="winter"] .queue-person.current{
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .queue-person.current{
  background:linear-gradient(135deg,#295773,#122F48);color:#FFF7EB;
  box-shadow:inset 0 0 0 1px #BEDCEA55;
 }
-#game[data-cafe-theme="winter"] .customer-queue:before,
-#game[data-cafe-theme="winter"] .customer-queue:after{
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .customer-queue:before,
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .customer-queue:after{
  background-image:url(assets/bean-around/season-winter-pine-corner.svg);width:27px;height:46px;opacity:.8;z-index:6;top:-2px;
 }
-#game[data-cafe-theme="winter"] .customer-queue:before{left:-21px}
-#game[data-cafe-theme="winter"] .customer-queue:after{right:-21px;transform:scaleX(-1)}
-#game[data-cafe-theme="winter"] .compact-order{
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .customer-queue:before{left:-21px}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .customer-queue:after{right:-21px;transform:scaleX(-1)}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .compact-order{
  background-image:url(assets/bean-around/season-winter-pine-corner.svg),linear-gradient(110deg,#FFFFFF85,transparent 65%);
  background-size:25px 34px,auto;background-repeat:no-repeat;background-position:-11px -18px,center;
  box-shadow:inset 0 0 0 1px #C4DEE077,0 1px 2px #19384B12;
 }
-#game[data-cafe-theme="winter"] .compact-order[data-cafe-note="show"]:after{
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .compact-order[data-cafe-note="show"]:after{
  width:50px;height:44px;right:54px;top:4px;bottom:auto;opacity:1;
 }
-#game[data-cafe-theme="winter"] .deliver-art{
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .deliver-art{
  background-image:radial-gradient(ellipse at 50% 20%,#3C779855,transparent 75%),linear-gradient(180deg,#ffffff08,#041A3055);
  box-shadow:inset 0 0 0 1px #BFDCE8B3,inset 0 0 0 3px #7EB1CF22,0 1px 3px #17344C22;
 }
-#game[data-cafe-theme="winter"] .deliver-art:before{width:35px;height:28px;left:3px;bottom:3px;opacity:.8}
-#game[data-cafe-theme="winter"] .deliver-art:after{background-image:url(assets/bean-around/season-winter-cta-right.svg);width:28px;height:26px;right:3px;bottom:4px;transform:none;opacity:.8}
-#game[data-cafe-theme="winter"] .navbar{
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .deliver-art:before{width:35px;height:28px;left:3px;bottom:3px;opacity:.8}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .deliver-art:after{background-image:url(assets/bean-around/season-winter-cta-right.svg);width:28px;height:26px;right:3px;bottom:4px;transform:none;opacity:.8}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .navbar{
  background-image:linear-gradient(110deg,#21445F33,transparent 60%,#051C3133);
  box-shadow:inset 0 2px 0 #BFDCE899,inset 0 -1px 0 #C9E3F04D;
 }
-#game[data-cafe-theme="winter"] .navbar>button.active{color:#18344C}
-#game[data-cafe-theme="winter"] .cafe-nav-decor:before{background-image:url(assets/bean-around/season-winter-nav-left.svg);width:35px;height:28px;left:-9px;bottom:-2px;opacity:.9}
-#game[data-cafe-theme="winter"] .cafe-nav-decor:after{background-image:url(assets/bean-around/season-winter-nav-right.svg);width:26px;height:25px;right:-6px;bottom:0;opacity:.8;transform:none}
-@media(max-width:380px){#game[data-cafe-theme="winter"] .cafe-atmosphere>.cafe-season-props{opacity:.78}.cafe-winter-counter-props{opacity:.78}}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .navbar>button.active{color:#18344C}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .cafe-nav-decor:before{background-image:url(assets/bean-around/season-winter-nav-left.svg);width:35px;height:28px;left:-9px;bottom:-2px;opacity:.9}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .cafe-nav-decor:after{background-image:url(assets/bean-around/season-winter-nav-right.svg);width:26px;height:25px;right:-6px;bottom:0;opacity:.8;transform:none}
+@media(max-width:380px){#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .cafe-atmosphere>.cafe-season-props{opacity:.78}.cafe-winter-counter-props{opacity:.78}}
 
 </style>
 </head>
