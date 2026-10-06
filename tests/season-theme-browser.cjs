@@ -409,6 +409,34 @@ function sameRects(before,after,label){
   }
   if(process.env.REVIEW_IMAGE_LOG==="1"&&process.env.BROWSER==="webkit")console.log("WINTER_WEBKIT_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-ready-390.png")).toString("base64"));
   if(process.env.REVIEW_IMAGE_LOG==="1")console.log("SPRING_READY_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"spring-ready-390.png")).toString("base64"));
+
+  const stabilityContext=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  const stabilityPage=await stabilityContext.newPage();await stabilityPage.goto(url+"/index.html?season-theme=winter");
+  await setup(stabilityPage,"latte");
+  report.renderStability=await stabilityPage.evaluate(()=>{
+   const bench=document.querySelector(".bar-bench"),room=bench.querySelector(".cafe-room"),skin=document.querySelector(".deliver-art .cafe-component-skin"),order=document.querySelector(".compact-order"),header=document.querySelector(".topbar"),cup=bench.querySelector(".cup-position");
+   const observer=new MutationObserver(()=>{});observer.observe(header,{subtree:true,childList:true,characterData:true});
+   headerPaint();observer.takeRecords();
+   for(let i=0;i<50;i++)headerPaint();
+   const headerTextMutations=observer.takeRecords().filter(m=>m.target.closest?.(".hud-left,.brand,.hud-rating")).length;observer.disconnect();
+   for(const id of ["americano","apple","mangoCoconut","americano","latte"]){
+    setRecipeOnOrder(state,state.order,id);state.job=null;state.cup.steps=id==="americano"?["espresso"]:[];state.cup.sealed=false;paint();
+    if(document.querySelector(".bar-bench")!==bench||bench.querySelector(".cafe-room")!==room||document.querySelector(".deliver-art .cafe-component-skin")!==skin||document.querySelector(".compact-order")!==order||bench.querySelector(".cup-position")!==cup)throw Error("persistent stage or component was remounted");
+   }
+   if(headerTextMutations)throw Error("unchanged header text was rewritten "+headerTextMutations);
+   setRecipeOnOrder(state,state.order,"americano");state.cup.steps=["espresso"];paint();
+   if(!document.querySelector(".bar-machine use[href='#kettle']"))throw Error("water stage missing kettle");
+   return {switches:5,persistentRoom:true,persistentCupHost:true,persistentDecor:true,headerTextMutations};
+  });
+  await stabilityPage.waitForTimeout(500);
+  await stabilityPage.screenshot({path:path.join(output,"kettle-water-stage.png")});
+  console.log("KETTLE_GAME_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"kettle-water-stage.png")).toString("base64"));
+  await stabilityPage.evaluate(()=>{managementVisible=true;managementTab="stock";paint()});
+  for(const y of [0,120,300,100,0]){await stabilityPage.evaluate(y=>window.scrollTo(0,y),y);await stabilityPage.waitForTimeout(80)}
+  assert(await stabilityPage.locator(".topbar .cafe-component-skin").count()===1,"scroll recreated header skin");
+  report.renderStability.scroll="management scroll up/down completed";
+  await stabilityContext.close();
+
   report.status="passed";
  }catch(error){report.status="failed";report.failure=error.message;process.exitCode=1}
  finally{await browser.close();server.close();fs.writeFileSync(path.join(output,"results.json"),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2))}
