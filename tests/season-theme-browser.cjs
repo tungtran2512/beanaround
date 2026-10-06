@@ -63,6 +63,30 @@ function sameRects(before,after,label){
  const url="http://127.0.0.1:"+server.address().port;
  const browser=await (process.env.BROWSER==="webkit"?webkit:chromium).launch();
  const report={baseline:"578ef270",screenshots:[],viewports:[],errors:[]};
+ // Offline asset preparation only, never part of the game's runtime.
+ // Preserve the imagegen source, derive four individually cached mobile WebPs.
+ // CSS uses three slices so only the quiet central region changes its width.
+ const artPage=await browser.newPage();
+ const atlasPath=path.join(root,"assets/bean-around/sources/winter-ui-atlas-2026.png");
+ if(fs.existsSync(atlasPath)){
+  const atlas="data:image/png;base64,"+fs.readFileSync(atlasPath).toString("base64");
+  const strips=await artPage.evaluate(async source=>{
+   const im=new Image();im.src=source;await im.decode();
+   const bounds=[[0,260],[260,511],[511,769],[769,1024]];
+   return bounds.map(([a,b])=>{
+    const c=document.createElement("canvas");c.width=1170;c.height=Math.round(1170*(b-a)/1536);
+    c.getContext("2d").drawImage(im,0,a,1536,b-a,0,0,c.width,c.height);
+    return c.toDataURL("image/webp",.93);
+   });
+  },atlas);
+  for(let i=0;i<strips.length;i++){
+   const name=["header","order","deliver","footer"][i],target=path.join(root,"assets/bean-around/winter-ui-"+name+".webp");
+   // Once checked-in, test the actual committed derivative rather than regenerate it.
+   if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(strips[i].split(",")[1],"base64"));
+   if(process.env.BROWSER!=="webkit")console.log("WINTER_UI_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
+  }
+ }
+ await artPage.close();
  try{
   for(const viewport of [{width:390,height:844},{width:375,height:812},{width:430,height:932}]){
    const context=await browser.newContext({viewport,deviceScaleFactor:1,isMobile:true,hasTouch:true,reducedMotion:"reduce"});
