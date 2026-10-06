@@ -2022,6 +2022,7 @@ function makeOrderV7(s,random=gameRandom){
  return {id:r.id,size,sweet:tutorial?1:random()<.5?0:1,iced,iceMode:iced?(random()<.2?"little":"normal"):"none",time,maxTime:time,quotedPrice:roundK(priceFor(s,r.id,size)+(top?TOPPINGS[top].price:0)+shot*10),topping:top,extraShot:shot,type:tutorial?"easy":type,customerName:name,returning:(s.loyalty[name]||0)>=2,channel:"counter"};
 }
 function gradeOrder(s){
+ maintainServiceQuality(s);
  const c=s.cup,o=s.order,r=recipeForOrder(o),core=c.steps.filter(k=>k!=="sugar"&&(r.signature||k!=="ice"));
  const recipeOK=JSON.stringify(core)===JSON.stringify(r.steps)&&(!r.signature||lastOf(c.steps)==="ice");
  const checks=[["công thức / thứ tự",recipeOK],["size",c.size===o.size],["đường",c.steps.filter(k=>k==="sugar").length===o.sweet],["đá",c.steps.filter(k=>k==="ice").length===(o.iced?1:0)&&(!o.iced||(c.iceMode||"normal")===(o.iceMode||"normal"))],["topping",JSON.stringify(c.toppings||[])===JSON.stringify(o.topping?[o.topping]:[])],["extra shot",(c.extraShot||0)===(o.extraShot||0)]];
@@ -2252,12 +2253,22 @@ function processOnline(s){
 }
 function tickOnline(s){
  if(s.phase!=="open")return;
+ maintainServiceQuality(s);
  if(s.timed)for(let i=s.online.queue.length-1;i>=0;i--){const o=s.online.queue[i];o.time=Math.max(0,roundTime(o.time-clockDelta));if(o.time<=0){failOnline(s,o);s.online.queue.splice(i,1)}}
  if(working(s,"online")){
-  const slots=onlineStaffSlots(s);
-  for(let i=Math.min(slots,s.online.queue.length)-1;i>=0;i--){
-   const o=s.online.queue[i];o.work=Math.max(0,roundTime(o.work-clockDelta));
-   if(o.work===0){const result=o.receipt?(completeAuto(s,o.receipt),{ok:true}):autoFulfil(s,o,gameRandom,true);if(result.pending){o.receipt=result.pending;o.work=drinkSeconds(s,o)}else if(result.ok)s.online.queue.splice(i,1);else o.blocked=result.reason}
+  const slots=onlineStaffSlots(s),rate=onlineWorkRate(s);
+  let budget=clockDelta*rate;
+  // Bounded slices keep real inventory, remakes and ticket accounting on the existing path.
+  for(let pass=0;budget>0.0001&&pass<512;pass++){
+   issueOnline(s);if(!s.online.queue.length)break;
+   const step=Math.min(.2,budget);budget-=step;
+   for(let i=Math.min(slots,s.online.queue.length)-1;i>=0;i--){
+    const o=s.online.queue[i];o.work=Math.max(0,roundTime(o.work-step));
+    if(o.work===0){const result=o.receipt?(completeAuto(s,o.receipt),{ok:true}):autoFulfil(s,o,gameRandom,true);
+     if(result.pending){o.receipt=result.pending;o.work=drinkSeconds(s,o)}
+     else if(result.ok)s.online.queue.splice(i,1);else{o.blocked=result.reason;o.work=.5}
+    }
+   }
   }
  }
  issueOnline(s);finishIfReady(s);
@@ -2572,11 +2583,11 @@ async function actV6(action,key){
    case "suggestCart":fillSuggestedCart();break;
    case "cartConfirm":showSheet("cart","Xác nhận nhập hàng",Object.entries(cart).map(([k,n])=>'<p>'+escapeHTML(cartItem(state,k).name)+' × '+n+(cartBakeId(k)?' chiếc · ':' gói · ')+MONEY(cartUnitPrice(state,k)*n)+'</p>').join("")+'<b>Tổng '+MONEY(cartCost(state,cart))+'</b>'+btn("Chỉ nhập hàng","cartBuy","","wide")+(coldPreparationPlan(state).batches?'<p>Ủ '+coldPreparationPlan(state).batches+' mẻ từ nguyên liệu nhập và tồn kho; giữ lại dự phòng pha các món khác. Nếu giao trễ, chỉ đặt hàng và chờ nguyên liệu về trước khi ủ.</p>'+btn("Nhập & ủ đủ dự phòng","cartBuyBrew","","primary wide"):""));break;
    case "brewReserve":{const n=prepareColdReserve(state);stockSuggestionNotice="";toast(n?"Đã ủ "+n+" mẻ; giữ đủ cà phê cho các món khác.":"Cold brew đã đủ dự phòng.");break;}
-   case "cartBuyBrew":{const result=buyAndPrepareCold(state,cart);cart={};stockSuggestionNotice=result.pending?"Đã đặt hàng nhưng nguyên liệu chưa về. Nhận hàng trước rồi bấm Ủ đủ dự phòng; chưa có thêm cold brew.":"";closeSheet();toast(result.pending?"Hàng đang giao · chưa ủ cold brew.":"Đã nhập và ủ "+result.batches+" mẻ cold brew.");break;}
-   case "cartBuy":buyCart(state,cart);cart={};stockSuggestionNotice="";closeSheet();toast("Đã nhập hàng, kiểm tra mẻ cold brew nếu có.");break;
-   case "clean":cleanShop(state);toast("Quầy sạch sẽ!");break;
-   case "repair":repairShop(state);toast("Máy hoạt động tốt.");break;
-   case "advertise":advertise(state);toast("Đã chạy quảng cáo hôm nay.");break;
+   case "cartBuyBrew":{const summary=networkOperation("stockCold",cart);cart={};stockSuggestionNotice=summary;closeSheet();toast(summary);break;}
+   case "cartBuy":{const summary=networkOperation("stock",cart);cart={};stockSuggestionNotice=summary;closeSheet();toast(summary);break;}
+   case "clean":toast(networkOperation("clean"));break;
+   case "repair":toast(networkOperation("repair"));break;
+   case "advertise":toast(networkOperation("advertise"));break;
    case "bike":resolveBike(state,key);break;
    default:handled=false;
   }
@@ -2971,17 +2982,67 @@ function onlineArrivalShare(progress){
  return 1;
 }
 function onlineStaffSlots(s){return Math.min(10,(working(s,"helper2")?2:1)+(s.upgrades.counter?1:0)+(s.upgrades.tabletPro?1:0)+(working(s,"barista2")?1:0)+(working(s,"packer")&&s.upgrades.packingCounter?1:0)+(working(s,"barista3")&&s.upgrades.dualGroup?1:0)+(extraOnlineTeam(s,1)?2:0)+(extraOnlineTeam(s,2)?2:0))}
+
+/* ==================== FOUR-MINUTE ONLINE / NETWORK OPERATIONS ==================== */
+const ONLINE_SHIFT_SECONDS=240;
+function onlineWorkRate(s,quota=s.online.dayQuota){
+ const menu=activeMenu(s);
+ const longest=Math.max(1,...menu.map(r=>drinkSeconds(s,{id:r.id,size:"L",sweet:1,iced:true,topping:eligibleToppings(s,r)[0]||null})));
+ // Worst case: three drinks per parcel, cakes, and one remake. Upgrade gates still set accepted volume.
+ return Math.max(1,quota*3*(longest*2+4)/(Math.max(1,onlineStaffSlots(s))*180));
+}
+function maintainServiceQuality(s){
+ // Cleaning is part of the working support/manager's paid shift, not a rating override.
+ if(s.phase==="open"&&(working(s,"helper")||working(s,"helper2")||working(s,"manager"))){
+  s.cleanliness=Math.max(s.cleanliness,95);
+ }
+}
+function networkOperation(kind,items={}){
+ const root=networkOwner(state),results=[];
+ for(const shop of networkShops(root)){
+  const trial=clone(shop),before=shop.cash;
+  try{
+   if(kind==="clean"){if(trial.cleanliness<100)cleanShop(trial)}
+   else if(kind==="repair"){if(trial.condition<100||trial.events.broken||trial.ops.acBroken||trial.ops.lidBroken)repairShop(trial)}
+   else if(kind==="advertise"){if(!deliveryCampaign(trial))advertise(trial)}
+   else if(kind==="stock"){
+    if(shop===state){if(Object.values(items).some(n=>n>0))buyCart(trial,items)}
+    else{
+     const plan=stockPlan(trial),cold=coldPreparationPlan(trial),cart={};
+     plan.bean=(plan.bean||0)+cold.beanForBrew;plan.water=(plan.water||0)+cold.waterForBrew;
+     for(const[k,n]of Object.entries(plan))if(k!=="brew"&&ingredientAvailable(trial,k)){
+      const q=Math.min(stockPackLimit(trial),Math.ceil(Math.max(0,n-quantity(trial,k))/G[k].pack));if(q)cart[k]=q;
+     }
+     if(trial.bakery.owned)for(const[k,q]of Object.entries(bakerySuggestions(trial)))if(q)cart["bake:"+k]=Math.min(q,bakeryPackLimit(trial));
+     if(Object.keys(cart).length)buyCart(trial,cart);
+    }
+   }else if(kind==="stockCold"){
+    if(shop===state)buyAndPrepareCold(trial,items);
+    else{
+     const plan=stockPlan(trial),cold=coldPreparationPlan(trial),cart={};
+     plan.bean=(plan.bean||0)+cold.beanForBrew;plan.water=(plan.water||0)+cold.waterForBrew;
+     for(const[k,n]of Object.entries(plan))if(k!=="brew"&&ingredientAvailable(trial,k)){const q=Math.min(stockPackLimit(trial),Math.ceil(Math.max(0,n-quantity(trial,k))/G[k].pack));if(q)cart[k]=q}
+     if(trial.bakery.owned)for(const[k,q]of Object.entries(bakerySuggestions(trial)))if(q)cart["bake:"+k]=Math.min(q,bakeryPackLimit(trial));
+     buyAndPrepareCold(trial,cart);
+    }
+   }
+   // Root contains the branches. Never replace its branch references with cloned stale copies.
+   const chain=shop.chain;Object.assign(shop,trial);if(shop===root)shop.chain=chain;
+   results.push("Quán "+locationNumber(shop)+": "+MONEY(before-shop.cash));
+  }catch(e){results.push("Quán "+locationNumber(shop)+": chưa áp dụng — "+e.message)}
+ }
+ return results.join(" · ");
+}
+
 function beginOnlinePacing(s){
- const menu=activeMenu(s),mean=menu.length?menu.reduce((n,r)=>n+drinkSeconds(s,{id:r.id,size:"L",sweet:1,iced:true}),0)/menu.length:2;
- const workload=(forecastOnlineCups(s,s.online.dayQuota)*mean+forecastOnlineCakes(s,s.online.dayQuota)*1.8)/Math.max(1,onlineStaffSlots(s));
- s.online.pacing={version:1,day:s.day,enabled:s.online.dayQuota>0,elapsed:0,progress:0,duration:roundTime(clamp(Math.max(s.dayGoal*2.5,workload*1.35),45,900))};
+ s.online.pacing={version:1,day:s.day,enabled:s.online.dayQuota>0,elapsed:0,progress:0,duration:230};
 }
 function advanceOnlinePacing(s,delta){
  const p=s.online.pacing;if(!p?.enabled||p.day!==s.day)return;
  p.elapsed=roundTime(p.elapsed+delta);
  // A fast automated channel cannot drag the clock ahead of the owner's counter.
- const counter=s.dayGoal?clamp(s.served/s.dayGoal,0,1):1;
- p.progress=Math.max(p.progress,Math.min(1,p.elapsed/p.duration,counter));
+ // Online has its own four-minute clock; a slow counter cannot hold deliveries.
+ p.progress=Math.max(p.progress,Math.min(1,p.elapsed/230));
 }
 function onlineArrivalAllowance(s,quota=s.online.dayQuota){
  const p=s.online.pacing;if(!p?.enabled||p.day!==s.day)return quota;
@@ -3590,6 +3651,7 @@ function automatedCup(o,cost){
  return {size:o.size,steps,sealed:true,cost,iceMode:o.iceMode,toppings:o.topping?[o.topping]:[],extraShot:o.extraShot||0};
 }
 function autoFulfil(s,o,random=gameRandom,defer=false){
+ maintainServiceQuality(s);
  if(o.deliveryGroup&&deliveryItemResolved(s,o))throw Error("Món trong đơn nhóm đã xử lý.");
  if(o.bakery?.status==="waiting"){if(!bakeryQuantity(s,o.bakery.id))return {ok:false,reason:"Hết bánh đã đặt"};const previous=s.order;try{s.order=o;startBake(s);o.bakery.status="ready";o.bakery.remaining=0}finally{s.order=previous}}
  ensureOrder(s,o);if(s.finalizedOrders[o.uid]||s.complaintQueue.some(x=>x.order.uid===o.uid))throw Error("Đơn đã chốt hoặc đang chờ phản ánh.");
@@ -3606,7 +3668,7 @@ function autoFulfil(s,o,random=gameRandom,defer=false){
  }
  if(wrong){
   s.stats.staffMistakes++;
-  if(cashierWorking(s)||(working(s,"manager")&&random()<.9)){
+  if(cashierWorking(s)||(working(s,"manager")&&(managerActive(s)||s.backgroundManaged||random()<.9))){
    const second=consumeDrink(s,o);
    if(second!==null){s.stats.remakes++;s.stats.waste++;s.stats.wasteCost=roundK(s.stats.wasteCost+cost);s.stats.remakeCost=roundK(s.stats.remakeCost+second);cost=roundK(cost+second);if(cashierWorking(s))s.stats.qcRemakes++;else s.stats.managerCaught++;wrong=false;remade=true;produced=o}
   }
@@ -4809,6 +4871,7 @@ function managerDutyMarkup(){
  return '<section class="business-card"><h3>ỦY QUYỀN QUẢN LÝ '+(d.enabled?(available?"· ĐANG BẬT":"· TẠM DỪNG"):"· ĐANG TẮT")+'</h3><p>Quản lý lấy ly, hoàn thiện và giao đồ; kiểm tra, làm lại khi cần, xử lý phản ánh và sự cố trong ca. Nguyên liệu và thời gian pha vẫn tính thật.</p><p>550k/ca ngoài lương. Thu một lần khi bật; tắt/bật lại không thu thêm. Ngày mới tự tắt. Giữ nguyên kế hoạch bán hàng, giá và nâng cấp.</p><small>Không tự mua hàng vượt giỏ đã duyệt. Thiếu kho hoặc thiếu người: hiện cảnh báo để anh xử lý.</small><p>'+escapeHTML(d.status||(!available?"Cần Quản lý đang đi làm.":"Chủ quán đang tự điều hành."))+'</p>'+btn(d.enabled?"TẮT · TÔI TIẾP QUẢN":d.paid?"BẬT LẠI · ĐÃ TRẢ PHÍ":"BẬT · 550k","managerDelegate","",d.enabled?"wide":"primary wide")+'</section>';
 }
 function managerStep(s,dt){
+ maintainServiceQuality(s);
  if(!managerActive(s))return false;
  const d=managerDuty(s);d.cooldown=Math.max(0,(d.cooldown||0)-dt);if(d.cooldown>0)return false;d.cooldown=.4;
  try{
@@ -4853,7 +4916,7 @@ const DISTRICTS={
 };
 function validVisitState(s){
  if(s.shortShifts!==undefined&&typeof s.shortShifts!=="boolean")return false;
- const c=s.cadence;if(c&&(!Number.isInteger(c.day)||c.day<1||c.day>s.day||!Number.isFinite(c.seconds)||c.seconds<0||c.limit!==270||typeof c.awaiting!=="boolean"||typeof c.handedOff!=="boolean"))return false;
+ const c=s.cadence;if(c&&(!Number.isInteger(c.day)||c.day<1||c.day>s.day||!Number.isFinite(c.seconds)||c.seconds<0||![240,270].includes(c.limit)||typeof c.awaiting!=="boolean"||typeof c.handedOff!=="boolean"))return false;
  const p=s.visitPlan;if(p?.activeDay===s.day&&p.selected!==p.activeNo)return false;if(p&&(![1,2,3].includes(p.selected)||p.selected>1&&!getBranch(s,p.selected)||!Number.isInteger(p.activeDay)||p.activeDay<0||p.activeDay>s.day||![1,2,3].includes(p.activeNo)))return false;
  if(s.district!==undefined&&!DISTRICTS[s.district])return false;
  if(s.backgroundManaged&&!s.isBranch&&s.phase==="open"){
@@ -4944,13 +5007,13 @@ function networkMaintainBackground(b,dt){
  return !b.ops.active;
 }
 function networkOtherTick(root,active,dt){
- const progress=clamp((active.cadence?.seconds??active.shift.elapsed)/240,0,1);
+ const progress=clamp((active.cadence?.seconds??active.shift.elapsed)/230,0,1);
  for(const b of networkShops(root).filter(b=>b!==active&&b.phase==="open")){
   const c=b.branchControl;if(!c||c.stockDecision==="pending")continue;c.elapsed=roundTime(c.elapsed+dt);
   if(!networkMaintainBackground(b,dt))continue;
   if(b.online.pacing)b.online.pacing.progress=progress;
   const release=Math.min(c.goal,Math.max(1,Math.ceil(c.goal*districtProgress(b,progress))));
-  for(let i=0;i<(progress>=.99?64:16);i++){if(c.job||c.issued<release)branchJobTick(b,"job",dt);branchJobTick(b,"onlineJob",dt);if(c.notice.startsWith("Thiếu nguyên liệu")&&!c.stockDecision){c.stockDecision="pending";root.visitPlan.attention=root.visitPlan.attention||locationNumber(b);break}}
+  for(let i=0;i<Math.max(16,Math.ceil(onlineWorkRate(b,c.onlineGoal)*onlineStaffSlots(b)*3));i++){if(c.job||c.issued<release)branchJobTick(b,"job",dt);branchJobTick(b,"onlineJob",dt);if(c.notice.startsWith("Thiếu nguyên liệu")&&!c.stockDecision){c.stockDecision="pending";root.visitPlan.attention=root.visitPlan.attention||locationNumber(b);break}}
   if(c.issued>=c.goal&&c.onlineIssued>=c.onlineGoal&&!b.delivery.pending.length&&!c.job&&!c.onlineJob){b.phase="report";c.notice="Đã hoàn thành ca theo kế hoạch."}
  }
 }
@@ -4961,7 +5024,7 @@ function networkCloseOthers(root,active){
   b.phase="report";
  }
 }
-function shortShiftStart(s){if(s.shortShifts)s.cadence={day:s.day,seconds:0,limit:270,awaiting:false,handedOff:false}}
+function shortShiftStart(s){if(s.shortShifts)s.cadence={day:s.day,seconds:0,limit:240,awaiting:false,handedOff:false}}
 function shortShiftTick(s,dt){
  const c=s.cadence;if(!s.shortShifts||!c||c.day!==s.day||s.phase!=="open")return false;
  if(c.awaiting)return true;
@@ -4976,7 +5039,7 @@ function finishOwnerShift(s,handoff){
 }
 function shortShiftSheet(){
  const c=state.cadence,eligible=working(state,"manager")&&(managerDuty(state).paid||state.cash>=550);
- showSheet("shortShift","CA TRỰC ĐÃ ĐỦ 4 PHÚT 30 GIÂY",'<p>Anh đã hoàn thành phần đứng quầy hôm nay. Chọn kết ca hoặc giao quản lý hoàn tất số đơn còn lại; không cần tự pha thêm.</p><p>Đóng cửa giữ doanh thu đã bán. Đơn đang chờ bị hủy theo quy tắc hiện có, có thể nhận review thấp. Giao quản lý vẫn tiêu hao kho, trả phí và có thể gặp lỗi phục vụ.</p>'+
+ showSheet("shortShift","CA TRỰC ĐÃ ĐỦ 4 PHÚT",'<p>Anh đã hoàn thành phần đứng quầy hôm nay. Chọn kết ca hoặc giao quản lý hoàn tất số đơn còn lại; không cần tự pha thêm.</p><p>Đóng cửa giữ doanh thu đã bán. Đơn đang chờ bị hủy theo quy tắc hiện có, có thể nhận review thấp. Giao quản lý vẫn tiêu hao kho, trả phí và có thể gặp lỗi phục vụ.</p>'+
  (eligible?btn(managerDuty(state).paid?"GIAO QUẢN LÝ · ĐÃ TRẢ PHÍ":"GIAO QUẢN LÝ · 550k","shortShiftFinish","handoff","primary wide"):'<p>Cần quản lý đang đi làm và 550k để bàn giao.</p>')+btn("ĐÓNG CỬA & XEM BÁO CÁO","shortShiftFinish","close","wide"));
 }
 function networkSummaryMarkup(root,active){
@@ -5045,11 +5108,11 @@ function decorationPreviewNotice(){
 
 /* ==================== SEASONAL DECORATION PACKAGES & ASSETS ==================== */
 const SEASON_PACKAGES=Object.freeze({
- summer:{name:"Hè rực rỡ",months:[4,5,6],caption:"Biển xanh · hoa nhiệt đới · nắng trên quầy gỗ",accent:"#7d1729",row:0,col:0},
- autumn:{name:"Thu an yên",months:[9,10],caption:"Lá phong · ánh đèn hổ phách · góc mèo ngủ",accent:"#802917",row:0,col:1},
+ summer:{name:"Hè rực rỡ",months:[5,6],caption:"Biển xanh · hoa nhiệt đới · nắng trên quầy gỗ",accent:"#7d1729",row:0,col:0},
+ autumn:{name:"Thu an yên",months:[8,9],caption:"Lá phong · ánh đèn hổ phách · góc mèo ngủ",accent:"#802917",row:0,col:1},
  xmas:{name:"Giáng sinh ấm áp",months:[11,12],caption:"Thông xanh · nơ đỏ · đèn vàng · quà dưới cây",accent:"#861d30",row:1,col:0},
  tet:{name:"Tết sum vầy",months:[1,2],caption:"Hoa đào · hoa mai · đèn lồng đỏ",accent:"#9c1d26",row:1,col:1},
- midautumn:{name:"Trung Thu đoàn viên",months:[7,8],caption:"Trăng vàng · đèn thỏ · bánh Trung Thu",accent:"#74172f",row:2,col:0}
+ midautumn:{name:"Trung Thu đoàn viên (gói cũ)",months:[],caption:"Trăng vàng · đèn thỏ · bánh Trung Thu",accent:"#74172f",row:2,col:0}
 });
 const SEASON_PRICE=30000,SEASON_DURATION=30;
 const CAFE_ASSETS=Object.freeze({
@@ -5211,7 +5274,7 @@ function seasonalPackagesMarkup(){
  const s=state,p=activeDecoration(s),month=seasonInfo(s).month;
  return '<section class="season-shop"><h3>Gói mùa · Quán '+locationNumber(s)+'</h3><p>Tháng '+month+' · 30.000k/gói · 30 ngày liên tục từ ngày mua.</p><p><b>x2 số đơn online</b> sau khi tính thời tiết, nhu cầu và thưởng vô địch. Ví dụ 750 đơn → 1.500 đơn. Giới hạn nhận đơn do anh tự đặt vẫn áp dụng.</p><p>Không gian quán theo mùa của lịch game; gói đang dùng chọn chủ đề tương ứng. Mỗi quán mua riêng, không tự gia hạn. Chuẩn bị đủ nguyên liệu để phục vụ lượng đơn tăng thêm.</p>'+
  (p?'<div class="season-active"><b>'+SEASON_PACKAGES[p.id].name+'</b> · x2 online · còn '+(p.end-s.day+1)+' ngày</div>':"")+
- Object.entries(SEASON_PACKAGES).map(([id,g])=>'<article class="season-package"><div class="season-package-copy"><h4>'+g.name+'</h4><small>Bán tháng '+g.months.join(", ")+' · 30 ngày · x2 đơn online</small>'+
+ Object.entries(SEASON_PACKAGES).filter(([id,g])=>g.months.length||p?.id===id).map(([id,g])=>'<article class="season-package"><div class="season-package-copy"><h4>'+g.name+'</h4><small>Bán tháng '+g.months.join(", ")+' · 30 ngày · x2 đơn online</small>'+
  (p?.id===id?'<strong class="season-owned">Đang áp dụng cho quán này</strong>':p?'<span>Đợi gói hiện tại hết hạn</span>':!decorationAvailable(s,id)?'<span>Chưa đến tháng mở bán</span>':btn("Chi tiết · 30.000k","seasonPreview",id,"primary wide"))+'</div></article>').join("")+'</section>';
 }
 function seasonalPackageDialog(id){
@@ -5947,6 +6010,7 @@ function failBranchOrder(b,job,reason){
  b.finalizedOrders[o.uid]={day:b.day,sale:0,tip:0,cancelled:true};
 }
 function branchJobTick(b,field,dt){
+ maintainServiceQuality(b);
  const c=b.branchControl,online=field==="onlineJob",quota=online?"onlineGoal":"goal",issued=online?"onlineIssued":"issued";
  if(online&&!working(b,"online"))return;
  if(!c[field]&&((c[issued]<c[quota]&&(!online||canIssueOnlineParcel(b,c[issued],c[quota])))||(online&&b.delivery?.pending.length))){
@@ -6424,16 +6488,68 @@ try{
 }catch(e){saveBlocked=!!protectedRaw;storageWorks=false}
 state=networkBind(state);
 managementVisible=state.phase==="prep";
+let storageBooting=true,saveDatabase=null,saveQueue=null,saveWriting=false,saveRevision=0;
+function openSaveDatabase(){
+ return new Promise((resolve,reject)=>{
+  if(!window.indexedDB){reject(Error("IndexedDB unavailable"));return}
+  const req=indexedDB.open("bean-around-progress",1);
+  req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains("saves"))req.result.createObjectStore("saves")};
+  req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);req.onblocked=()=>reject(Error("Storage busy"));
+ });
+}
+function databaseGet(key){
+ return new Promise((resolve,reject)=>{const tx=saveDatabase.transaction("saves","readonly"),r=tx.objectStore("saves").get(key);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+}
+function databasePut(key,value){
+ return new Promise((resolve,reject)=>{const tx=saveDatabase.transaction("saves","readwrite");tx.objectStore("saves").put(value,key);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error("Storage aborted"))});
+}
+function saveStatus(message=""){
+ const el=$("saveWarning");if(!el)return;el.textContent=message;el.style.display=message?"block":"none";
+}
+async function restoreDatabaseSave(){
+ try{
+  saveDatabase=await openSaveDatabase();
+  const record=await databaseGet(KEY);
+  if(record?.payload){
+   // An unreadable newer record is protected, never silently replaced by an old local save.
+   const localRevision=Number(networkOwner(state)._saveRevision)||0;
+   if((record.revision||0)>=localRevision){
+    protectedRaw=record.payload;
+    try{state=networkBind(migrateSave(JSON.parse(record.payload)));saveBlocked=false;storageWorks=true}
+    catch(e){saveBlocked=true;storageWorks=false}
+   }
+  }
+ }catch(e){/* localStorage remains a complete fallback, not a fabricated save success. */}
+ saveRevision=Math.max(Date.now(),Number(networkOwner(state)._saveRevision)||0);
+ storageBooting=false;managementVisible=state.phase==="prep";
+}
+async function flushSaveQueue(){
+ if(saveWriting||!saveQueue||!saveDatabase)return;
+ saveWriting=true;
+ try{
+  while(saveQueue){
+   const item=saveQueue;saveQueue=null;
+   try{await databasePut(KEY,item);storageWorks=true;if(!saveQueue)saveStatus()}
+   catch(e){if(!item.localOK){storageWorks=false;saveStatus("Không ghi được bộ nhớ thiết bị. Hãy Xuất save trong Cài đặt; dữ liệu cũ vẫn được giữ.")}}
+  }
+ }finally{saveWriting=false}
+}
 function save(force=false){
- if(decorationPreview)return;
+ if(storageBooting||decorationPreview)return;
  if(!force&&pulseActive&&pulseCount%25!==0)return;
- if(saveBlocked){
-  $("saveWarning").textContent="Save chưa đọc được. Game đang bảo vệ dữ liệu cũ, không tự ghi đè.";
-  $("saveWarning").style.display="block";return;
- }
- try{const payload=JSON.stringify(networkOwner(state));if(payload!==lastSavedPayload||!storageWorks){localStorage.setItem(KEY,payload);lastSavedPayload=payload;renderMetrics.saveWrites++;renderMetrics.saveBytes+=payload.length}storageWorks=true}catch(e){storageWorks=false}
- $("saveWarning").textContent="Trình duyệt chặn lưu. Hãy dùng Xuất save trong Cài đặt trước khi đóng trang.";
- $("saveWarning").style.display=storageWorks?"none":"block";
+ if(saveBlocked){saveStatus("Save chưa đọc được. Game đang bảo vệ dữ liệu cũ, không tự ghi đè.");return}
+ let root=networkOwner(state),payload;
+ try{
+  payload=JSON.stringify(root);
+  if(payload===lastSavedPayload&&storageWorks)return;
+  root._saveRevision=++saveRevision;payload=JSON.stringify(root);
+ }catch(e){storageWorks=false;saveStatus("Không đóng gói được tiến trình. Hãy Xuất save; dữ liệu cũ chưa bị ghi đè.");return}
+ let localOK=false;
+ try{localStorage.setItem(KEY,payload);localOK=true;storageWorks=true}catch(e){storageWorks=false}
+ lastSavedPayload=payload;renderMetrics.saveWrites++;renderMetrics.saveBytes+=payload.length;
+ if(saveDatabase){saveQueue={payload,revision:saveRevision,localOK};flushSaveQueue();if(localOK)saveStatus()}
+ else if(localOK)saveStatus();
+ else saveStatus("Bộ nhớ thiết bị không ghi được (có thể đầy hoặc bị chặn). Hãy Xuất save trong Cài đặt trước khi đóng trang.");
 }
 function toast(message){
  $("toast").textContent=message;$("toast").classList.add("show");
@@ -6750,10 +6866,10 @@ function downloadSave(){
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
  toast("Đã xuất save. Giữ tệp JSON để chuyển thiết bị hoặc phục hồi.");
 }
-function loadImportedSave(text){
+async function loadImportedSave(text){
  const candidate=migrateSave(JSON.parse(text));
  const old=saveBlocked&&protectedRaw?protectedRaw:JSON.stringify(networkOwner(state));
- localStorage.setItem(KEY+".before-import",old);
+ if(saveDatabase)await databasePut(KEY+".before-import",{payload:old,revision:saveRevision});else localStorage.setItem(KEY+".before-import",old);
  state=networkBind(candidate);saveBlocked=false;protectedRaw=null;save();managementVisible=state.phase==="prep";closeSheet();paint();
  if(state.phase==="open")menuSheet();toast("Đã nhập save; bản trước được sao lưu.");
 }
@@ -6877,7 +6993,7 @@ document.addEventListener("click",e=>{if(e.detail!==0&&Date.now()<contestTapBloc
 document.addEventListener("visibilitychange",()=>{stopContestAnimation();if(!document.hidden&&modal==="contest"&&state.contest?.active?.current?.pour)startContestAnimation()});
 document.addEventListener("click",e=>{
  const t=e.target.closest("[data-action]");
- if(!t||t.disabled)return;
+ if(storageBooting||!t||t.disabled)return;
  if(consumeStockHoldClick(t.dataset.action,t.dataset.key))return;
  if(t.classList.contains("touch")){
   t.classList.add("pressed");setTimeout(()=>t.classList.remove("pressed"),180);
@@ -6891,12 +7007,13 @@ document.addEventListener("keydown",e=>{
 });
 $("sheet").addEventListener("cancel",()=>{modal=""});
 $("sheet").addEventListener("close",()=>{if(!$("sheet").open)modal=""});
-setInterval(()=>{pulseActive=true;pulseCount++;try{tickUI()}finally{pulseActive=false}},200);
+setInterval(()=>{if(storageBooting)return;pulseActive=true;pulseCount++;try{tickUI()}finally{pulseActive=false}},200);
 $("saveFile").addEventListener("change",async event=>{
  const file=event.target.files?.[0];if(!file)return;
- try{if(file.size>2*1024*1024)throw Error("Tệp save quá lớn.");loadImportedSave(await file.text())}catch(e){toast("Không nhập được: "+e.message)}
+ try{if(file.size>64*1024*1024)throw Error("Tệp save quá lớn.");await loadImportedSave(await file.text())}catch(e){toast("Không nhập được: "+e.message)}
  event.target.value="";
 });
+restoreDatabaseSave().then(()=>{
 const initialDecorationPreview=requestedDecorationPreview(window.location.search);
 if(initialDecorationPreview&&!saveBlocked)beginDecorationPreview(initialDecorationPreview);
 if(state.phase==="prep"&&!decorationPreview)prepareMorning(state);
@@ -6905,6 +7022,8 @@ if(document.getElementById("bootNotice"))document.getElementById("bootNotice").h
 if(saveBlocked)showSheet("recovery","Bảo vệ save cũ",
  '<p>Không thể đọc save hiện tại. Dữ liệu gốc chưa bị ghi đè. Hãy xuất bản gốc hoặc nhập save hợp lệ.</p><button class="primary wide" data-action="exportSave">Xuất dữ liệu gốc</button><button class="wide" data-action="importSave">Nhập save</button><button class="wide" data-action="resetAsk">Tạo quán mới có xác nhận</button>');
 else if(!decorationPreview){if(state.phase==="prep"){intro();if(state.events.notice||state.events.active)showEvent()}else if(state.phase==="report")reportSheet();else menuSheet();}
+
+});
 
 /* Read-only visual QA. Changing the theme does not purchase anything, mutate
    state, call save(), advance time, or replace any interactive element. */
