@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
+<link rel="preload" as="image" href="assets/bean-around/bean-around-red-pour.webp">
 <link rel="preload" as="image" href="assets/bean-around/bean-around-red-kettle.svg">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#821f2b">
@@ -1093,17 +1094,7 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 <g fill="#faf2df"><path d="M32 6h20l-3 15H35Z"/><path d="M68 6h20l-3 15H71Z"/><path d="M105 6h20l-3 15h-14Z"/></g>
 <path d="M52 8q9-2 6 8h-7m37-8q9-2 6 8h-7m38-8q9-2 6 8h-7" fill="none"/>
 </g></symbol>
- <symbol id="pour" viewBox="0 0 100 120">
- <g stroke="#77533b" stroke-width="2" stroke-linejoin="round">
- <path d="M11 111V29h10v75h71v9Z" fill="#c59567"/><path d="M8 29h83v8H8Z" fill="#e1b98b"/>
- <path d="M26 47h49L66 71H36Z" fill="#d1e0ce"/><path d="M30 46l9-29h26l9 29Z" fill="#fff7e3"/>
- <path d="M39 17l4 27m8-27v27m12-27-5 27" fill="none" stroke="#dac4a5"/>
- <ellipse cx="52" cy="45" rx="22" ry="5" fill="#dce7d2"/>
- <path d="M40 73h23l14 28q1 7-25 7t-25-7Z" fill="url(#glass)"/>
- <path d="M35 90h35l7 11q0 6-25 6t-25-6Z" fill="#9a6642" opacity=".9"/>
- <path d="M65 76q23-3 19 14l-10 4" fill="none" stroke="#acbdad" stroke-width="4"/>
- <path d="M42 77l-8 20" stroke="white" opacity=".7"/>
- </g></symbol>
+ <symbol id="pour" viewBox="0 0 1230 1280"><image href="assets/bean-around/bean-around-red-pour.webp" width="1230" height="1280" preserveAspectRatio="xMidYMid meet"/></symbol>
  <symbol id="kettle" viewBox="0 0 1536 1024"><image href="assets/bean-around/bean-around-red-kettle.svg" width="1536" height="1024" preserveAspectRatio="xMidYMid meet"/></symbol>
  <symbol id="cold" viewBox="0 0 100 140">
  <g stroke="#74543f" stroke-width="2" stroke-linejoin="round">
@@ -2764,7 +2755,7 @@ function deliveryGrowthMarkup(s,branch=false){
  ["Trạm ba làn + Điều phối 500 (ngày 17, 2 ca) + Barista 5, đóng gói 3, Dây chuyền giao nhanh",!!s.upgrades.multiStation&&trainedWorking(s,"fulfillmentLead")&&extraOnlineTeam(s,2),"500"]];
  return (s.isBranch?branchOnlineRoadmap(s):"")+contestPromoMarkup(s)+'<section class="business-card"><h3>PHÁT TRIỂN SHOPEE FOOD</h3><p>Trần đội ngũ: <b>'+onlineCapacity(s)+' đơn/ca</b>. Cần đủ các bậc trước; nhu cầu thực tế còn tùy rating, giá và thời tiết.</p><p>Giá Shopee Food +15% so với giá quầy; phí 18% tính trên doanh thu online thực thu, trước giá vốn.</p>'+
  rows.map(([name,ok,cap])=>'<div class="financial-row"><span>'+(ok?"✓ ":"○ ")+name+'</span><b>'+cap+' đơn</b></div>').join("")+
- '<p>Quầy tối đa 60 khách/ngày, kể cả cuối tuần và lễ. Ngày đầu 20; chưa có barista tối đa 30. Thời tiết và rating vẫn ảnh hưởng lượng khách thực tế. Chi nhánh hoàn thiện hướng tới 90% quán chính trong điều kiện tương đương.</p>'+
+ '<p>Quầy tối đa 60 khách/ngày, kể cả cuối tuần và lễ. Ngày đầu 20; chưa có barista tối đa 30. Thời tiết và rating vẫn ảnh hưởng lượng khách thực tế. Quầy chi nhánh hoàn thiện hướng tới 90% quán chính; online có lợi thế +15% khi cùng nhân sự, nâng cấp, chất lượng và điều kiện bán.</p>'+
  (deliveryCampaign(s)?'<p class="owned-mark">✓ Đã chạy quảng cáo ca này</p>':btn("📣 QUẢNG CÁO SHOPEE FOOD · 1.000k",branch?"branchAdvertise":"advertise","","wide primary"))+
  '<small>Ngân sách 1.000k/ca ghi vào Marketing. Tăng nhu cầu 25%; không bảo đảm bán hết. Lượng đơn thay đổi theo ngày: quán phát triển đầy đủ thường dự kiến khoảng 800–1.000 ly, chia thành đơn một ly và đơn nhóm. Thuê người một lần, trả lương khi đi làm. Đào tạo chỉ trả học phí một lần.</small></section>';
 }
@@ -3637,7 +3628,7 @@ window.BeanAroundThreeShopChecks={run(){
  test("offline save migration keeps three shops and no duplicate charge",()=>{const s=ready();openBranch(s,3);const total=s.cash+branches(s).reduce((n,b)=>n+b.cash,0),raw=JSON.stringify(s),m=migrateSave(s);a(validCore(m)&&m.chain.branch3.branchNo===3&&total===m.cash+branches(m).reduce((n,b)=>n+b.cash,0)&&JSON.stringify(s)===raw)});
  test("old second-shop save migrates without charging150m retroactively",()=>{const s=ready();delete s.chain.branch3;delete s.chain.branch.branchNo;delete s.chain.branch.branchControl.onlineJob;delete s.chain.branch.branchControl.onlineGoal;delete s.chain.branch.branchControl.onlineIssued;const c=s.cash,m=migrateSave(s);a(m.cash===c&&m.chain.branch.cash===s.chain.branch.cash&&!m.chain.branch3&&m.chain.branch.branchNo===2)});
  test("cannot hide nested third shop inside a branch save",()=>{const s=ready();s.chain.branch.chain.branch3=chainTestShop();fails(()=>migrateSave(s))});
- test("max development targets90 percent channel demand, not cash",()=>{const s=ready(),b=s.chain.branch;s.events.weather="sun";b.events={...b.events,...s.events};a(branchProgress(b)===1);const f=branchForecast(s,2);a(Math.abs(f.counter-Math.min(branchCapacity(b),Math.round(trafficDemand(b)*.9)))<=1);a(Math.abs(f.online-Math.round(onlineVolume(b)*.9))<=1);const cash=b.cash;branchForecast(s,2);a(b.cash===cash)});
+ test("max development keeps counter90 percent and full branch online forecast, not cash",()=>{const s=ready(),b=s.chain.branch;s.events.weather="sun";b.events={...b.events,...s.events};a(branchProgress(b)===1);const f=branchForecast(s,2);a(Math.abs(f.counter-Math.min(branchCapacity(b),Math.round(trafficDemand(b)*.9)))<=1);a(Math.abs(f.online-onlineVolume(b))<=1);const cash=b.cash;branchForecast(s,2);a(b.cash===cash)});
  test("untrained online staff has lower throughput and missing staff disables online",()=>{const s=ready(),b=s.chain.branch,full=branchForecast(s,2).online;delete b.training.courses.delivery;a(branchForecast(s,2).online<full);b.employees.online.workingToday=false;a(branchForecast(s,2).online===0)});
  test("rain and pricing affect branch demand",()=>{const s=ready();s.events.traffic=.2;const normal=branchForecast(s,2).counter;s.events.weather="rain";a(branchForecast(s,2).counter<normal);s.events.weather="sun";for(const m of Object.values(s.chain.branch.menu))m.playerPrice*=1.3;a(branchForecast(s,2).counter<normal)});
  test("second and third run real parallel orders including online and bakery",()=>{const s=ready(),b3=openBranch(s,3);maxTestBranch(s,b3);for(const b of branches(s)){b.financialHistory=[];stockBranch(s,branchNumber(b));a(quantity(b,"cup")>0&&bakeryQuantity(b,"croissant")>0)}startBranchDay(s);a(branches(s).every(b=>b.phase==="open"));let guard=30000;while(branches(s).some(b=>b.phase==="open")&&guard--)branchTick(s,.2);a(guard>0);for(const b of branches(s)){a(b.stats.orders>100&&b.stats.onlineOrders>0&&b.stats.onlineFees>0&&b.stats.bakeryRevenue>0);a(b.reviews.length===Math.min(200,receiptCount(b.stats)+b.stats.lost));a(b.stats.ingredientsUsed>0&&b.cash>0)}a(s.stats.grossRevenue===0&&validCore(s))});
@@ -3845,7 +3836,7 @@ let contestRAF=0,contestLastFrame=0,contestTapBlock=0;
 function contestTrophy(){return '<svg class="contest-trophy" viewBox="0 0 100 100" aria-hidden="true"><path d="M30 15H70V41Q70 62 50 67Q30 62 30 41Z" fill="#e5b354" stroke="#794c20" stroke-width="3"/><path d="M30 22H17V34Q17 49 33 49M70 22H83V34Q83 49 67 49" fill="none" stroke="#bc802d" stroke-width="6"/><path d="M50 65V80M32 86H68" stroke="#794c20" stroke-width="7" stroke-linecap="round"/><path d="M50 27L54 36L64 37L56 44L58 54L50 49L42 54L44 44L36 37L46 36Z" fill="#fff5d5"/></svg>'}
 function contestPromoMarkup(s){
  if(contestBoost(s)===1)return "";
- return '<p class="notice contest-promo">🏆 VÔ ĐỊCH · Nhu cầu & công suất Shopee +70% · còn '+(s.contest.promoEnd-s.day+1)+' ngày, gồm hôm nay. Trần đội ngũ '+onlineCapacity(s)+' đơn; giới hạn tự đặt vẫn giữ. Nhớ bấm Gợi ý nhập hàng.</p>';
+ return '<p class="notice contest-promo">🏆 VÔ ĐỊCH TOÀN CHUỖI · Nhu cầu & công suất Shopee +70% · còn '+((networkOwner(s).contest?.promoEnd||s.contest.promoEnd)-s.day+1)+' ngày, gồm hôm nay. Trần đội ngũ '+onlineCapacity(s)+' đơn; giới hạn tự đặt vẫn giữ. Nhớ bấm Gợi ý nhập hàng.</p>';
 }
 function contestHubMarkup(s){
  if(s.isBranch)return "";const c=contestDefaults(s),period=contestPeriod(s),available=contestAvailable(s),pending=period>c.lastPeriod;
@@ -4105,7 +4096,13 @@ function contestDefaults(s){
  return s.contest;
 }
 function contestPeriod(s){return Math.floor(s.day/30)}
-function contestBoost(s){const c=s.contest;return !s.isBranch&&c&&c.promoStart<=s.day&&c.promoEnd>=s.day&&c.promoStart>0?1.7:1}
+function syncContestPromotion(root){
+ if(root.isBranch)return;
+ const c=contestDefaults(root);
+ for(const b of branches(root)){const shared=contestDefaults(b);shared.promoStart=c.promoStart;shared.promoEnd=c.promoEnd}
+}
+function contestBoost(s){const root=networkOwner(s),c=(s.isBranch&&root!==s?root:s).contest;return c&&c.promoStart<=s.day&&c.promoEnd>=s.day&&c.promoStart>0?1.7:1}
+function onlineLocationFactor(s){return s.isBranch?1.15:1}
 function stockPackLimit(s){return contestBoost(s)>1||onlineDecorationFactor(s)>1?1000:onlineVolume(s)>150?500:100}
 function contestAvailable(s){const c=contestDefaults(s);return !s.isBranch&&s.phase==="prep"&&contestPeriod(s)>c.lastPeriod&&!c.active}
 function contestMeta(key){
@@ -4163,7 +4160,7 @@ function contestFinish(s,withdrawn=false){
  const score=roundK(a.results.reduce((n,r)=>n+r.score,0)/a.total),won=!withdrawn&&score>=80;
  const result={period:a.period,day:s.day,total:a.total,completed:a.results.length,score,won,withdrawn,rank:won?1:score>=74?2:score>=68?3:4,cups:a.results.slice()};
  c.history.push(result);c.history=c.history.slice(-12);c.active=null;
- if(won){c.wins++;c.promoStart=s.day;c.promoEnd=s.day+14;gainRep(s,5)}
+ if(won){c.wins++;c.promoStart=s.day;c.promoEnd=s.day+14;gainRep(s,5);syncContestPromotion(s)}
  return {...result,finished:true};
 }
 function validContest(s){
@@ -4380,7 +4377,7 @@ function trafficDemand(s){
  return Math.min(Math.round(counterDailyLimit(s)*Math.min(1,price)),Math.max(1,Math.round(decorationFactor(s)*marketDemand(base*(s.events.weather==="rain"?.8:1)*(s.upgrades.led?1.25:1)*(s.upgrades.branding?1.1:1)*(s.upgrades.flagship?1.2:1)*(s.events.traffic||1)*(s.ops?.capacityFactor||1)*seasonalDemand(s),s.day<6?90:s.day===6?105:120,s))));
 }
 function plannedTraffic(s){const offer=ownerState(s).offer,extra=offer?.status==="accepted"?Math.min(offer.accepted,opportunityCapacity(s)):0;const raw=s.day===1?20:Math.min(counterDailyLimit(s),frontCapacity(s),trafficDemand(s)+extra);const limit=s.shortShifts&&(!working(s,"barista")||s.baristaAuto===false)?20:raw;const branch=s.shortShifts&&s.isBranch&&networkOwner(s)!==s?(branchForecast(networkOwner(s),branchNumber(s)).counter||Math.min(raw,20)):raw;return Math.min(raw,limit,branch,s.business?.counterLimit??raw)}
-function onlineDailyFactor(s){const key=((Math.floor(s.day)+(s.isBranch?s.branchNo||1:0))%7+7)%7;return [1,.8,.9,.8,.9,.9,1][key]}
+function onlineDailyFactor(s){const key=((Math.floor(s.day))%7+7)%7;return [1,.8,.9,.8,.9,.9,1][key]}
 function onlineVolume(s){if(s.shortShifts&&s.isBranch&&networkOwner(s)!==s&&networkOwner(s).visitPlan?.selected===branchNumber(s))return branchForecast(networkOwner(s),branchNumber(s)).online;return onlineVolumeBase(s)}
 function onlineVolumeBase(s){
  if(!s.online.tablet||!s.online.enabled||ratingValue(s)<2.5)return 0;
@@ -4393,7 +4390,7 @@ function onlineVolumeBase(s){
  const capacity=basePromotedOnlineCapacity(s);
  const demand=Math.max(0,marketDemand(attraction*multiplier*seasonalDemand(s)*(trainedWorking(s,"speedBrew")?1.1:1)*(trainedWorking(s,"packingLine")?1.08:1)*(trainedWorking(s,"dispatchLead")?1.08:1)*(s.upgrades.packingCounter?1.12:1)*(s.upgrades.dualGroup?1.12:1)*(s.upgrades.multiStation?1.12:1),500,s));
  // Round the original parcel forecast first, then double it, including championship demand.
- const baseOrders=Math.floor(Math.min(capacity,demand*contestBoost(s))*onlineDailyFactor(s));
+ const baseOrders=Math.floor(Math.min(capacity,demand*contestBoost(s)*onlineLocationFactor(s))*onlineDailyFactor(s));
  return Math.min(baseOrders*onlineDecorationFactor(s),s.business?.onlineLimit??Infinity);
 }
 function applyBusinessPlan(s,counter,online){
@@ -4806,8 +4803,8 @@ function paintSkillNeedle(){
 function machineIllustration(art){
  if(!art)return "";
  if(CAFE_ASSETS.equipment.crops[art])return assetSvg("equipment",art,"equipment-render","xMidYMax meet");
- const boxes={pour:"0 0 100 120",cold:"0 0 100 140",kettle:"0 0 1536 1024"};
- return '<svg viewBox="'+(boxes[art]||"0 0 100 100")+'" preserveAspectRatio="'+(art==="kettle"?"xMidYMax meet":"xMidYMid meet")+'" aria-hidden="true"><use href="#'+art+'"/></svg>';
+ const boxes={pour:"0 0 1230 1280",cold:"0 0 100 140",kettle:"0 0 1536 1024"};
+ return '<svg viewBox="'+(boxes[art]||"0 0 100 100")+'" preserveAspectRatio="'+(["kettle","pour"].includes(art)?"xMidYMax meet":"xMidYMid meet")+'" aria-hidden="true"><use href="#'+art+'"/></svg>';
 }
 function renderStation(){
  const host=$("station");if(!host)return;
@@ -4954,7 +4951,7 @@ function districtAffinity(s,r){const d=s.district;if(!d)return 1;if(d==="office"
 function districtDemand(s){if(s.district==="office")return [0,6].includes(s.day%7)?.82:1.12;if(s.district==="park")return s.events.weather==="rain"?.78:[0,6].includes(s.day%7)?1.18:1.05;if(s.district==="home")return [0,6].includes(s.day%7)?1.1:1;return 1}
 function districtProgress(s,p){p=clamp(p,0,1);if(s.district==="office")return Math.min(1,p<.45?p*1.55:.6975+(p-.45)*.55);if(s.district==="park")return Math.min(1,p<.55?p*.6:.33+(p-.55)*1.488889);return p}
 function networkBind(root){
- visitRoot=root;if(root.phase==="prep")root.backgroundManaged=false;root.visitPlan=root.visitPlan||{selected:1,activeDay:0,activeNo:1};root.shortShifts=true;
+ visitRoot=root;syncContestPromotion(root);if(root.phase==="prep")root.backgroundManaged=false;root.visitPlan=root.visitPlan||{selected:1,activeDay:0,activeNo:1};root.shortShifts=true;
  for(const b of branches(root)){b.shortShifts=true;if(root.phase==="prep"){b.events.weather=root.events.weather;b.events.traffic=(root.events.traffic||1)/(root.events.advertising?1.15:1)}if(!b.district)b.district=branchNumber(b)===2?"office":"park";if(!b.locationStyle){b.brand.accent=DISTRICTS[b.district].accent;b.locationStyle=true}}
  const selected=networkShops(root).find(s=>locationNumber(s)===root.visitPlan.selected)||root;
  root.visitPlan.selected=locationNumber(selected);return selected;
@@ -5147,7 +5144,7 @@ function activeDecoration(s){
 // Seasonal packages now affect online parcels only; existing counter demand is unchanged.
 function decorationFactor(s){return 1}
 function onlineDecorationFactor(s){return activeDecoration(s)?2:1}
-function basePromotedOnlineCapacity(s){return Math.floor(onlineCapacityBase(s)*contestBoost(s))}
+function basePromotedOnlineCapacity(s){return Math.floor(onlineCapacityBase(s)*contestBoost(s)*onlineLocationFactor(s)+1e-7)}
 function decorationAvailable(s,id){return !!SEASON_PACKAGES[id]?.months.includes(seasonInfo(s).month)}
 function buySeasonPackage(s,id){
  prepOnly(s);
@@ -5974,7 +5971,7 @@ function openBranch(s,no=2){
  }
  b.training.lastDay=s.day-1;expandState(b);b.stats.finance={openingCash:cfg.capital,partial:false,stockPurchases:0,stockRefunds:0};
  pay(s,cfg.setup,"upgradeExpense");s.cash=roundK(s.cash-cfg.capital);s.chain[no===2?"branch":"branch3"]=b;
- s.chain.investments.push({day:s.day,number:no,setup:cfg.setup,capital:cfg.capital});if(s.visitPlan){b.shortShifts=true;b.district=no===2?"office":"park";b.brand.accent=DISTRICTS[b.district].accent;b.locationStyle=true}return b;
+ s.chain.investments.push({day:s.day,number:no,setup:cfg.setup,capital:cfg.capital});if(s.visitPlan){b.shortShifts=true;b.district=no===2?"office":"park";b.brand.accent=DISTRICTS[b.district].accent;b.locationStyle=true}syncContestPromotion(s);return b;
 }
 function branchCapacity(b){
  return Math.min(150,70+(b.upgrades.counter?20:0)+(b.upgrades.seating?10:0)+(b.upgrades.espresso?10:0)+(b.upgrades.reach?20:0)+(b.upgrades.flagship?25:0)+(working(b,"helper2")?(trained(b,"branchFlow")?40:20):0));
@@ -5982,13 +5979,13 @@ function branchCapacity(b){
 function branchForecast(s,no=2){
  const b=getBranch(s,no);if(!b||!b.branchControl.enabled||!working(b,"barista")||!working(b,"manager")||!activeMenu(b).length)return {counter:0,online:0};
  // Demand is evaluated from each shop's own history, prices and equipment. No revenue is copied.
- const view={...b,events:{...b.events,weather:s.events.weather,traffic:(s.events.traffic||1)/(s.events.advertising?1.15:1)}},p=branchProgress(b);
+ const view={...b,contest:{...b.contest,promoStart:s.contest?.promoStart||0,promoEnd:s.contest?.promoEnd||0},events:{...b.events,weather:s.events.weather,traffic:(s.events.traffic||1)/(s.events.advertising?1.15:1)}},p=branchProgress(b);
  const menu=activeMenu(b),price=menu.reduce((n,r)=>n+demandFactor(b.menu[r.id].playerPrice,r.price),0)/menu.length;
  const local=decorationFactor(b)*(48+Math.min(30,b.branchAge*2))*(1+Math.min(.35,s.reputation*.0035))*clamp(.7+(ratingValue(b)-3)*.2,.4,1.1)*price*(s.events.weather==="rain"?.8:1)*((s.events.traffic||1)/(s.events.advertising?1.15:1))*(b.upgrades.led?1.25:1);
  const counterBenchmark=working(s,"barista")?Math.min(trafficDemand(view),Math.round(trafficDemand({...s,seasonPackage:null})*decorationFactor(b))):trafficDemand(view);
  const onlineBenchmark=onlineVolumeBase({...view,seasonPackage:null,business:{...view.business,onlineLimit:null}});
  const counter=Math.max(1,Math.min(counterDailyLimit(view),branchCapacity(b),Math.round((local*(1-p)+counterBenchmark*.90*p)*districtDemand(b)*(s.events.weather==="rain"?.85:1))));
- const online=b.upgrades.tabletPro&&working(b,"online")?Math.min(Math.round(onlineBenchmark*(b.upgrades.onlineLaunch?.9:(.45+.45*p))*(trained(b,"delivery")?1:.65))*onlineDecorationFactor(b),b.business?.onlineLimit??Infinity):0;
+ const online=b.upgrades.tabletPro&&working(b,"online")?Math.min(onlineBenchmark*onlineDecorationFactor(b),b.business?.onlineLimit??Infinity):0;
  return {counter,online};
 }
 function branchGoal(s,no=2){return branchForecast(s,no).counter}
@@ -6192,7 +6189,7 @@ async function expansionAction(action,key){const active=state,root=networkOwner(
 function branchHubMarkup(){
  return visitPickerMarkup()+'<section class="business-card branch-teaser"><span class="eyebrow">BEAN AROUND · HỆ THỐNG QUÁN</span>'+
  [2,3].map(no=>{const b=getBranch(networkOwner(state),no),cfg=LOCATION_CONFIG[no];return '<h3>QUÁN '+no+'</h3><p>'+(b?MONEY(b.cash)+' · '+b.branchAge+' ca · phát triển '+Math.round(branchProgress(b)*100)+'%':'Từ ngày '+cfg.day+' · vốn '+MONEY(cfg.setup+cfg.capital))+'</p>'+btn(b?"ĐIỀU HÀNH":"ĐIỀU KIỆN MỞ","branchSelect",String(no),"wide primary")}).join("")+
- '<small>Kho, nhân sự, đào tạo và tiền riêng từng quán. Phát triển tối đa hướng tới khoảng 90% sức bán quán chính trong điều kiện tương đương.</small></section>';
+ '<small>Kho, nhân sự, đào tạo và tiền riêng từng quán. Quầy phát triển tối đa hướng tới 90% quán chính; online có lợi thế +15% ở điều kiện tương đương.</small></section>';
 }
 function chainReportMarkup(s){
  const shops=[{no:1,s},...branches(s).map(b=>({no:branchNumber(b),s:b}))];if(shops.length===1)return "";
@@ -6217,7 +6214,7 @@ function branchPanelLegacy(){
  showSheet("branchPanel",state.brand.name+" · QUÁN "+no,switcher+shopPostcard(b)+'<p><b>'+districtInfo(b)?.name+'</b> · Cao điểm '+districtInfo(b)?.hours+'</p><p>'+districtInfo(b)?.desc+'</p>'+(b.branchAge===0?'<div class="business-links">'+Object.entries(DISTRICTS).map(([id,d])=>btn(d.name,"district",id,b.district===id?"primary":"")).join("")+'</div>':"")+
  '<div class="branch-summary"><b>'+MONEY(b.cash)+'</b><span>'+b.branchAge+' ca · '+ratingValue(b).toFixed(1)+'★</span></div><p>'+escapeHTML(b.branchControl.notice)+'</p>'+
  '<label>Phát triển '+Math.round(branchProgress(b)*100)+'%<progress max="1" value="'+branchProgress(b)+'"></progress></label>'+
- '<p>Dự kiến '+f.counter+' đơn quầy + '+f.online+' online. Phát triển đầy đủ, giá và chất lượng tương đương: hướng tới khoảng 90% sức bán quán chính. Không tự cộng tiền.</p>'+
+ '<p>Dự kiến '+f.counter+' đơn quầy + '+f.online+' online. Quầy phát triển đầy đủ hướng tới 90% quán chính; online +15% khi cùng mức nâng cấp và điều kiện bán. Không tự cộng tiền.</p>'+
  '<p>Mặt bằng '+MONEY(costs.rent)+' · điện nước '+MONEY(costs.utilities)+' · lương '+MONEY(costs.salary)+'/ca.</p>'+
  (!prep?'<p class="notice">Xem ca đang chạy. Nhập hàng, chuyển vốn, đào tạo và nâng cấp thực hiện trước ngày mở cửa.</p>':"")+
  btn(b.branchControl.enabled?"TẠM NGHỈ CA TỚI":"BẬT NHẬN CA","branchToggle","","wide")+
@@ -6434,7 +6431,7 @@ window.BeanAroundContestChecks={run(){
  test("stock suggestion increases after victory",()=>{const s=shop(),before=stockPlan(s);contestBegin(s);finish(s);a(stockPlan(s).cup>before.cup&&stockPlan(s).milk>before.milk)});
  test("full850 fulfilled with actual consumption fees and closing",()=>{const s=shop();contestBegin(s);finish(s);s.business.counterLimit=1;const rng=gameRandom;gameRandom=()=>.2;try{openDay(s);s.order.needsClarification=false;simulationFill(s);deliver(s);const expected=Math.floor(850*onlineDailyFactor(s));a(s.online.dayQuota===expected);let guard=50000;while(s.phase==="open"&&guard--){s.cleanliness=100;clockStep(s,.2)}a(guard>0&&s.stats.onlineOrders===expected&&s.stats.onlineFees>0&&quantity(s,"cup")<50000&&s.phase==="report")}finally{gameRandom=rng}});
  test("saved accepted bonus orders survive later cap change",()=>{const s=shop();contestBegin(s);finish(s);openDay(s);const quota=s.online.dayQuota,remaining=s.online.remaining,m=migrateSave(s);a(quota===Math.floor(850*onlineDailyFactor(s))&&m.online.dayQuota===quota&&m.online.remaining===remaining&&validCore(m))});
- test("branches cannot enter and do not inherit main promotional capacity",()=>{const s=shop(63),b=maxTestBranch(s,openBranch(s,2));a(!contestAvailable(b));fails(()=>contestBegin(b));contestBegin(s);finish(s);a(contestBoost(b)===1&&onlineCapacity(b)===200)});
+ test("branches cannot enter but inherit main promotional capacity",()=>{const s=shop(63),b=maxTestBranch(s,openBranch(s,2));a(!contestAvailable(b));fails(()=>contestBegin(b));contestBegin(s);finish(s);a(contestBoost(b)===1.7&&onlineCapacity(b)===391)});
  test("winning stock allowance supports single juice menu without100pack truncation",()=>{const s=shop();contestBegin(s);finish(s);for(const m of Object.values(s.menu))m.enabled=m.id==="orange";for(const k of Object.keys(G))s.stock[k]=[];const needed=stockPlan(s),basket=suggestedCart(s);a(basket.orange>100&&basket.orange<=stockPackLimit(s));buyCart(s,basket);a(quantity(s,"orange")>=needed.orange&&validCore(s))});
  test("small online shop retains100pack cap",()=>{const s=shop();s.business.onlineLimit=100;a(stockPackLimit(s)===100);fails(()=>buyCart(s,{milk:101}));contestBegin(s);finish(s);a(stockPackLimit(s)===1000);fails(()=>buyCart(s,{milk:1001}))});
  test("new accepted quota falls normally after promotional end",()=>{const s=shop(44);s.contest.promoStart=30;s.contest.promoEnd=44;openDay(s);const accepted=s.online.dayQuota,expected=Math.floor(850*onlineDailyFactor(s));s.day=45;const remaining=s.online.remaining;a(accepted===expected&&onlineCapacity(s)===500&&s.online.dayQuota===accepted&&s.online.remaining===remaining)});
@@ -7099,7 +7096,7 @@ function runBranchLaunchChecks(){
  const setup=(no=2)=>{const root=chainTestShop(no===2?31:61);root.visitPlan={selected:1,activeDay:0,activeNo:1};if(no===3){const second=openBranch(root,2);maxTestBranch(root,second)}const b=openBranch(root,no);branchTransfer(root,70000,no);return {root,b,no}};
  const invest=x=>{const {root,b,no}=x;for(const id of ["online","helper2","helper3","barista2","cashier2"])hireStaff(b,id);upgradeBranch(root,"tabletPro",no);upgradeBranch(root,"onlineLaunch",no);for(const id of ["delivery","speedBrew","packingLine","dispatchLead"])enrollCourse(b,id);return x};
  const advance=x=>{const {root,b,no}=x,checkpoints=[];for(let ca=1;ca<=5;ca++){b.phase=root.phase="prep";if(ca===2)upgradeBranch(root,"branding",no);if(ca===4)upgradeBranch(root,"counter",no);branchAdvertise(root,no);checkpoints.push({ca,capacity:onlineCapacityBase(b),orders:branchForecast(root,no).online,cash:b.cash});if(ca<5){b.stats.salaryPaid=Object.fromEntries(Object.keys(STAFF).filter(k=>working(b,k)).map(k=>[k,true]));advanceTraining(b);b.branchAge++;b.day++;root.day++;}}return checkpoints};
- for(const no of [2,3])test("branch "+no+" real paid path reaches about 300 at fifth shift",()=>{const x=invest(setup(no)),c=advance(x);a(c[0].orders<160&&c[4].orders>=275&&c[4].orders<=315,JSON.stringify(c));a(onlineCapacityBase(x.b)===350&&x.b.branchAge===4);a(x.b.stats.advertising===5000);a(x.b.cash===LOCATION_CONFIG[no].capital+70000-40400,"investment/marketing must debit own cash")});
+ for(const no of [2,3])test("branch "+no+" real paid path reaches about 300 at fifth shift",()=>{const x=invest(setup(no)),c=advance(x);a(c[0].orders<160&&c[4].orders>=300&&c[4].orders<=405,JSON.stringify(c));a(onlineCapacityBase(x.b)===350&&x.b.branchAge===4);a(x.b.stats.advertising===5000);a(x.b.cash===LOCATION_CONFIG[no].capital+70000-40400,"investment/marketing must debit own cash")});
  test("launch cannot be purchased without online station and worker",()=>{const {root,b,no}=setup();const cash=b.cash;let blocked=false;try{upgradeBranch(root,"onlineLaunch",no)}catch(e){blocked=true}a(blocked&&b.cash===cash&&!b.upgrades.onlineLaunch)});
  test("launch charged once, preserves ownership on reload",()=>{const x=invest(setup()),cash=x.b.cash;let blocked=false;try{upgradeBranch(x.root,"onlineLaunch",2)}catch(e){blocked=true}a(blocked&&x.b.cash===cash);const m=migrateSave(x.root);a(m.chain.branch.upgrades.onlineLaunch&&trained(m.chain.branch,"deliveryBasics")&&m.chain.branch.cash===cash)});
  test("days off do not complete training",()=>{const {b}=invest(setup());b.employees.online.workingToday=false;b.stats.salaryPaid={online:true};advanceTraining(b);a(b.training.courses.delivery.progress===0)});
