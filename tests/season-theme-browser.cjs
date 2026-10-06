@@ -28,6 +28,7 @@ const server=http.createServer((req,res)=>{
  fs.readFile(file,(error,data)=>{if(error){res.writeHead(404);res.end();return}res.setHeader("Content-Type",types[path.extname(file)]||"application/octet-stream");res.end(data)});
 });
 async function setup(page,recipe="latte",working=false){
+ await page.waitForFunction(()=>typeof storageBooting==="undefined"||!storageBooting);
  await page.evaluate(({recipe,working})=>{
   let qaSeed=123456789;gameRandom=()=>((qaSeed=(Math.imul(qaSeed,1664525)+1013904223)>>>0)/4294967296);
   const s=newGame(()=>.5);
@@ -132,6 +133,17 @@ function sameRects(before,after,label){
   }
  }
 
+
+ for(const [file,crops]of [
+  ["season-rooms-2026.png",[[0,520,"tet-2026-cafe-room"],[521,1041,"summer-2026-cafe-room"],[1042,1536,"autumn-2026-cafe-room"]]],
+  ["summer-autumn-bars-2026.png",[[0,193,"summer-2026-ui-header"],[194,355,"summer-2026-ui-deliver"],[356,545,"summer-2026-ui-order"],[546,732,"summer-2026-ui-footer"],[733,930,"autumn-2026-ui-header"],[931,1089,"autumn-2026-ui-deliver"],[1090,1277,"autumn-2026-ui-order"],[1278,1536,"autumn-2026-ui-footer"]]],
+  ["tet-bars-2026.png",[[0,443,"tet-2026-ui-header"],[444,739,"tet-2026-ui-deliver"],[740,1086,"tet-2026-ui-order"],[1087,1456,"tet-2026-ui-footer"]]]
+ ]){
+  const source="data:image/png;base64,"+fs.readFileSync(path.join(root,"assets/bean-around/sources",file)).toString("base64");
+  const out=await artPage.evaluate(async({source,crops})=>{const im=new Image();im.src=source;await im.decode();return crops.map(([a,b,name])=>{const c=document.createElement("canvas");c.width=name.includes("room")?780:1170;c.height=Math.round(c.width*(b-a)/im.width);c.getContext("2d").drawImage(im,0,a,im.width,b-a,0,0,c.width,c.height);return {name,data:c.toDataURL("image/webp",.91)}})},{source,crops});
+  for(const a of out){const target=path.join(root,"assets/bean-around",a.name+".webp");if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(a.data.split(",")[1],"base64"));if(process.env.BROWSER!=="webkit")console.log("PACKAGE_ASSET_"+a.name+"="+a.data)}
+ }
+
  await artPage.close();
 
  try{
@@ -197,11 +209,11 @@ function sameRects(before,after,label){
      const game=document.getElementById("game"),t=SeasonTheme[game.dataset.cafeTheme],order=game.querySelector(".compact-order");
      return {header:getComputedStyle(game.querySelector(".topbar")).backgroundColor,room:game.querySelector(".cafe-room").getAttribute("src"),note:order.dataset.cafeNote,expectedRoom:t.background};
     });
-    const expectedColors={spring:"rgb(255, 247, 235)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(132, 28, 35)"};
+    const expectedColors={spring:"rgb(142, 24, 32)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(132, 28, 35)"};
     assert(visual.header===expectedColors[theme],"season header color missing "+JSON.stringify(visual));
     assert(visual.room===visual.expectedRoom,"wrong seasonal environment");
     assert(visual.note==="show","simple order should show safe note");
-    if(theme==="winter"||theme==="spring"){
+    if(["winter","spring","summer","autumn"].includes(theme)){
      const art=await page.evaluate(()=>({parts:Array.from(document.querySelectorAll(".cafe-component-skin")).map(el=>el.dataset.skin).sort(),note:getComputedStyle(document.querySelector(".compact-order"),"::after").content,props:document.querySelector(".cafe-winter-counter-props")?getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display:"none"}));
      assert(JSON.stringify(art.parts)===JSON.stringify(["cta","header","nav","order"]),"missing winter component art: "+JSON.stringify(art));
      assert(art.note==="none","old decorative note overlaps the approved order design");

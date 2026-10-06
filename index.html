@@ -912,7 +912,7 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 .cafe-component-skin,.cafe-component-skin *{
  pointer-events:none!important;user-select:none;-webkit-user-select:none;
 }
-#game:is([data-cafe-theme="winter"],[data-cafe-theme="spring"]) .cafe-component-skin{
+#game:is([data-cafe-theme="winter"],[data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]) .cafe-component-skin{
  position:absolute!important;inset:0;display:block;z-index:0!important;
  margin:0;padding:0;border:0;border-radius:inherit;overflow:hidden;
  opacity:1;container-type:size;
@@ -1006,6 +1006,27 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 #game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .queue-person.current{
  background:linear-gradient(135deg,#9F2830,#681116);color:#FFF7EB;box-shadow:inset 0 0 0 1px #DBB56C77;
 }
+
+
+/* Approved package artwork: presentation layers only, no layout changes. */
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) :is(.cafe-header-decor,.cafe-nav-decor,.cafe-season-props,.cafe-particles){display:none}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .compact-order:after,
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .deliver-art:before,
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .deliver-art:after{content:none!important}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) :is(.topbar,.navbar,.compact-order,.deliver-art){background-image:none;box-shadow:none}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .topbar>:is(.hud-left,.brand,.hud-rating),
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .navbar>button{position:relative;z-index:7}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .cafe-room{opacity:.48;filter:blur(1px) saturate(.8) contrast(.85)}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .cafe-atmosphere{background:#ead6b8}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .topbar :is(#shopSign,#money,#dayLabel,#phaseLabel,#headerStars,#rating,#reviewTotal){
+ color:#FFF5DD;background:#461E16DD;text-shadow:0 1px 2px #32170D;box-shadow:0 0 3px 1px #461E16AA;border-radius:3px;
+}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .compact-order :is(b,strong,small,em){color:#FFF5DD;background:#632318E8;box-shadow:0 0 3px 1px #632318C9;text-shadow:none;border-radius:3px}
+#game[data-cafe-theme="summer"]:not([data-cafe-theme="off"]) .compact-order :is(b,strong,small,em){color:#54301D;background:#FFF5E6EB;box-shadow:0 0 3px 1px #FFF5E6C9;text-shadow:none;border-radius:3px}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .compact-order :is(small,em){width:fit-content;max-width:100%}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .deliver-art>b{color:#FFF7EB;text-shadow:0 1px 2px #301B10,0 0 5px #301B10}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .navbar>button:not(.active){color:#FFF7EB;text-shadow:0 1px 2px #32170D,0 0 5px #32170D}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .navbar>button.active{background:var(--cream);color:#762020;text-shadow:none}
 
 </style>
 </head>
@@ -5160,9 +5181,9 @@ function assetSvg(group,key,cls="",align="xMidYMid meet"){const a=CAFE_ASSETS[gr
  * Calendar and purchased package are read, never changed.
  */
 const SeasonTheme=Object.freeze({
-spring:Object.freeze({"uiArtwork":{"header":"assets/bean-around/spring-ui-header.webp","order":"assets/bean-around/spring-ui-order.webp","cta":"assets/bean-around/spring-ui-deliver.webp","nav":"assets/bean-around/spring-ui-footer.webp"},"id":"spring","name":"Mùa Xuân","lighting":"#fff1dd","window":"#d5e0c9","accent":"#EAA6B8","leaf":"#91AD78","header":"#FFF7EB","cta":"#397347","nav":"#623622","paper":"#FFF7EB","particles":"petal","wash":".035","note":"pink","background":"assets/bean-around/spring-cafe-room.svg","headerDecor":"spring","machineAreaDecor":"assets/bean-around/season-spring-props.svg","orderDecor":"assets/bean-around/season-spring-note.svg","ctaDecor":"spring","navDecor":"spring"}),
-summer:Object.freeze({"id":"summer","name":"Mùa Hạ","lighting":"#fff1c9","window":"#AFCFD1","accent":"#F4C85A","leaf":"#4F8A64","header":"#165A46","cta":"#17624C","nav":"#154F40","paper":"#FFF6DF","particles":"none","wash":".02","note":"yellow","background":"assets/bean-around/summer-cafe-room.svg","headerDecor":"summer","machineAreaDecor":"assets/bean-around/season-summer-props.svg","orderDecor":"assets/bean-around/season-summer-note.svg","ctaDecor":"summer","navDecor":"summer"}),
-autumn:Object.freeze({"id":"autumn","name":"Mùa Thu","lighting":"#f6d9ab","window":"#D7AE79","accent":"#D97A2B","leaf":"#C75C2A","header":"#7E1F28","cta":"#8C2F26","nav":"#6F2B25","paper":"#FFF1D8","particles":"maple","wash":".04","note":"kraft","background":"assets/bean-around/autumn-cafe-room.svg","headerDecor":"autumn","machineAreaDecor":"assets/bean-around/season-autumn-props.svg","orderDecor":"assets/bean-around/season-autumn-note.svg","ctaDecor":"autumn","navDecor":"autumn"}),
+spring:Object.freeze({"uiArtwork":{"header":"assets/bean-around/tet-2026-ui-header.webp","order":"assets/bean-around/tet-2026-ui-order.webp","cta":"assets/bean-around/tet-2026-ui-deliver.webp","nav":"assets/bean-around/tet-2026-ui-footer.webp"},"id":"spring","name":"Tết sum vầy","lighting":"#fff1dd","window":"#d5e0c9","accent":"#EAA6B8","leaf":"#91AD78","header":"#8E1820","cta":"#9F1C24","nav":"#72151B","paper":"#FFF7EB","particles":"petal","wash":".035","note":"pink","background":"assets/bean-around/tet-2026-cafe-room.webp","headerDecor":"spring","machineAreaDecor":"assets/bean-around/season-spring-props.svg","orderDecor":"assets/bean-around/season-spring-note.svg","ctaDecor":"spring","navDecor":"spring"}),
+summer:Object.freeze({"id":"summer","name":"Mùa Hạ","lighting":"#fff1c9","window":"#AFCFD1","accent":"#F4C85A","leaf":"#4F8A64","header":"#165A46","cta":"#17624C","nav":"#154F40","paper":"#FFF6DF","particles":"none","wash":".02","note":"yellow","background":"assets/bean-around/summer-2026-cafe-room.webp","headerDecor":"summer","machineAreaDecor":"assets/bean-around/season-summer-props.svg","orderDecor":"assets/bean-around/season-summer-note.svg","ctaDecor":"summer","navDecor":"summer","uiArtwork":{"header":"assets/bean-around/summer-2026-ui-header.webp","order":"assets/bean-around/summer-2026-ui-order.webp","cta":"assets/bean-around/summer-2026-ui-deliver.webp","nav":"assets/bean-around/summer-2026-ui-footer.webp"}}),
+autumn:Object.freeze({"id":"autumn","name":"Mùa Thu","lighting":"#f6d9ab","window":"#D7AE79","accent":"#D97A2B","leaf":"#C75C2A","header":"#7E1F28","cta":"#8C2F26","nav":"#6F2B25","paper":"#FFF1D8","particles":"maple","wash":".04","note":"kraft","background":"assets/bean-around/autumn-2026-cafe-room.webp","headerDecor":"autumn","machineAreaDecor":"assets/bean-around/season-autumn-props.svg","orderDecor":"assets/bean-around/season-autumn-note.svg","ctaDecor":"autumn","navDecor":"autumn","uiArtwork":{"header":"assets/bean-around/autumn-2026-ui-header.webp","order":"assets/bean-around/autumn-2026-ui-order.webp","cta":"assets/bean-around/autumn-2026-ui-deliver.webp","nav":"assets/bean-around/autumn-2026-ui-footer.webp"}}),
 winter:Object.freeze({"uiArtwork":{"header":"assets/bean-around/winter-red-ui-header.webp","order":"assets/bean-around/winter-red-ui-order.webp","cta":"assets/bean-around/winter-red-ui-deliver.webp","nav":"assets/bean-around/winter-red-ui-footer.webp"},"id":"winter","name":"Mùa Đông","lighting":"#fff1d8","window":"#28455F","accent":"#DDB66A","leaf":"#527F64","header":"#841C23","cta":"#A11D24","nav":"#681519","paper":"#FFF8EC","particles":"snow","wash":".025","note":"ice","background":"assets/bean-around/winter-cafe-room.webp","headerDecor":"winter","machineAreaDecor":"assets/bean-around/season-winter-props.svg","orderDecor":"assets/bean-around/season-winter-note.svg","ctaDecor":"winter","navDecor":"winter"})
 });
 const CAFE_PACKAGE_THEME=Object.freeze({summer:"summer",autumn:"autumn",midautumn:"autumn",tet:"spring",xmas:"winter"});
