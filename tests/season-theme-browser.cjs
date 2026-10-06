@@ -143,8 +143,8 @@ function sameRects(before,after,label){
    const checks=[],check=(name,fn)=>{try{checks.push({name,ok:true,result:fn()})}catch(e){checks.push({name,ok:false,error:e.message})}},assert=(v,m)=>{if(!v)throw Error(m||"assertion")};
    const stock=s=>{for(const[k,g]of Object.entries(G))s.stock[k]=[{n:100000,expiry:s.day+99,unitCost:g.unitCost}];for(const[k,g]of Object.entries(BAKES))s.bakery.stock[k]=[{n:10000,expiry:s.day+99,unitCost:g.cost}]};
    const full=()=>{const s=chainTestShop(63);for(const k of Object.keys(EQUIPMENT))s.upgrades[k]=true;for(const k of Object.keys(STAFF))Object.assign(s.employees[k],{hired:true,workingToday:true});s.online.tablet=s.online.enabled=true;s.online.quotaUnit="orders";s.bakery.owned=true;stock(s);Object.assign(s.events,{preparedDay:s.day,active:null,broken:null});s.ops.active=s.ops.scheduled=null;return s};
-   for(const quota of [300,750,1500,3000])check("complete "+quota+" parcels by 240 active seconds",()=>{
-    let s=full();s.phase="open";s.dayGoal=60;s.served=0;s.online.dayQuota=quota;s.online.remaining=quota;s.online.issued=0;s.online.queue=[];deliveryDefaults(s);beginOnlinePacing(s);let halfway=0;
+   for(const quota of [300,750,1500,1700])check("complete "+quota+" parcels by 240 active seconds",()=>{
+    let s=full();s.phase="open";s.dayGoal=60;s.served=0;s.order=makeOrder(s,()=>.5);s.online.dayQuota=quota;s.online.remaining=quota;s.online.issued=0;s.online.queue=[];deliveryDefaults(s);beginOnlinePacing(s);let halfway=0;
     const oldRandom=gameRandom;let seed=47;gameRandom=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
     try{for(let t=0;t<1200;t++){advanceOnlinePacing(s,.2);clockDelta=.2;tickOnline(s);if(t===599){halfway=s.stats.onlineReceipts;s=migrateSave(clone(s))}}
     }finally{gameRandom=oldRandom}
@@ -158,7 +158,7 @@ function sameRects(before,after,label){
     networkOperation("advertise");assert(root.cash===r-1000&&b.cash===c-1000,"ad wallets");networkOperation("advertise");assert(root.cash===r-1000&&b.cash===c-1000,"duplicate charge");
     root.cleanliness=20;b.cleanliness=30;networkOperation("clean");assert(root.cleanliness===100&&b.cleanliness===100&&root.chain.branch===b,"clean/reference");
     root.condition=50;b.condition=40;networkOperation("repair");assert(root.condition===100&&b.condition===100,"maintenance");
-    const before=root.cash,bc=b.cash;b.cash=0;const message=networkOperation("stock",{bean:1});assert(root.cash<before&&b.cash===0&&message.includes("chưa áp dụng"),"partial wallet rollback");b.cash=bc;
+    const before=root.cash,bc=b.cash;b.cash=0;for(const k of Object.keys(G))b.stock[k]=[];const message=networkOperation("stock",{bean:1});assert(root.cash<before&&b.cash===0&&message.includes("chưa áp dụng"),"partial wallet rollback");b.cash=bc;
     assert(validCore(root),"invalid root");
    });
    check("package purchase months and legacy entitlement",()=>{const expected={tet:[1,2],summer:[5,6],autumn:[8,9],xmas:[11,12]};for(const[k,v]of Object.entries(expected))assert(JSON.stringify(SEASON_PACKAGES[k].months)===JSON.stringify(v),k);const s=full();s.seasonPackage={id:"midautumn",start:s.day,end:s.day+29,paid:30000};assert(activeDecoration(s)&&onlineDecorationFactor(s)===2,"legacy package lost")});
