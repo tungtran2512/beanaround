@@ -176,7 +176,7 @@ function sameRects(before,after,label){
    check("package purchase months and legacy entitlement",()=>{const expected={tet:[1,2],summer:[5,6],autumn:[8,9],xmas:[11,12]};for(const[k,v]of Object.entries(expected))assert(JSON.stringify(SEASON_PACKAGES[k].months)===JSON.stringify(v),k);const s=full();s.seasonPackage={id:"midautumn",start:s.day,end:s.day+29,paid:30000};assert(activeDecoration(s)&&onlineDecorationFactor(s)===2,"legacy package lost")});
 
    check("managed network completes online in each shop within four-minute active shift",()=>{
-    const root=full(),b2=maxTestBranch(root,openBranch(root,2));stock(b2);const b3=maxTestBranch(root,openBranch(root,3));stock(b3);
+    const root=full();networkBind(root);const b2=maxTestBranch(root,openBranch(root,2));stock(b2);const b3=maxTestBranch(root,openBranch(root,3));stock(b3);
     state=networkBind(root);openDay(state);setManagerDuty(state,true);for(const s of networkShops(root)){s.ops.active=null;s.ops.scheduled=null;s.events.active=null;}
     let ticks=0;while(root.phase==="open"&&!root.cadence.awaiting&&ticks++<1600){clockStep(root,.2);if(root.order?.needsClarification)confirmOrder(root)}
     const results=networkShops(root).map(s=>({shop:locationNumber(s),target:s===root?s.online.dayQuota:s.branchControl.onlineGoal,receipts:s.stats.onlineReceipts,phase:s.phase,clean:s.cleanliness,pending:s.online.remaining}));

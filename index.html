@@ -1028,6 +1028,7 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 #game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .navbar>button:not(.active){color:#FFF7EB;text-shadow:0 1px 2px #32170D,0 0 5px #32170D}
 #game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .navbar>button.active{background:var(--cream);color:#762020;text-shadow:none}
 
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .topbar :is(#shopSign,#money){background:transparent;box-shadow:none;color:#FFF5DD;text-shadow:0 1px 2px #32170D,0 0 4px #32170D,0 0 7px #32170D}
 </style>
 </head>
 <body><div id="bootNotice"><b>BEAN AROUND · Đang khởi động…</b><p>Nếu thông báo này không biến mất và nút không hoạt động: hãy mở link game bằng Safari. Bản xem trước của ứng dụng Tệp / Google Drive không chạy game.</p><small>Nếu đang mở website thật, gửi lại thông báo lỗi bên dưới để được kiểm tra.</small><pre id="bootError" style="white-space:pre-wrap"></pre></div>
@@ -2889,7 +2890,7 @@ function prepareOpenUI(){
  if(showEvent())return;
  const audit=openingAudit(state);
  showSheet("opening","MỞ CỬA NGÀY "+state.day,
- '<p class="notice">Ca trực tối đa 4 phút 30 giây thao tác. Hết giờ chọn kết ca hoặc bàn giao quản lý (550k/ca, thu một lần). Đọc popup và tạm dừng không tính giờ. Các quán khác chỉ chạy khi đủ quản lý, barista, kho và tiền chi ca.</p><div class="opening-weather">'+(state.events.weather==="rain"?"🌧️":"☀️")+'</div><p>'+escapeHTML(state.events.story)+'</p>'+
+ '<p class="notice">Ca trực tối đa 4 phút thao tác. Hết giờ chọn kết ca hoặc bàn giao quản lý (550k/ca, thu một lần). Đọc popup và tạm dừng không tính giờ. Các quán khác chỉ chạy khi đủ quản lý, barista, kho và tiền chi ca.</p><div class="opening-weather">'+(state.events.weather==="rain"?"🌧️":"☀️")+'</div><p>'+escapeHTML(state.events.story)+'</p>'+
  '<div class="chips"><span class="chip">'+plannedTraffic(state)+' lượt quầy</span><span class="chip">'+onlineVolume(state)+' đơn Shopee Food dự kiến</span></div>'+
  '<div class="financial-row"><span>Mặt bằng</span><b>'+MONEY(audit.costs.rent)+'</b></div><div class="financial-row"><span>Điện nước</span><b>'+MONEY(audit.costs.utilities)+'</b></div><div class="financial-row"><span>Lương nhân viên</span><b>'+MONEY(audit.costs.salary)+'</b></div><div class="financial-row"><span>Tổng chi phí nhận ca</span><b>'+MONEY(audit.total)+'</b></div>'+
  (audit.short.length?'<div class="notice">Kho thấp hơn dự kiến: '+audit.short.map(k=>escapeHTML(G[k].name)).join(", ")+'. Anh có thể nhập thêm, giảm menu hoặc chấp nhận nguy cơ hết hàng.</div>':'<div class="notice achieved">✓ Kho đã đủ mức dự kiến.</div>')+
@@ -3018,8 +3019,8 @@ function maintainServiceQuality(s){
   s.cleanliness=Math.max(s.cleanliness,95);
  }
 }
-function networkOperation(kind,items={}){
- const root=networkOwner(state),results=[];
+function networkOperation(kind,items={},source=state){
+ const root=networkOwner(source),results=[];
  for(const shop of networkShops(root)){
   const trial=clone(shop),before=shop.cash;
   try{
@@ -3027,7 +3028,7 @@ function networkOperation(kind,items={}){
    else if(kind==="repair"){if(trial.condition<100||trial.events.broken||trial.ops.acBroken||trial.ops.lidBroken)repairShop(trial)}
    else if(kind==="advertise"){if(!deliveryCampaign(trial))advertise(trial)}
    else if(kind==="stock"){
-    if(shop===state){if(Object.values(items).some(n=>n>0))buyCart(trial,items)}
+    if(shop===source){if(Object.values(items).some(n=>n>0))buyCart(trial,items)}
     else{
      const plan=stockPlan(trial),cold=coldPreparationPlan(trial),cart={};
      plan.bean=(plan.bean||0)+cold.beanForBrew;plan.water=(plan.water||0)+cold.waterForBrew;
@@ -4597,7 +4598,7 @@ function validCoreV112(s){
 STAFF.barista.effect="Pha ly chủ quán đã chọn; khoảng 96% đúng khi quầy sạch, 99% trở lên khi có quản lý. Chủ quán vẫn giao khách.";
 STAFF.helper.effect="Thêm đường / đá theo đơn; không tính thêm một lượt lỗi riêng. Chủ quán vẫn lấy ly và giao khách.";
 STAFF.cashier.effect="Kiểm ly trước khi chủ giao; sai thì làm lại. +10% doanh thu từ giá trị đơn mới, +20% phần tip chất lượng.";
-STAFF.manager.effect="Đảm bảo độ chính xác ít nhất 99%, tối đa 99,5% khi nâng cấp; rating vẫn xét thời gian, vệ sinh và giá.";
+STAFF.manager.effect="Đảm bảo độ chính xác ít nhất 99%, tối đa 99,5% khi nâng cấp; duy trì quầy sạch từ 95/100 khi đi làm; rating vẫn xét món, thời gian chờ và giá.";
 STAFF.helper2.effect="Hỗ trợ đường/đá và topping; quầy tối đa 60 khách/ngày. Cùng nhân viên online tăng trần Shopee Food 80 → 120, rồi nâng bằng Pro và đào tạo.";
 /* V11 PLAYER HANDOFF / DAY BRIEF */
 function dayBrief(s){
@@ -4889,7 +4890,7 @@ function setManagerDuty(s,on){
 }
 function managerDutyMarkup(){
  const d=managerDuty(state),available=working(state,"manager");
- return '<section class="business-card"><h3>ỦY QUYỀN QUẢN LÝ '+(d.enabled?(available?"· ĐANG BẬT":"· TẠM DỪNG"):"· ĐANG TẮT")+'</h3><p>Quản lý lấy ly, hoàn thiện và giao đồ; kiểm tra, làm lại khi cần, xử lý phản ánh và sự cố trong ca. Nguyên liệu và thời gian pha vẫn tính thật.</p><p>550k/ca ngoài lương. Thu một lần khi bật; tắt/bật lại không thu thêm. Ngày mới tự tắt. Giữ nguyên kế hoạch bán hàng, giá và nâng cấp.</p><small>Không tự mua hàng vượt giỏ đã duyệt. Thiếu kho hoặc thiếu người: hiện cảnh báo để anh xử lý.</small><p>'+escapeHTML(d.status||(!available?"Cần Quản lý đang đi làm.":"Chủ quán đang tự điều hành."))+'</p>'+btn(d.enabled?"TẮT · TÔI TIẾP QUẢN":d.paid?"BẬT LẠI · ĐÃ TRẢ PHÍ":"BẬT · 550k","managerDelegate","",d.enabled?"wide":"primary wide")+'</section>';
+ return '<section class="business-card"><h3>ỦY QUYỀN QUẢN LÝ '+(d.enabled?(available?"· ĐANG BẬT":"· TẠM DỪNG"):"· ĐANG TẮT")+'</h3><p>Quản lý lấy ly, hoàn thiện và giao đồ; kiểm tra, làm lại khi cần, xử lý phản ánh và sự cố trong ca, giữ quầy sạch từ 95/100. Nguyên liệu và thời gian pha vẫn tính thật.</p><p>550k/ca ngoài lương. Thu một lần khi bật; tắt/bật lại không thu thêm. Ngày mới tự tắt. Giữ nguyên kế hoạch bán hàng, giá và nâng cấp.</p><small>Không tự mua hàng vượt giỏ đã duyệt. Thiếu kho hoặc thiếu người: hiện cảnh báo để anh xử lý.</small><p>'+escapeHTML(d.status||(!available?"Cần Quản lý đang đi làm.":"Chủ quán đang tự điều hành."))+'</p>'+btn(d.enabled?"TẮT · TÔI TIẾP QUẢN":d.paid?"BẬT LẠI · ĐÃ TRẢ PHÍ":"BẬT · 550k","managerDelegate","",d.enabled?"wide":"primary wide")+'</section>';
 }
 function managerStep(s,dt){
  maintainServiceQuality(s);
@@ -5068,7 +5069,7 @@ function networkSummaryMarkup(root,active){
  return '<section class="business-card"><h3>CÁC QUÁN CÒN LẠI</h3>'+others.map(s=>'<div class="financial-row"><span>Quán '+locationNumber(s)+' · '+(districtInfo(s)?.name||"Quán đầu tiên")+'<small>'+receiptCount(s.stats)+' đơn · '+s.stats.orders+' ly</small></span><b>'+MONEY(s.stats.grossRevenue)+'</b></div><p>Lãi '+MONEY(profitToday(s))+' · '+escapeHTML(s.branchControl?.notice||"Theo kế hoạch đã lưu")+'</p>').join("")+'</section>';
 }
 function visitPickerMarkup(){
- const root=networkOwner(state);return '<section class="business-card visit-picker"><span class="eyebrow">HÔM NAY ANH GHÉ QUÁN NÀO?</span><p>Một ca trực 4–5 phút. Các quán khác cần quản lý, barista, kho và tiền chi ca để tự chạy.</p>'+networkShops(root).map(s=>'<button class="visit-choice '+(s===state?"selected":"")+'" data-action="visitShop" data-key="'+locationNumber(s)+'" '+(state.phase!=="prep"?"disabled":"")+'>'+shopPostcard(s)+'<b>QUÁN '+locationNumber(s)+' · '+escapeHTML(districtInfo(s)?.name||"Bean Around nguyên bản")+'</b><small>'+MONEY(s.cash)+' · '+(s===state?"ĐANG GHÉ":"CHỌN GHÉ HÔM NAY")+'</small></button>').join("")+'</section>';
+ const root=networkOwner(state);return '<section class="business-card visit-picker"><span class="eyebrow">HÔM NAY ANH GHÉ QUÁN NÀO?</span><p>Một ca trực 4 phút. Các quán khác cần quản lý, barista, kho và tiền chi ca để tự chạy.</p>'+networkShops(root).map(s=>'<button class="visit-choice '+(s===state?"selected":"")+'" data-action="visitShop" data-key="'+locationNumber(s)+'" '+(state.phase!=="prep"?"disabled":"")+'>'+shopPostcard(s)+'<b>QUÁN '+locationNumber(s)+' · '+escapeHTML(districtInfo(s)?.name||"Bean Around nguyên bản")+'</b><small>'+MONEY(s.cash)+' · '+(s===state?"ĐANG GHÉ":"CHỌN GHÉ HÔM NAY")+'</small></button>').join("")+'</section>';
 }
 function visitAction(action,key){
  if(action==="networkStock"){const root=networkOwner(state);networkResolveStock(root,root.visitPlan.attention,key);closeSheet();save(true);paint();return true}
@@ -6232,7 +6233,7 @@ async function expansionActionLegacy(action,key){
  if(branchEdit)prepOnly(state);
  if(action==="train")enrollCourse(state,key);
  if(action==="bakeryEquip")buyBakeryEquipment(state,key);
- if(action==="buyBake")buyBakes(state,key,$("bakeQty-"+key).value);
+ if(action==="buyBake")toast(networkOperation("stock",{["bake:"+key]:Number($("bakeQty-"+key).value)}));
  if(action==="bakerySuggest"){const q=bakerySuggestions(state);for(const[id,n]of Object.entries(q)){const el=$("bakeQty-"+id);if(el)el.value=n}toast("Đã điền lượng cần nhập; bấm NHẬP để mua.");return true}
  if(action==="toggleBake"){prepOnly(state);if(!BAKES[key]||!state.bakery.owned)throw Error("Chưa có quầy bánh.");state.bakery.enabled[key]=!state.bakery.enabled[key]}
  if(action==="bakeryOrder"){bakeryOrderSheet();return true}
@@ -6244,8 +6245,8 @@ async function expansionActionLegacy(action,key){
  if(branchEdit&&!b)throw Error("Chưa mở quán.");
  if(action==="branchToggle")b.branchControl.enabled=!b.branchControl.enabled;
  if(action==="branchFunds"){const n=Number($("branchFunds").value);if(!Number.isFinite(n)||n<=0)throw Error("Nhập số tiền dương.");branchTransfer(state,key==="in"?n:-n,branchView)}
- if(action==="branchStock")stockBranch(state,branchView);
- if(action==="branchAdvertise")branchAdvertise(state,branchView);
+ if(action==="branchStock")toast(networkOperation("stockCold",suggestedCartUncapped(b),b));
+ if(action==="branchAdvertise")toast(networkOperation("advertise",{},b));
  if(action==="branchUpgrade")upgradeBranch(state,key,branchView);
  if(action==="branchStaff"){if(!STAFF[key]||key==="parking")throw Error("Vị trí không hợp lệ.");if(b.employees[key].hired)toggleStaff(b,key);else hireStaff(b,key)}
  if(action==="branchTrain")enrollCourse(b,key);
