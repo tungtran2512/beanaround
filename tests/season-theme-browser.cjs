@@ -163,12 +163,23 @@ function sameRects(before,after,label){
    const full=()=>{const s=chainTestShop(63);for(const k of Object.keys(EQUIPMENT))s.upgrades[k]=true;for(const k of Object.keys(STAFF))Object.assign(s.employees[k],{hired:true,workingToday:true});s.online.tablet=s.online.enabled=true;s.online.quotaUnit="orders";s.bakery.owned=true;stock(s);Object.assign(s.events,{preparedDay:s.day,active:null,broken:null});s.ops.active=s.ops.scheduled=null;return s};
 
    check("championship applies to every branch and survives reload without duplicate trophies",()=>{
-    const root=full();networkBind(root);const b2=maxTestBranch(root,openBranch(root,2)),b3=maxTestBranch(root,openBranch(root,3));
+    const root=full();networkBind(root);const b2=maxTestBranch(root,openBranch(root,2));
     root.contest.promoStart=root.day;root.contest.promoEnd=root.day+14;syncContestPromotion(root);
+    const b3=maxTestBranch(root,openBranch(root,3));
     for(const b of [b2,b3]){assert(contestBoost(b)===1.7,"branch bonus missing");assert(b.contest.wins===0,"duplicated trophy");assert(contestBoost({...b})===1.7,"forecast copy lost bonus");}
     const saved=migrateSave(clone(root));networkBind(saved);assert(branches(saved).every(b=>contestBoost(b)===1.7),"reload lost chain bonus");
     for(const s of networkShops(saved))s.day=saved.contest.promoEnd+1;
     assert(networkShops(saved).every(s=>contestBoost(s)===1),"bonus did not expire");
+   });
+   check("branch forecast stacks shared championship and local seasonal package only once",()=>{
+    const root=full();networkBind(root);const b=maxTestBranch(root,openBranch(root,2));branchAdvertise(root,2);
+    root.contest.promoStart=root.contest.promoEnd=0;syncContestPromotion(root);const normal=branchForecast(root,2).online;
+    root.contest.promoStart=root.day;root.contest.promoEnd=root.day+14;syncContestPromotion(root);const won=branchForecast(root,2).online;
+    assert(won>normal*1.65&&won<normal*1.75,"shared bonus applied incorrectly");
+    b.seasonPackage={id:"tet",start:b.day,end:b.day+29,paid:30000};
+    assert(branchForecast(root,2).online===won*2,"season/contest duplicate or missing multiplier");
+    b.business.onlineLimit=100;assert(branchForecast(root,2).online===100,"branch admission cap ignored");
+    return {normal,championship:won,withPackage:won*2};
    });
    check("equivalent later shops have fifteen percent online advantage and shared daily variation",()=>{
     const root=full();root.reputation=100;root.customersServed=100000;root.contest.promoStart=0;root.contest.promoEnd=0;root.business.onlineLimit=null;
