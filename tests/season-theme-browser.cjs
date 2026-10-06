@@ -160,7 +160,7 @@ function sameRects(before,after,label){
      const game=document.getElementById("game"),t=SeasonTheme[game.dataset.cafeTheme],order=game.querySelector(".compact-order");
      return {header:getComputedStyle(game.querySelector(".topbar")).backgroundColor,room:game.querySelector(".cafe-room").getAttribute("src"),note:order.dataset.cafeNote,expectedRoom:t.background};
     });
-    const expectedColors={spring:"rgb(255, 247, 235)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(24, 52, 76)"};
+    const expectedColors={spring:"rgb(255, 247, 235)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(132, 28, 35)"};
     assert(visual.header===expectedColors[theme],"season header color missing "+JSON.stringify(visual));
     assert(visual.room===visual.expectedRoom,"wrong seasonal environment");
     assert(visual.note==="show","simple order should show safe note");
@@ -169,6 +169,11 @@ function sameRects(before,after,label){
      assert(JSON.stringify(art.parts)===JSON.stringify(["cta","header","nav","order"]),"missing winter component art: "+JSON.stringify(art));
      assert(art.note==="none","old decorative note overlaps the approved order design");
      if(theme==="winter")assert(art.props==="none","wide espresso must not compete with tree/chalkboard");
+     if(theme==="winter"){
+      const palette=await page.evaluate(()=>({text:getComputedStyle(document.querySelector(".compact-order b")).color,art:SeasonTheme.winter.uiArtwork}));
+      assert(palette.text==="rgb(255, 245, 221)","winter order labels must contrast with red artwork");
+      assert(Object.values(palette.art).every(src=>src.includes("winter-red-ui-")),"winter still references old blue banners");
+     }
     }else assert(await page.locator(".cafe-component-skin").count()===0,"winter art leaked into another season");
     await page.waitForLoadState("networkidle");
     await page.locator(".cafe-atmosphere img").evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));

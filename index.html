@@ -986,6 +986,27 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 #game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .navbar>button.active{background:var(--cream);color:#762C37;text-shadow:none}
 #game[data-cafe-theme="spring"]:not([data-cafe-theme="off"]) .navbar>button>svg{position:relative;z-index:1}
 
+
+/* Red Christmas banner reference (October 2026). Paint-only palette updates.
+   The shared component skin retains all host dimensions and input targets. */
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) :is(.topbar,.navbar,.deliver-art,.compact-order){border-color:#C49A46}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .compact-order{background-color:#79171B}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .compact-order :is(b,strong,small,em){
+ color:#FFF5DD;background:#721318EB;box-shadow:0 0 3px 1px #721318C9;text-shadow:0 1px 1px #42090C;border-radius:3px;
+}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .compact-order strong{color:#FFE6A3}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .topbar :is(#dayLabel,#phaseLabel,#headerStars,#rating,#reviewTotal){
+ color:#FFF5DD;background:#681116DD;box-shadow:0 0 3px 1px #681116AA;
+}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .topbar #headerStars{color:#FFD277}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .topbar :is(.brand,.hud-left,.hud-rating){text-shadow:0 1px 2px #42090C,0 0 4px #42090C}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .deliver-art>b{text-shadow:0 1px 3px #480A0E,0 0 6px #480A0E}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .navbar>button:not(.active){text-shadow:0 1px 2px #42090C,0 0 5px #42090C}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .navbar>button.active{color:#762020;background:var(--cream);text-shadow:none}
+#game[data-cafe-theme="winter"]:not([data-cafe-theme="off"]) .queue-person.current{
+ background:linear-gradient(135deg,#9F2830,#681116);color:#FFF7EB;box-shadow:inset 0 0 0 1px #DBB56C77;
+}
+
 </style>
 </head>
 <body><div id="bootNotice"><b>BEAN AROUND · Đang khởi động…</b><p>Nếu thông báo này không biến mất và nút không hoạt động: hãy mở link game bằng Safari. Bản xem trước của ứng dụng Tệp / Google Drive không chạy game.</p><small>Nếu đang mở website thật, gửi lại thông báo lỗi bên dưới để được kiểm tra.</small><pre id="bootError" style="white-space:pre-wrap"></pre></div>
@@ -5079,7 +5100,7 @@ const SeasonTheme=Object.freeze({
 spring:Object.freeze({"uiArtwork":{"header":"assets/bean-around/spring-ui-header.webp","order":"assets/bean-around/spring-ui-order.webp","cta":"assets/bean-around/spring-ui-deliver.webp","nav":"assets/bean-around/spring-ui-footer.webp"},"id":"spring","name":"Mùa Xuân","lighting":"#fff1dd","window":"#d5e0c9","accent":"#EAA6B8","leaf":"#91AD78","header":"#FFF7EB","cta":"#397347","nav":"#623622","paper":"#FFF7EB","particles":"petal","wash":".035","note":"pink","background":"assets/bean-around/spring-cafe-room.svg","headerDecor":"spring","machineAreaDecor":"assets/bean-around/season-spring-props.svg","orderDecor":"assets/bean-around/season-spring-note.svg","ctaDecor":"spring","navDecor":"spring"}),
 summer:Object.freeze({"id":"summer","name":"Mùa Hạ","lighting":"#fff1c9","window":"#AFCFD1","accent":"#F4C85A","leaf":"#4F8A64","header":"#165A46","cta":"#17624C","nav":"#154F40","paper":"#FFF6DF","particles":"none","wash":".02","note":"yellow","background":"assets/bean-around/summer-cafe-room.svg","headerDecor":"summer","machineAreaDecor":"assets/bean-around/season-summer-props.svg","orderDecor":"assets/bean-around/season-summer-note.svg","ctaDecor":"summer","navDecor":"summer"}),
 autumn:Object.freeze({"id":"autumn","name":"Mùa Thu","lighting":"#f6d9ab","window":"#D7AE79","accent":"#D97A2B","leaf":"#C75C2A","header":"#7E1F28","cta":"#8C2F26","nav":"#6F2B25","paper":"#FFF1D8","particles":"maple","wash":".04","note":"kraft","background":"assets/bean-around/autumn-cafe-room.svg","headerDecor":"autumn","machineAreaDecor":"assets/bean-around/season-autumn-props.svg","orderDecor":"assets/bean-around/season-autumn-note.svg","ctaDecor":"autumn","navDecor":"autumn"}),
-winter:Object.freeze({"uiArtwork":{"header":"assets/bean-around/winter-ui-header.webp","order":"assets/bean-around/winter-ui-order.webp","cta":"assets/bean-around/winter-ui-deliver.webp","nav":"assets/bean-around/winter-ui-footer.webp"},"id":"winter","name":"Mùa Đông","lighting":"#fff1d8","window":"#28455F","accent":"#BFDCE8","leaf":"#527F64","header":"#18344C","cta":"#21445F","nav":"#162F46","paper":"#FFF8EC","particles":"snow","wash":".025","note":"ice","background":"assets/bean-around/winter-cafe-room.webp","headerDecor":"winter","machineAreaDecor":"assets/bean-around/season-winter-props.svg","orderDecor":"assets/bean-around/season-winter-note.svg","ctaDecor":"winter","navDecor":"winter"})
+winter:Object.freeze({"uiArtwork":{"header":"assets/bean-around/winter-red-ui-header.webp","order":"assets/bean-around/winter-red-ui-order.webp","cta":"assets/bean-around/winter-red-ui-deliver.webp","nav":"assets/bean-around/winter-red-ui-footer.webp"},"id":"winter","name":"Mùa Đông","lighting":"#fff1d8","window":"#28455F","accent":"#DDB66A","leaf":"#527F64","header":"#841C23","cta":"#A11D24","nav":"#681519","paper":"#FFF8EC","particles":"snow","wash":".025","note":"ice","background":"assets/bean-around/winter-cafe-room.webp","headerDecor":"winter","machineAreaDecor":"assets/bean-around/season-winter-props.svg","orderDecor":"assets/bean-around/season-winter-note.svg","ctaDecor":"winter","navDecor":"winter"})
 });
 const CAFE_PACKAGE_THEME=Object.freeze({summer:"summer",autumn:"autumn",midautumn:"autumn",tet:"spring",xmas:"winter"});
 function requestedCafeTheme(search){const m=String(search||"").match(/(?:^|[?&])season-theme=(spring|summer|autumn|winter|off)(?:&|$)/);return m?m[1]:null}
