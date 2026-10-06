@@ -912,7 +912,7 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 .cafe-component-skin,.cafe-component-skin *{
  pointer-events:none!important;user-select:none;-webkit-user-select:none;
 }
-#game:is([data-cafe-theme="winter"],[data-cafe-theme="spring"]) .cafe-component-skin{
+#game:is([data-cafe-theme="winter"],[data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]) .cafe-component-skin{
  position:absolute!important;inset:0;display:block;z-index:0!important;
  margin:0;padding:0;border:0;border-radius:inherit;overflow:hidden;
  opacity:1;container-type:size;
@@ -1007,6 +1007,28 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
  background:linear-gradient(135deg,#9F2830,#681116);color:#FFF7EB;box-shadow:inset 0 0 0 1px #DBB56C77;
 }
 
+
+/* Approved package artwork: presentation layers only, no layout changes. */
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) :is(.cafe-header-decor,.cafe-nav-decor,.cafe-season-props,.cafe-particles){display:none}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .compact-order:after,
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .deliver-art:before,
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .deliver-art:after{content:none!important}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) :is(.topbar,.navbar,.compact-order,.deliver-art){background-image:none;box-shadow:none}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .topbar>:is(.hud-left,.brand,.hud-rating),
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .navbar>button{position:relative;z-index:7}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .cafe-room{opacity:.48;filter:blur(1px) saturate(.8) contrast(.85)}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .cafe-atmosphere{background:#ead6b8}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .topbar :is(#shopSign,#money,#dayLabel,#phaseLabel,#headerStars,#rating,#reviewTotal){
+ color:#FFF5DD;background:#461E16DD;text-shadow:0 1px 2px #32170D;box-shadow:0 0 3px 1px #461E16AA;border-radius:3px;
+}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .compact-order :is(b,strong,small,em){color:#FFF5DD;background:#632318E8;box-shadow:0 0 3px 1px #632318C9;text-shadow:none;border-radius:3px}
+#game[data-cafe-theme="summer"]:not([data-cafe-theme="off"]) .compact-order :is(b,strong,small,em){color:#54301D;background:#FFF5E6EB;box-shadow:0 0 3px 1px #FFF5E6C9;text-shadow:none;border-radius:3px}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .compact-order :is(small,em){width:fit-content;max-width:100%}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .deliver-art>b{color:#FFF7EB;text-shadow:0 1px 2px #301B10,0 0 5px #301B10}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .navbar>button:not(.active){color:#FFF7EB;text-shadow:0 1px 2px #32170D,0 0 5px #32170D}
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .navbar>button.active{background:var(--cream);color:#762020;text-shadow:none}
+
+#game:is([data-cafe-theme="spring"],[data-cafe-theme="summer"],[data-cafe-theme="autumn"]):not([data-cafe-theme="off"]) .topbar :is(#shopSign,#money){background:transparent;box-shadow:none;color:#FFF5DD;text-shadow:0 1px 2px #32170D,0 0 4px #32170D,0 0 7px #32170D}
 </style>
 </head>
 <body><div id="bootNotice"><b>BEAN AROUND · Đang khởi động…</b><p>Nếu thông báo này không biến mất và nút không hoạt động: hãy mở link game bằng Safari. Bản xem trước của ứng dụng Tệp / Google Drive không chạy game.</p><small>Nếu đang mở website thật, gửi lại thông báo lỗi bên dưới để được kiểm tra.</small><pre id="bootError" style="white-space:pre-wrap"></pre></div>
@@ -2022,6 +2044,7 @@ function makeOrderV7(s,random=gameRandom){
  return {id:r.id,size,sweet:tutorial?1:random()<.5?0:1,iced,iceMode:iced?(random()<.2?"little":"normal"):"none",time,maxTime:time,quotedPrice:roundK(priceFor(s,r.id,size)+(top?TOPPINGS[top].price:0)+shot*10),topping:top,extraShot:shot,type:tutorial?"easy":type,customerName:name,returning:(s.loyalty[name]||0)>=2,channel:"counter"};
 }
 function gradeOrder(s){
+ maintainServiceQuality(s);
  const c=s.cup,o=s.order,r=recipeForOrder(o),core=c.steps.filter(k=>k!=="sugar"&&(r.signature||k!=="ice"));
  const recipeOK=JSON.stringify(core)===JSON.stringify(r.steps)&&(!r.signature||lastOf(c.steps)==="ice");
  const checks=[["công thức / thứ tự",recipeOK],["size",c.size===o.size],["đường",c.steps.filter(k=>k==="sugar").length===o.sweet],["đá",c.steps.filter(k=>k==="ice").length===(o.iced?1:0)&&(!o.iced||(c.iceMode||"normal")===(o.iceMode||"normal"))],["topping",JSON.stringify(c.toppings||[])===JSON.stringify(o.topping?[o.topping]:[])],["extra shot",(c.extraShot||0)===(o.extraShot||0)]];
@@ -2252,12 +2275,22 @@ function processOnline(s){
 }
 function tickOnline(s){
  if(s.phase!=="open")return;
+ maintainServiceQuality(s);
  if(s.timed)for(let i=s.online.queue.length-1;i>=0;i--){const o=s.online.queue[i];o.time=Math.max(0,roundTime(o.time-clockDelta));if(o.time<=0){failOnline(s,o);s.online.queue.splice(i,1)}}
  if(working(s,"online")){
-  const slots=onlineStaffSlots(s);
-  for(let i=Math.min(slots,s.online.queue.length)-1;i>=0;i--){
-   const o=s.online.queue[i];o.work=Math.max(0,roundTime(o.work-clockDelta));
-   if(o.work===0){const result=o.receipt?(completeAuto(s,o.receipt),{ok:true}):autoFulfil(s,o,gameRandom,true);if(result.pending){o.receipt=result.pending;o.work=drinkSeconds(s,o)}else if(result.ok)s.online.queue.splice(i,1);else o.blocked=result.reason}
+  const slots=onlineStaffSlots(s),rate=onlineWorkRate(s);
+  let budget=clockDelta*rate;
+  // Bounded slices keep real inventory, remakes and ticket accounting on the existing path.
+  for(let pass=0;budget>0.0001&&pass<512;pass++){
+   issueOnline(s);if(!s.online.queue.length)break;
+   const step=Math.min(.2,budget);budget-=step;
+   for(let i=Math.min(slots,s.online.queue.length)-1;i>=0;i--){
+    const o=s.online.queue[i];o.work=Math.max(0,roundTime(o.work-step));
+    if(o.work===0){const result=o.receipt?(completeAuto(s,o.receipt),{ok:true}):autoFulfil(s,o,gameRandom,true);
+     if(result.pending){o.receipt=result.pending;o.work=drinkSeconds(s,o)}
+     else if(result.ok)s.online.queue.splice(i,1);else{o.blocked=result.reason;o.work=.5}
+    }
+   }
   }
  }
  issueOnline(s);finishIfReady(s);
@@ -2346,7 +2379,7 @@ function cleanShop(s){
  if(s.phase==="open")throw Error("Vệ sinh trước hoặc sau ca.");if(s.cleanliness===100)throw Error("Quầy đã sạch.");
  pay(s,Math.min(12,s.cash),"maintenance");s.cleanliness=100;
 }
-function repairShopV7(s){prepOnly(s);if(!s.events.broken&&s.condition>=100)throw Error("Máy đang tốt.");pay(s,Math.min(80,s.cash*.08),"repair");s.events.broken=null;s.condition=100}
+function repairShopV7(s){prepOnly(s);if(!s.events.broken&&s.condition>=100&&!s.ops?.acBroken&&!s.ops?.lidBroken)throw Error("Máy đang tốt.");pay(s,Math.min(80,s.cash*.08),"repair");s.events.broken=null;s.condition=100}
 function advertise(s){if(s.isBranch){advertiseBranchShop(s);return}prepOnly(s);if(s.events.advertising)throw Error("Đã quảng cáo hôm nay.");pay(s,1000,"advertising");s.events.advertising=1;s.events.traffic*=1.15;gainRep(s,.3)}
 /* ==================== ECONOMY / INVENTORY / REPORTING ==================== */
 function packPrice(s,k){return roundK(G[k].cost*(s.events.sale?.85:1)*(s.events.delay?(G[k].pack-1)/G[k].pack:1))}
@@ -2572,11 +2605,11 @@ async function actV6(action,key){
    case "suggestCart":fillSuggestedCart();break;
    case "cartConfirm":showSheet("cart","Xác nhận nhập hàng",Object.entries(cart).map(([k,n])=>'<p>'+escapeHTML(cartItem(state,k).name)+' × '+n+(cartBakeId(k)?' chiếc · ':' gói · ')+MONEY(cartUnitPrice(state,k)*n)+'</p>').join("")+'<b>Tổng '+MONEY(cartCost(state,cart))+'</b>'+btn("Chỉ nhập hàng","cartBuy","","wide")+(coldPreparationPlan(state).batches?'<p>Ủ '+coldPreparationPlan(state).batches+' mẻ từ nguyên liệu nhập và tồn kho; giữ lại dự phòng pha các món khác. Nếu giao trễ, chỉ đặt hàng và chờ nguyên liệu về trước khi ủ.</p>'+btn("Nhập & ủ đủ dự phòng","cartBuyBrew","","primary wide"):""));break;
    case "brewReserve":{const n=prepareColdReserve(state);stockSuggestionNotice="";toast(n?"Đã ủ "+n+" mẻ; giữ đủ cà phê cho các món khác.":"Cold brew đã đủ dự phòng.");break;}
-   case "cartBuyBrew":{const result=buyAndPrepareCold(state,cart);cart={};stockSuggestionNotice=result.pending?"Đã đặt hàng nhưng nguyên liệu chưa về. Nhận hàng trước rồi bấm Ủ đủ dự phòng; chưa có thêm cold brew.":"";closeSheet();toast(result.pending?"Hàng đang giao · chưa ủ cold brew.":"Đã nhập và ủ "+result.batches+" mẻ cold brew.");break;}
-   case "cartBuy":buyCart(state,cart);cart={};stockSuggestionNotice="";closeSheet();toast("Đã nhập hàng, kiểm tra mẻ cold brew nếu có.");break;
-   case "clean":cleanShop(state);toast("Quầy sạch sẽ!");break;
-   case "repair":repairShop(state);toast("Máy hoạt động tốt.");break;
-   case "advertise":advertise(state);toast("Đã chạy quảng cáo hôm nay.");break;
+   case "cartBuyBrew":{const summary=networkOperation("stockCold",cart);cart={};stockSuggestionNotice=summary;closeSheet();toast(summary);break;}
+   case "cartBuy":{const summary=networkOperation("stock",cart);cart={};stockSuggestionNotice=summary;closeSheet();toast(summary);break;}
+   case "clean":toast(networkOperation("clean"));break;
+   case "repair":toast(networkOperation("repair"));break;
+   case "advertise":toast(networkOperation("advertise"));break;
    case "bike":resolveBike(state,key);break;
    default:handled=false;
   }
@@ -2857,7 +2890,7 @@ function prepareOpenUI(){
  if(showEvent())return;
  const audit=openingAudit(state);
  showSheet("opening","MỞ CỬA NGÀY "+state.day,
- '<p class="notice">Ca trực tối đa 4 phút 30 giây thao tác. Hết giờ chọn kết ca hoặc bàn giao quản lý (550k/ca, thu một lần). Đọc popup và tạm dừng không tính giờ. Các quán khác chỉ chạy khi đủ quản lý, barista, kho và tiền chi ca.</p><div class="opening-weather">'+(state.events.weather==="rain"?"🌧️":"☀️")+'</div><p>'+escapeHTML(state.events.story)+'</p>'+
+ '<p class="notice">Ca trực tối đa 4 phút thao tác. Hết giờ chọn kết ca hoặc bàn giao quản lý (550k/ca, thu một lần). Đọc popup và tạm dừng không tính giờ. Các quán khác chỉ chạy khi đủ quản lý, barista, kho và tiền chi ca.</p><div class="opening-weather">'+(state.events.weather==="rain"?"🌧️":"☀️")+'</div><p>'+escapeHTML(state.events.story)+'</p>'+
  '<div class="chips"><span class="chip">'+plannedTraffic(state)+' lượt quầy</span><span class="chip">'+onlineVolume(state)+' đơn Shopee Food dự kiến</span></div>'+
  '<div class="financial-row"><span>Mặt bằng</span><b>'+MONEY(audit.costs.rent)+'</b></div><div class="financial-row"><span>Điện nước</span><b>'+MONEY(audit.costs.utilities)+'</b></div><div class="financial-row"><span>Lương nhân viên</span><b>'+MONEY(audit.costs.salary)+'</b></div><div class="financial-row"><span>Tổng chi phí nhận ca</span><b>'+MONEY(audit.total)+'</b></div>'+
  (audit.short.length?'<div class="notice">Kho thấp hơn dự kiến: '+audit.short.map(k=>escapeHTML(G[k].name)).join(", ")+'. Anh có thể nhập thêm, giảm menu hoặc chấp nhận nguy cơ hết hàng.</div>':'<div class="notice achieved">✓ Kho đã đủ mức dự kiến.</div>')+
@@ -2971,17 +3004,70 @@ function onlineArrivalShare(progress){
  return 1;
 }
 function onlineStaffSlots(s){return Math.min(10,(working(s,"helper2")?2:1)+(s.upgrades.counter?1:0)+(s.upgrades.tabletPro?1:0)+(working(s,"barista2")?1:0)+(working(s,"packer")&&s.upgrades.packingCounter?1:0)+(working(s,"barista3")&&s.upgrades.dualGroup?1:0)+(extraOnlineTeam(s,1)?2:0)+(extraOnlineTeam(s,2)?2:0))}
+
+/* ==================== FOUR-MINUTE ONLINE / NETWORK OPERATIONS ==================== */
+const ONLINE_SHIFT_SECONDS=240;
+function onlineWorkRate(s,quota=s.online.dayQuota){
+ const menu=activeMenu(s);
+ const longest=Math.max(1,...menu.map(r=>drinkSeconds(s,{id:r.id,size:"L",sweet:1,iced:true,topping:eligibleToppings(s,r)[0]||null})));
+ // Worst case: three drinks per parcel, cakes, and one remake. Upgrade gates still set accepted volume.
+ return Math.max(1,quota*3*(longest*2+4)/(Math.max(1,onlineStaffSlots(s))*180));
+}
+function maintainServiceQuality(s){
+ // Cleaning is part of the working support/manager's paid shift, not a rating override.
+ if(s.phase==="open"&&(working(s,"helper")||working(s,"helper2")||working(s,"manager"))){
+  s.cleanliness=Math.max(s.cleanliness,95);
+ }
+ if(s.phase==="open"&&working(s,"manager")&&(managerActive(s)||s.backgroundManaged)&&s.condition<75&&s.cash>=80){
+  pay(s,80,"repair");s.condition=100;s.ops.maintenanceDay=s.day;
+ }
+}
+function networkOperation(kind,items={},source=state){
+ const root=networkOwner(source),results=[];
+ for(const shop of networkShops(root)){
+  const trial=clone(shop),before=shop.cash;
+  try{
+   if(kind==="clean"){if(trial.cleanliness<100)cleanShop(trial)}
+   else if(kind==="repair"){if(trial.condition<100||trial.events.broken||trial.ops.acBroken||trial.ops.lidBroken)repairShop(trial)}
+   else if(kind==="advertise"){if(!deliveryCampaign(trial))advertise(trial)}
+   else if(kind==="stock"){
+    if(shop===source){if(Object.values(items).some(n=>n>0))buyCart(trial,items)}
+    else{
+     const plan=stockPlan(trial),cold=coldPreparationPlan(trial),cart={};
+     plan.bean=(plan.bean||0)+cold.beanForBrew;plan.water=(plan.water||0)+cold.waterForBrew;
+     for(const[k,n]of Object.entries(plan))if(k!=="brew"&&ingredientAvailable(trial,k)){
+      const q=Math.min(stockPackLimit(trial),Math.ceil(Math.max(0,n-quantity(trial,k))/G[k].pack));if(q)cart[k]=q;
+     }
+     if(trial.bakery.owned)for(const[k,q]of Object.entries(bakerySuggestions(trial)))if(q)cart["bake:"+k]=Math.min(q,bakeryPackLimit(trial));
+     if(Object.keys(cart).length)buyCart(trial,cart);
+    }
+   }else if(kind==="stockCold"){
+    if(shop===state)buyAndPrepareCold(trial,items);
+    else{
+     const plan=stockPlan(trial),cold=coldPreparationPlan(trial),cart={};
+     plan.bean=(plan.bean||0)+cold.beanForBrew;plan.water=(plan.water||0)+cold.waterForBrew;
+     for(const[k,n]of Object.entries(plan))if(k!=="brew"&&ingredientAvailable(trial,k)){const q=Math.min(stockPackLimit(trial),Math.ceil(Math.max(0,n-quantity(trial,k))/G[k].pack));if(q)cart[k]=q}
+     if(trial.bakery.owned)for(const[k,q]of Object.entries(bakerySuggestions(trial)))if(q)cart["bake:"+k]=Math.min(q,bakeryPackLimit(trial));
+     buyAndPrepareCold(trial,cart);
+    }
+   }
+   // Root contains the branches. Never replace its branch references with cloned stale copies.
+   const chain=shop.chain;Object.assign(shop,trial);if(shop===root)shop.chain=chain;
+   results.push("Quán "+locationNumber(shop)+": "+MONEY(before-shop.cash));
+  }catch(e){results.push("Quán "+locationNumber(shop)+": chưa áp dụng — "+e.message)}
+ }
+ return results.join(" · ");
+}
+
 function beginOnlinePacing(s){
- const menu=activeMenu(s),mean=menu.length?menu.reduce((n,r)=>n+drinkSeconds(s,{id:r.id,size:"L",sweet:1,iced:true}),0)/menu.length:2;
- const workload=(forecastOnlineCups(s,s.online.dayQuota)*mean+forecastOnlineCakes(s,s.online.dayQuota)*1.8)/Math.max(1,onlineStaffSlots(s));
- s.online.pacing={version:1,day:s.day,enabled:s.online.dayQuota>0,elapsed:0,progress:0,duration:roundTime(clamp(Math.max(s.dayGoal*2.5,workload*1.35),45,900))};
+ s.online.pacing={version:1,day:s.day,enabled:s.online.dayQuota>0,elapsed:0,progress:0,duration:230};
 }
 function advanceOnlinePacing(s,delta){
  const p=s.online.pacing;if(!p?.enabled||p.day!==s.day)return;
  p.elapsed=roundTime(p.elapsed+delta);
  // A fast automated channel cannot drag the clock ahead of the owner's counter.
- const counter=s.dayGoal?clamp(s.served/s.dayGoal,0,1):1;
- p.progress=Math.max(p.progress,Math.min(1,p.elapsed/p.duration,counter));
+ // Online has its own four-minute clock; a slow counter cannot hold deliveries.
+ p.progress=Math.max(p.progress,Math.min(1,p.elapsed/230));
 }
 function onlineArrivalAllowance(s,quota=s.online.dayQuota){
  const p=s.online.pacing;if(!p?.enabled||p.day!==s.day)return quota;
@@ -3590,6 +3676,7 @@ function automatedCup(o,cost){
  return {size:o.size,steps,sealed:true,cost,iceMode:o.iceMode,toppings:o.topping?[o.topping]:[],extraShot:o.extraShot||0};
 }
 function autoFulfil(s,o,random=gameRandom,defer=false){
+ maintainServiceQuality(s);
  if(o.deliveryGroup&&deliveryItemResolved(s,o))throw Error("Món trong đơn nhóm đã xử lý.");
  if(o.bakery?.status==="waiting"){if(!bakeryQuantity(s,o.bakery.id))return {ok:false,reason:"Hết bánh đã đặt"};const previous=s.order;try{s.order=o;startBake(s);o.bakery.status="ready";o.bakery.remaining=0}finally{s.order=previous}}
  ensureOrder(s,o);if(s.finalizedOrders[o.uid]||s.complaintQueue.some(x=>x.order.uid===o.uid))throw Error("Đơn đã chốt hoặc đang chờ phản ánh.");
@@ -3606,7 +3693,7 @@ function autoFulfil(s,o,random=gameRandom,defer=false){
  }
  if(wrong){
   s.stats.staffMistakes++;
-  if(cashierWorking(s)||(working(s,"manager")&&random()<.9)){
+  if(cashierWorking(s)||(working(s,"manager")&&(managerActive(s)||s.backgroundManaged||random()<.9))){
    const second=consumeDrink(s,o);
    if(second!==null){s.stats.remakes++;s.stats.waste++;s.stats.wasteCost=roundK(s.stats.wasteCost+cost);s.stats.remakeCost=roundK(s.stats.remakeCost+second);cost=roundK(cost+second);if(cashierWorking(s))s.stats.qcRemakes++;else s.stats.managerCaught++;wrong=false;remade=true;produced=o}
   }
@@ -3881,7 +3968,7 @@ function tickUI(){
  if(!document.hidden&&networkOwner(state).visitPlan?.attention&&state.phase==="open"){if(modal!=="networkAttention")networkAttentionSheet();return}
  if(state.cadence?.awaiting&&state.phase==="open"){if(modal!=="shortShift")shortShiftSheet();return}
  if(state.cadence?.handedOff&&!document.hidden&&state.phase==="open"&&!modal){for(let i=0;i<40&&state.phase==="open";i++)clockStep(state,.2);save();paint();if(state.phase==="report")reportSheet();return}
- const shiftLabel=$("shiftMeter");if(shiftLabel&&state.cadence){const secs=Math.max(0,270-Math.floor(state.cadence.seconds));shiftLabel.textContent="Ca trực còn "+Math.floor(secs/60)+":"+String(secs%60).padStart(2,"0")}
+ const shiftLabel=$("shiftMeter");if(shiftLabel&&state.cadence){const secs=Math.max(0,state.cadence.limit-Math.floor(state.cadence.seconds));shiftLabel.textContent="Ca trực còn "+Math.floor(secs/60)+":"+String(secs%60).padStart(2,"0")}
  if(document.hidden||state.phase!=="open")return;
  const bakeBadge=document.querySelector(".bakery-service-bar .selected .stock-badge");if(bakeBadge&&state.order?.bakery?.status==="preparing")bakeBadge.textContent=Math.ceil(state.order.bakery.remaining)+"s";
  textIfChanged("shopClock",shopTime(state));textIfChanged("teamMessage",(managerActive(state)?"👔 Quản lý · ":"")+state.frontStatus);const bakeLabel=document.querySelector(".bakery-service .art-label");if(bakeLabel&&state.order?.bakery?.status==="preparing")bakeLabel.textContent=Math.ceil(state.order.bakery.remaining)+"s";
@@ -4514,7 +4601,7 @@ function validCoreV112(s){
 STAFF.barista.effect="Pha ly chủ quán đã chọn; khoảng 96% đúng khi quầy sạch, 99% trở lên khi có quản lý. Chủ quán vẫn giao khách.";
 STAFF.helper.effect="Thêm đường / đá theo đơn; không tính thêm một lượt lỗi riêng. Chủ quán vẫn lấy ly và giao khách.";
 STAFF.cashier.effect="Kiểm ly trước khi chủ giao; sai thì làm lại. +10% doanh thu từ giá trị đơn mới, +20% phần tip chất lượng.";
-STAFF.manager.effect="Đảm bảo độ chính xác ít nhất 99%, tối đa 99,5% khi nâng cấp; rating vẫn xét thời gian, vệ sinh và giá.";
+STAFF.manager.effect="Đảm bảo độ chính xác ít nhất 99%, tối đa 99,5% khi nâng cấp; duy trì quầy sạch từ 95/100 khi đi làm; rating vẫn xét món, thời gian chờ và giá.";
 STAFF.helper2.effect="Hỗ trợ đường/đá và topping; quầy tối đa 60 khách/ngày. Cùng nhân viên online tăng trần Shopee Food 80 → 120, rồi nâng bằng Pro và đào tạo.";
 /* V11 PLAYER HANDOFF / DAY BRIEF */
 function dayBrief(s){
@@ -4806,9 +4893,10 @@ function setManagerDuty(s,on){
 }
 function managerDutyMarkup(){
  const d=managerDuty(state),available=working(state,"manager");
- return '<section class="business-card"><h3>ỦY QUYỀN QUẢN LÝ '+(d.enabled?(available?"· ĐANG BẬT":"· TẠM DỪNG"):"· ĐANG TẮT")+'</h3><p>Quản lý lấy ly, hoàn thiện và giao đồ; kiểm tra, làm lại khi cần, xử lý phản ánh và sự cố trong ca. Nguyên liệu và thời gian pha vẫn tính thật.</p><p>550k/ca ngoài lương. Thu một lần khi bật; tắt/bật lại không thu thêm. Ngày mới tự tắt. Giữ nguyên kế hoạch bán hàng, giá và nâng cấp.</p><small>Không tự mua hàng vượt giỏ đã duyệt. Thiếu kho hoặc thiếu người: hiện cảnh báo để anh xử lý.</small><p>'+escapeHTML(d.status||(!available?"Cần Quản lý đang đi làm.":"Chủ quán đang tự điều hành."))+'</p>'+btn(d.enabled?"TẮT · TÔI TIẾP QUẢN":d.paid?"BẬT LẠI · ĐÃ TRẢ PHÍ":"BẬT · 550k","managerDelegate","",d.enabled?"wide":"primary wide")+'</section>';
+ return '<section class="business-card"><h3>ỦY QUYỀN QUẢN LÝ '+(d.enabled?(available?"· ĐANG BẬT":"· TẠM DỪNG"):"· ĐANG TẮT")+'</h3><p>Quản lý lấy ly, hoàn thiện và giao đồ; kiểm tra, làm lại khi cần, xử lý phản ánh và sự cố trong ca, giữ quầy sạch từ 95/100; tự bảo trì 80k/lần khi tình trạng máy dưới 75 và quán đủ tiền. Nguyên liệu và thời gian pha vẫn tính thật.</p><p>550k/ca ngoài lương. Thu một lần khi bật; tắt/bật lại không thu thêm. Ngày mới tự tắt. Giữ nguyên kế hoạch bán hàng, giá và nâng cấp.</p><small>Không tự mua hàng vượt giỏ đã duyệt. Thiếu kho hoặc thiếu người: hiện cảnh báo để anh xử lý.</small><p>'+escapeHTML(d.status||(!available?"Cần Quản lý đang đi làm.":"Chủ quán đang tự điều hành."))+'</p>'+btn(d.enabled?"TẮT · TÔI TIẾP QUẢN":d.paid?"BẬT LẠI · ĐÃ TRẢ PHÍ":"BẬT · 550k","managerDelegate","",d.enabled?"wide":"primary wide")+'</section>';
 }
 function managerStep(s,dt){
+ maintainServiceQuality(s);
  if(!managerActive(s))return false;
  const d=managerDuty(s);d.cooldown=Math.max(0,(d.cooldown||0)-dt);if(d.cooldown>0)return false;d.cooldown=.4;
  try{
@@ -4853,7 +4941,7 @@ const DISTRICTS={
 };
 function validVisitState(s){
  if(s.shortShifts!==undefined&&typeof s.shortShifts!=="boolean")return false;
- const c=s.cadence;if(c&&(!Number.isInteger(c.day)||c.day<1||c.day>s.day||!Number.isFinite(c.seconds)||c.seconds<0||c.limit!==270||typeof c.awaiting!=="boolean"||typeof c.handedOff!=="boolean"))return false;
+ const c=s.cadence;if(c&&(!Number.isInteger(c.day)||c.day<1||c.day>s.day||!Number.isFinite(c.seconds)||c.seconds<0||![240,270].includes(c.limit)||typeof c.awaiting!=="boolean"||typeof c.handedOff!=="boolean"))return false;
  const p=s.visitPlan;if(p?.activeDay===s.day&&p.selected!==p.activeNo)return false;if(p&&(![1,2,3].includes(p.selected)||p.selected>1&&!getBranch(s,p.selected)||!Number.isInteger(p.activeDay)||p.activeDay<0||p.activeDay>s.day||![1,2,3].includes(p.activeNo)))return false;
  if(s.district!==undefined&&!DISTRICTS[s.district])return false;
  if(s.backgroundManaged&&!s.isBranch&&s.phase==="open"){
@@ -4944,13 +5032,13 @@ function networkMaintainBackground(b,dt){
  return !b.ops.active;
 }
 function networkOtherTick(root,active,dt){
- const progress=clamp((active.cadence?.seconds??active.shift.elapsed)/240,0,1);
+ const progress=clamp((active.cadence?.seconds??active.shift.elapsed)/230,0,1);
  for(const b of networkShops(root).filter(b=>b!==active&&b.phase==="open")){
   const c=b.branchControl;if(!c||c.stockDecision==="pending")continue;c.elapsed=roundTime(c.elapsed+dt);
   if(!networkMaintainBackground(b,dt))continue;
   if(b.online.pacing)b.online.pacing.progress=progress;
   const release=Math.min(c.goal,Math.max(1,Math.ceil(c.goal*districtProgress(b,progress))));
-  for(let i=0;i<(progress>=.99?64:16);i++){if(c.job||c.issued<release)branchJobTick(b,"job",dt);branchJobTick(b,"onlineJob",dt);if(c.notice.startsWith("Thiếu nguyên liệu")&&!c.stockDecision){c.stockDecision="pending";root.visitPlan.attention=root.visitPlan.attention||locationNumber(b);break}}
+  for(let i=0;i<Math.max(16,Math.ceil(onlineWorkRate(b,c.onlineGoal)*onlineStaffSlots(b)*3));i++){if(c.job||c.issued<release)branchJobTick(b,"job",dt);branchJobTick(b,"onlineJob",dt);if(c.notice.startsWith("Thiếu nguyên liệu")&&!c.stockDecision){c.stockDecision="pending";root.visitPlan.attention=root.visitPlan.attention||locationNumber(b);break}}
   if(c.issued>=c.goal&&c.onlineIssued>=c.onlineGoal&&!b.delivery.pending.length&&!c.job&&!c.onlineJob){b.phase="report";c.notice="Đã hoàn thành ca theo kế hoạch."}
  }
 }
@@ -4961,7 +5049,7 @@ function networkCloseOthers(root,active){
   b.phase="report";
  }
 }
-function shortShiftStart(s){if(s.shortShifts)s.cadence={day:s.day,seconds:0,limit:270,awaiting:false,handedOff:false}}
+function shortShiftStart(s){if(s.shortShifts)s.cadence={day:s.day,seconds:0,limit:240,awaiting:false,handedOff:false}}
 function shortShiftTick(s,dt){
  const c=s.cadence;if(!s.shortShifts||!c||c.day!==s.day||s.phase!=="open")return false;
  if(c.awaiting)return true;
@@ -4976,7 +5064,7 @@ function finishOwnerShift(s,handoff){
 }
 function shortShiftSheet(){
  const c=state.cadence,eligible=working(state,"manager")&&(managerDuty(state).paid||state.cash>=550);
- showSheet("shortShift","CA TRỰC ĐÃ ĐỦ 4 PHÚT 30 GIÂY",'<p>Anh đã hoàn thành phần đứng quầy hôm nay. Chọn kết ca hoặc giao quản lý hoàn tất số đơn còn lại; không cần tự pha thêm.</p><p>Đóng cửa giữ doanh thu đã bán. Đơn đang chờ bị hủy theo quy tắc hiện có, có thể nhận review thấp. Giao quản lý vẫn tiêu hao kho, trả phí và có thể gặp lỗi phục vụ.</p>'+
+ showSheet("shortShift","CA TRỰC ĐÃ ĐỦ 4 PHÚT",'<p>Anh đã hoàn thành phần đứng quầy hôm nay. Chọn kết ca hoặc giao quản lý hoàn tất số đơn còn lại; không cần tự pha thêm.</p><p>Đóng cửa giữ doanh thu đã bán. Đơn đang chờ bị hủy theo quy tắc hiện có, có thể nhận review thấp. Giao quản lý vẫn tiêu hao kho, trả phí và có thể gặp lỗi phục vụ.</p>'+
  (eligible?btn(managerDuty(state).paid?"GIAO QUẢN LÝ · ĐÃ TRẢ PHÍ":"GIAO QUẢN LÝ · 550k","shortShiftFinish","handoff","primary wide"):'<p>Cần quản lý đang đi làm và 550k để bàn giao.</p>')+btn("ĐÓNG CỬA & XEM BÁO CÁO","shortShiftFinish","close","wide"));
 }
 function networkSummaryMarkup(root,active){
@@ -4984,7 +5072,7 @@ function networkSummaryMarkup(root,active){
  return '<section class="business-card"><h3>CÁC QUÁN CÒN LẠI</h3>'+others.map(s=>'<div class="financial-row"><span>Quán '+locationNumber(s)+' · '+(districtInfo(s)?.name||"Quán đầu tiên")+'<small>'+receiptCount(s.stats)+' đơn · '+s.stats.orders+' ly</small></span><b>'+MONEY(s.stats.grossRevenue)+'</b></div><p>Lãi '+MONEY(profitToday(s))+' · '+escapeHTML(s.branchControl?.notice||"Theo kế hoạch đã lưu")+'</p>').join("")+'</section>';
 }
 function visitPickerMarkup(){
- const root=networkOwner(state);return '<section class="business-card visit-picker"><span class="eyebrow">HÔM NAY ANH GHÉ QUÁN NÀO?</span><p>Một ca trực 4–5 phút. Các quán khác cần quản lý, barista, kho và tiền chi ca để tự chạy.</p>'+networkShops(root).map(s=>'<button class="visit-choice '+(s===state?"selected":"")+'" data-action="visitShop" data-key="'+locationNumber(s)+'" '+(state.phase!=="prep"?"disabled":"")+'>'+shopPostcard(s)+'<b>QUÁN '+locationNumber(s)+' · '+escapeHTML(districtInfo(s)?.name||"Bean Around nguyên bản")+'</b><small>'+MONEY(s.cash)+' · '+(s===state?"ĐANG GHÉ":"CHỌN GHÉ HÔM NAY")+'</small></button>').join("")+'</section>';
+ const root=networkOwner(state);return '<section class="business-card visit-picker"><span class="eyebrow">HÔM NAY ANH GHÉ QUÁN NÀO?</span><p>Một ca trực 4 phút. Các quán khác cần quản lý, barista, kho và tiền chi ca để tự chạy.</p>'+networkShops(root).map(s=>'<button class="visit-choice '+(s===state?"selected":"")+'" data-action="visitShop" data-key="'+locationNumber(s)+'" '+(state.phase!=="prep"?"disabled":"")+'>'+shopPostcard(s)+'<b>QUÁN '+locationNumber(s)+' · '+escapeHTML(districtInfo(s)?.name||"Bean Around nguyên bản")+'</b><small>'+MONEY(s.cash)+' · '+(s===state?"ĐANG GHÉ":"CHỌN GHÉ HÔM NAY")+'</small></button>').join("")+'</section>';
 }
 function visitAction(action,key){
  if(action==="networkStock"){const root=networkOwner(state);networkResolveStock(root,root.visitPlan.attention,key);closeSheet();save(true);paint();return true}
@@ -5045,11 +5133,11 @@ function decorationPreviewNotice(){
 
 /* ==================== SEASONAL DECORATION PACKAGES & ASSETS ==================== */
 const SEASON_PACKAGES=Object.freeze({
- summer:{name:"Hè rực rỡ",months:[4,5,6],caption:"Biển xanh · hoa nhiệt đới · nắng trên quầy gỗ",accent:"#7d1729",row:0,col:0},
- autumn:{name:"Thu an yên",months:[9,10],caption:"Lá phong · ánh đèn hổ phách · góc mèo ngủ",accent:"#802917",row:0,col:1},
+ summer:{name:"Hè rực rỡ",months:[5,6],caption:"Biển xanh · hoa nhiệt đới · nắng trên quầy gỗ",accent:"#7d1729",row:0,col:0},
+ autumn:{name:"Thu an yên",months:[8,9],caption:"Lá phong · ánh đèn hổ phách · góc mèo ngủ",accent:"#802917",row:0,col:1},
  xmas:{name:"Giáng sinh ấm áp",months:[11,12],caption:"Thông xanh · nơ đỏ · đèn vàng · quà dưới cây",accent:"#861d30",row:1,col:0},
  tet:{name:"Tết sum vầy",months:[1,2],caption:"Hoa đào · hoa mai · đèn lồng đỏ",accent:"#9c1d26",row:1,col:1},
- midautumn:{name:"Trung Thu đoàn viên",months:[7,8],caption:"Trăng vàng · đèn thỏ · bánh Trung Thu",accent:"#74172f",row:2,col:0}
+ midautumn:{name:"Trung Thu đoàn viên (gói cũ)",months:[],caption:"Trăng vàng · đèn thỏ · bánh Trung Thu",accent:"#74172f",row:2,col:0}
 });
 const SEASON_PRICE=30000,SEASON_DURATION=30;
 const CAFE_ASSETS=Object.freeze({
@@ -5097,9 +5185,9 @@ function assetSvg(group,key,cls="",align="xMidYMid meet"){const a=CAFE_ASSETS[gr
  * Calendar and purchased package are read, never changed.
  */
 const SeasonTheme=Object.freeze({
-spring:Object.freeze({"uiArtwork":{"header":"assets/bean-around/spring-ui-header.webp","order":"assets/bean-around/spring-ui-order.webp","cta":"assets/bean-around/spring-ui-deliver.webp","nav":"assets/bean-around/spring-ui-footer.webp"},"id":"spring","name":"Mùa Xuân","lighting":"#fff1dd","window":"#d5e0c9","accent":"#EAA6B8","leaf":"#91AD78","header":"#FFF7EB","cta":"#397347","nav":"#623622","paper":"#FFF7EB","particles":"petal","wash":".035","note":"pink","background":"assets/bean-around/spring-cafe-room.svg","headerDecor":"spring","machineAreaDecor":"assets/bean-around/season-spring-props.svg","orderDecor":"assets/bean-around/season-spring-note.svg","ctaDecor":"spring","navDecor":"spring"}),
-summer:Object.freeze({"id":"summer","name":"Mùa Hạ","lighting":"#fff1c9","window":"#AFCFD1","accent":"#F4C85A","leaf":"#4F8A64","header":"#165A46","cta":"#17624C","nav":"#154F40","paper":"#FFF6DF","particles":"none","wash":".02","note":"yellow","background":"assets/bean-around/summer-cafe-room.svg","headerDecor":"summer","machineAreaDecor":"assets/bean-around/season-summer-props.svg","orderDecor":"assets/bean-around/season-summer-note.svg","ctaDecor":"summer","navDecor":"summer"}),
-autumn:Object.freeze({"id":"autumn","name":"Mùa Thu","lighting":"#f6d9ab","window":"#D7AE79","accent":"#D97A2B","leaf":"#C75C2A","header":"#7E1F28","cta":"#8C2F26","nav":"#6F2B25","paper":"#FFF1D8","particles":"maple","wash":".04","note":"kraft","background":"assets/bean-around/autumn-cafe-room.svg","headerDecor":"autumn","machineAreaDecor":"assets/bean-around/season-autumn-props.svg","orderDecor":"assets/bean-around/season-autumn-note.svg","ctaDecor":"autumn","navDecor":"autumn"}),
+spring:Object.freeze({"uiArtwork":{"header":"assets/bean-around/tet-2026-ui-header.webp","order":"assets/bean-around/tet-2026-ui-order.webp","cta":"assets/bean-around/tet-2026-ui-deliver.webp","nav":"assets/bean-around/tet-2026-ui-footer.webp"},"id":"spring","name":"Tết sum vầy","lighting":"#fff1dd","window":"#d5e0c9","accent":"#EAA6B8","leaf":"#91AD78","header":"#8E1820","cta":"#9F1C24","nav":"#72151B","paper":"#FFF7EB","particles":"petal","wash":".035","note":"pink","background":"assets/bean-around/tet-2026-cafe-room.webp","headerDecor":"spring","machineAreaDecor":"assets/bean-around/season-spring-props.svg","orderDecor":"assets/bean-around/season-spring-note.svg","ctaDecor":"spring","navDecor":"spring"}),
+summer:Object.freeze({"id":"summer","name":"Mùa Hạ","lighting":"#fff1c9","window":"#AFCFD1","accent":"#F4C85A","leaf":"#4F8A64","header":"#165A46","cta":"#17624C","nav":"#154F40","paper":"#FFF6DF","particles":"none","wash":".02","note":"yellow","background":"assets/bean-around/summer-2026-cafe-room.webp","headerDecor":"summer","machineAreaDecor":"assets/bean-around/season-summer-props.svg","orderDecor":"assets/bean-around/season-summer-note.svg","ctaDecor":"summer","navDecor":"summer","uiArtwork":{"header":"assets/bean-around/summer-2026-ui-header.webp","order":"assets/bean-around/summer-2026-ui-order.webp","cta":"assets/bean-around/summer-2026-ui-deliver.webp","nav":"assets/bean-around/summer-2026-ui-footer.webp"}}),
+autumn:Object.freeze({"id":"autumn","name":"Mùa Thu","lighting":"#f6d9ab","window":"#D7AE79","accent":"#D97A2B","leaf":"#C75C2A","header":"#7E1F28","cta":"#8C2F26","nav":"#6F2B25","paper":"#FFF1D8","particles":"maple","wash":".04","note":"kraft","background":"assets/bean-around/autumn-2026-cafe-room.webp","headerDecor":"autumn","machineAreaDecor":"assets/bean-around/season-autumn-props.svg","orderDecor":"assets/bean-around/season-autumn-note.svg","ctaDecor":"autumn","navDecor":"autumn","uiArtwork":{"header":"assets/bean-around/autumn-2026-ui-header.webp","order":"assets/bean-around/autumn-2026-ui-order.webp","cta":"assets/bean-around/autumn-2026-ui-deliver.webp","nav":"assets/bean-around/autumn-2026-ui-footer.webp"}}),
 winter:Object.freeze({"uiArtwork":{"header":"assets/bean-around/winter-red-ui-header.webp","order":"assets/bean-around/winter-red-ui-order.webp","cta":"assets/bean-around/winter-red-ui-deliver.webp","nav":"assets/bean-around/winter-red-ui-footer.webp"},"id":"winter","name":"Mùa Đông","lighting":"#fff1d8","window":"#28455F","accent":"#DDB66A","leaf":"#527F64","header":"#841C23","cta":"#A11D24","nav":"#681519","paper":"#FFF8EC","particles":"snow","wash":".025","note":"ice","background":"assets/bean-around/winter-cafe-room.webp","headerDecor":"winter","machineAreaDecor":"assets/bean-around/season-winter-props.svg","orderDecor":"assets/bean-around/season-winter-note.svg","ctaDecor":"winter","navDecor":"winter"})
 });
 const CAFE_PACKAGE_THEME=Object.freeze({summer:"summer",autumn:"autumn",midautumn:"autumn",tet:"spring",xmas:"winter"});
@@ -5110,8 +5198,7 @@ function cafeThemeId(s){
  if(cafeThemeOverride==="off")return null;
  if(cafeThemeOverride&&Object.hasOwn(SeasonTheme,cafeThemeOverride))return cafeThemeOverride;
  const p=activeDecoration(s);if(p)return CAFE_PACKAGE_THEME[p.id];
- const month=seasonInfo(s).month;
- return month<=3?"spring":month<=6?"summer":month<=10?"autumn":"winter";
+ return null; // Purchased per-shop packages own the visual skin; previews never charge or save.
 }
 function cafeMotifPath(id){return "assets/bean-around/season-"+id+".svg"}
 function cafeThemeStyle(t){
@@ -5209,9 +5296,9 @@ function seasonScene(s,cls="season-scene"){return cafeSceneMarkup(s,cls==="postc
 function counterSurface(s){return ""}
 function seasonalPackagesMarkup(){
  const s=state,p=activeDecoration(s),month=seasonInfo(s).month;
- return '<section class="season-shop"><h3>Gói mùa · Quán '+locationNumber(s)+'</h3><p>Tháng '+month+' · 30.000k/gói · 30 ngày liên tục từ ngày mua.</p><p><b>x2 số đơn online</b> sau khi tính thời tiết, nhu cầu và thưởng vô địch. Ví dụ 750 đơn → 1.500 đơn. Giới hạn nhận đơn do anh tự đặt vẫn áp dụng.</p><p>Không gian quán theo mùa của lịch game; gói đang dùng chọn chủ đề tương ứng. Mỗi quán mua riêng, không tự gia hạn. Chuẩn bị đủ nguyên liệu để phục vụ lượng đơn tăng thêm.</p>'+
+ return '<section class="season-shop"><h3>Gói mùa · Quán '+locationNumber(s)+'</h3><p>Tháng '+month+' · 30.000k/gói · 30 ngày liên tục từ ngày mua.</p><p><b>x2 số đơn online</b> sau khi tính thời tiết, nhu cầu và thưởng vô địch. Ví dụ 750 đơn → 1.500 đơn. Giới hạn nhận đơn do anh tự đặt vẫn áp dụng.</p><p>Hình ảnh áp dụng khi quán sở hữu gói còn hiệu lực; lịch game quyết định tháng mở bán. Mỗi quán mua riêng, không tự gia hạn. Chuẩn bị đủ nguyên liệu để phục vụ lượng đơn tăng thêm.</p>'+
  (p?'<div class="season-active"><b>'+SEASON_PACKAGES[p.id].name+'</b> · x2 online · còn '+(p.end-s.day+1)+' ngày</div>':"")+
- Object.entries(SEASON_PACKAGES).map(([id,g])=>'<article class="season-package"><div class="season-package-copy"><h4>'+g.name+'</h4><small>Bán tháng '+g.months.join(", ")+' · 30 ngày · x2 đơn online</small>'+
+ Object.entries(SEASON_PACKAGES).filter(([id,g])=>g.months.length||p?.id===id).map(([id,g])=>'<article class="season-package"><div class="season-package-copy"><h4>'+g.name+'</h4><small>Bán tháng '+g.months.join(", ")+' · 30 ngày · x2 đơn online</small>'+
  (p?.id===id?'<strong class="season-owned">Đang áp dụng cho quán này</strong>':p?'<span>Đợi gói hiện tại hết hạn</span>':!decorationAvailable(s,id)?'<span>Chưa đến tháng mở bán</span>':btn("Chi tiết · 30.000k","seasonPreview",id,"primary wide"))+'</div></article>').join("")+'</section>';
 }
 function seasonalPackageDialog(id){
@@ -5947,6 +6034,7 @@ function failBranchOrder(b,job,reason){
  b.finalizedOrders[o.uid]={day:b.day,sale:0,tip:0,cancelled:true};
 }
 function branchJobTick(b,field,dt){
+ maintainServiceQuality(b);
  const c=b.branchControl,online=field==="onlineJob",quota=online?"onlineGoal":"goal",issued=online?"onlineIssued":"issued";
  if(online&&!working(b,"online"))return;
  if(!c[field]&&((c[issued]<c[quota]&&(!online||canIssueOnlineParcel(b,c[issued],c[quota])))||(online&&b.delivery?.pending.length))){
@@ -6147,7 +6235,7 @@ async function expansionActionLegacy(action,key){
  if(branchEdit)prepOnly(state);
  if(action==="train")enrollCourse(state,key);
  if(action==="bakeryEquip")buyBakeryEquipment(state,key);
- if(action==="buyBake")buyBakes(state,key,$("bakeQty-"+key).value);
+ if(action==="buyBake")toast(networkOperation("stock",{["bake:"+key]:Number($("bakeQty-"+key).value)}));
  if(action==="bakerySuggest"){const q=bakerySuggestions(state);for(const[id,n]of Object.entries(q)){const el=$("bakeQty-"+id);if(el)el.value=n}toast("Đã điền lượng cần nhập; bấm NHẬP để mua.");return true}
  if(action==="toggleBake"){prepOnly(state);if(!BAKES[key]||!state.bakery.owned)throw Error("Chưa có quầy bánh.");state.bakery.enabled[key]=!state.bakery.enabled[key]}
  if(action==="bakeryOrder"){bakeryOrderSheet();return true}
@@ -6159,8 +6247,8 @@ async function expansionActionLegacy(action,key){
  if(branchEdit&&!b)throw Error("Chưa mở quán.");
  if(action==="branchToggle")b.branchControl.enabled=!b.branchControl.enabled;
  if(action==="branchFunds"){const n=Number($("branchFunds").value);if(!Number.isFinite(n)||n<=0)throw Error("Nhập số tiền dương.");branchTransfer(state,key==="in"?n:-n,branchView)}
- if(action==="branchStock")stockBranch(state,branchView);
- if(action==="branchAdvertise")branchAdvertise(state,branchView);
+ if(action==="branchStock")toast(networkOperation("stockCold",suggestedCartUncapped(b),b));
+ if(action==="branchAdvertise")toast(networkOperation("advertise",{},b));
  if(action==="branchUpgrade")upgradeBranch(state,key,branchView);
  if(action==="branchStaff"){if(!STAFF[key]||key==="parking")throw Error("Vị trí không hợp lệ.");if(b.employees[key].hired)toggleStaff(b,key);else hireStaff(b,key)}
  if(action==="branchTrain")enrollCourse(b,key);
@@ -6226,8 +6314,8 @@ window.BeanAroundArrivalPacingChecks={run(){
  test("opening receives only one parcel, never entire daily queue",()=>{const s=shop();openDay(s);a(s.online.dayQuota===500&&s.online.issued===1&&s.online.remaining===499&&s.online.queue.length<=3&&s.online.pacing.progress===0&&shopTime(s)==="07:00")});
  test("arrival curve bounded monotonic and final order held until2150",()=>{const s=shop();openDay(s);let old=0;for(let i=0;i<=1000;i++){s.online.pacing.progress=i/1000;const n=onlineArrivalAllowance(s);a(n>=old&&n<=500);old=n}a(old===500);s.online.pacing.progress=14.75/15;a(onlineArrivalAllowance(s)===495);s.online.pacing.progress=14.82/15;a(onlineArrivalAllowance(s)<500);s.online.pacing.progress=14.84/15;a(onlineArrivalAllowance(s)===500)});
  test("lunch evening and closing waves have distinct cumulative quotas",()=>{const s=shop();openDay(s);for(const[p,n]of [[4/15,110],[7/15,260],[10/15,330],[13/15,450]]){s.online.pacing.progress=p;a(onlineArrivalAllowance(s)===n)}});
- test("many automated receipts cannot accelerate the clock before counter",()=>{const s=shop();openDay(s);s.stats.onlineReceipts=400;s.online.pacing.elapsed=300;s.served=0;advanceOnlinePacing(s,1);a(s.online.pacing.progress===0&&onlineArrivalAllowance(s)===1)});
- test("slow counter caps timeline without prematurely cancelling daily quota",()=>{const s=shop();openDay(s);s.online.pacing.elapsed=10000;s.served=15;advanceOnlinePacing(s,1);a(s.online.pacing.progress===.25&&onlineArrivalAllowance(s)<120&&s.online.dayQuota===500)});
+ test("online schedule finishes even if counter is slow",()=>{const s=shop();openDay(s);s.stats.onlineReceipts=400;s.online.pacing.elapsed=230;s.served=0;advanceOnlinePacing(s,1);a(s.online.pacing.progress===1&&onlineArrivalAllowance(s)===500)});
+ test("counter progress no longer caps online arrivals",()=>{const s=shop();openDay(s);s.online.pacing.elapsed=114;s.served=0;advanceOnlinePacing(s,1);a(s.online.pacing.progress===.5&&s.online.dayQuota===500)});
  test("future arrivals carry no timer or stock consumption",()=>{const s=shop();openDay(s);const before=quantity(s,"cup");s.online.queue=[];s.delivery.pending=[];s.delivery.tickets={};const remaining=s.online.remaining;for(let i=0;i<50;i++)issueOnline(s);a(s.online.remaining===remaining&&!s.online.queue.length&&quantity(s,"cup")===before&&!s.stats.onlineFailed)});
  test("pacing state survives save reload without reroll or offline advancement",()=>{const s=shop();openDay(s);s.served=60;advanceOnlinePacing(s,100);const p=JSON.stringify(s.online.pacing),cash=s.cash,m=migrateSave(clone(s));a(JSON.stringify(m.online.pacing)===p&&m.cash===cash&&m.online.remaining===s.online.remaining&&validCore(m))});
  test("blocking event pauses arrival clock",()=>{const s=shop();openDay(s);const p=JSON.stringify(s.online.pacing);s.ops.active={id:"acFault"};clockStep(s,30);a(JSON.stringify(s.online.pacing)===p)});
@@ -6424,16 +6512,68 @@ try{
 }catch(e){saveBlocked=!!protectedRaw;storageWorks=false}
 state=networkBind(state);
 managementVisible=state.phase==="prep";
+let storageBooting=true,saveDatabase=null,saveQueue=null,saveWriting=false,saveRevision=0;
+function openSaveDatabase(){
+ return new Promise((resolve,reject)=>{
+  if(!window.indexedDB){reject(Error("IndexedDB unavailable"));return}
+  const req=indexedDB.open("bean-around-progress",1);
+  req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains("saves"))req.result.createObjectStore("saves")};
+  req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);req.onblocked=()=>reject(Error("Storage busy"));
+ });
+}
+function databaseGet(key){
+ return new Promise((resolve,reject)=>{const tx=saveDatabase.transaction("saves","readonly"),r=tx.objectStore("saves").get(key);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+}
+function databasePut(key,value){
+ return new Promise((resolve,reject)=>{const tx=saveDatabase.transaction("saves","readwrite");tx.objectStore("saves").put(value,key);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error("Storage aborted"))});
+}
+function saveStatus(message=""){
+ const el=$("saveWarning");if(!el)return;el.textContent=message;el.style.display=message?"block":"none";
+}
+async function restoreDatabaseSave(){
+ try{
+  saveDatabase=await openSaveDatabase();
+  const record=await databaseGet(KEY);
+  if(record?.payload){
+   // An unreadable newer record is protected, never silently replaced by an old local save.
+   const localRevision=Number(networkOwner(state)._saveRevision)||0;
+   if((record.revision||0)>=localRevision){
+    protectedRaw=record.payload;
+    try{state=networkBind(migrateSave(JSON.parse(record.payload)));saveBlocked=false;storageWorks=true}
+    catch(e){saveBlocked=true;storageWorks=false}
+   }
+  }
+ }catch(e){/* localStorage remains a complete fallback, not a fabricated save success. */}
+ saveRevision=Math.max(Date.now(),Number(networkOwner(state)._saveRevision)||0);
+ storageBooting=false;managementVisible=state.phase==="prep";
+}
+async function flushSaveQueue(){
+ if(saveWriting||!saveQueue||!saveDatabase)return;
+ saveWriting=true;
+ try{
+  while(saveQueue){
+   const item=saveQueue;saveQueue=null;
+   try{await databasePut(KEY,item);storageWorks=true;if(!saveQueue)saveStatus()}
+   catch(e){if(!item.localOK){storageWorks=false;saveStatus("Không ghi được bộ nhớ thiết bị. Hãy Xuất save trong Cài đặt; dữ liệu cũ vẫn được giữ.")}}
+  }
+ }finally{saveWriting=false}
+}
 function save(force=false){
- if(decorationPreview)return;
+ if(storageBooting||decorationPreview)return;
  if(!force&&pulseActive&&pulseCount%25!==0)return;
- if(saveBlocked){
-  $("saveWarning").textContent="Save chưa đọc được. Game đang bảo vệ dữ liệu cũ, không tự ghi đè.";
-  $("saveWarning").style.display="block";return;
- }
- try{const payload=JSON.stringify(networkOwner(state));if(payload!==lastSavedPayload||!storageWorks){localStorage.setItem(KEY,payload);lastSavedPayload=payload;renderMetrics.saveWrites++;renderMetrics.saveBytes+=payload.length}storageWorks=true}catch(e){storageWorks=false}
- $("saveWarning").textContent="Trình duyệt chặn lưu. Hãy dùng Xuất save trong Cài đặt trước khi đóng trang.";
- $("saveWarning").style.display=storageWorks?"none":"block";
+ if(saveBlocked){saveStatus("Save chưa đọc được. Game đang bảo vệ dữ liệu cũ, không tự ghi đè.");return}
+ let root=networkOwner(state),payload;
+ try{
+  payload=JSON.stringify(root);
+  if(payload===lastSavedPayload&&storageWorks)return;
+  root._saveRevision=++saveRevision;payload=JSON.stringify(root);
+ }catch(e){storageWorks=false;saveStatus("Không đóng gói được tiến trình. Hãy Xuất save; dữ liệu cũ chưa bị ghi đè.");return}
+ let localOK=false;
+ try{localStorage.setItem(KEY,payload);localOK=true;storageWorks=true}catch(e){storageWorks=false}
+ lastSavedPayload=payload;renderMetrics.saveWrites++;renderMetrics.saveBytes+=payload.length;
+ if(saveDatabase){saveQueue={payload,revision:saveRevision,localOK};flushSaveQueue();if(localOK)saveStatus()}
+ else if(localOK)saveStatus();
+ else saveStatus("Bộ nhớ thiết bị không ghi được (có thể đầy hoặc bị chặn). Hãy Xuất save trong Cài đặt trước khi đóng trang.");
 }
 function toast(message){
  $("toast").textContent=message;$("toast").classList.add("show");
@@ -6684,7 +6824,7 @@ async function act(action,key){
     showSheet("reject","Chưa phục vụ được?",
     '<p>Khách sẽ rời quán và đánh giá 1 sao. Ly đang pha sẽ bị bỏ.</p><button class="primary wide" data-action="rejectConfirm">Từ chối và đón khách tiếp</button><button class="wide" data-action="close">Tiếp tục pha</button>');break;
    case "rejectConfirm":reject(state);closeSheet();if(state.phase==="report")reportSheet();else toast("Mình đón vị khách tiếp theo nhé.");break;
-   case "buy":buyStock(state,key);beep("tap");break;
+   case "buy":toast(networkOperation("stock",{[key]:1}));beep("tap");break;
    case "brew":brewBatch(state);toast("Đã chuẩn bị thêm 4 phần cold brew cho hôm nay.");break;
    case "decorBuy":buyDecor(state,key);beep("success");break;
    case "nextDay":{
@@ -6750,10 +6890,10 @@ function downloadSave(){
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
  toast("Đã xuất save. Giữ tệp JSON để chuyển thiết bị hoặc phục hồi.");
 }
-function loadImportedSave(text){
+async function loadImportedSave(text){
  const candidate=migrateSave(JSON.parse(text));
  const old=saveBlocked&&protectedRaw?protectedRaw:JSON.stringify(networkOwner(state));
- localStorage.setItem(KEY+".before-import",old);
+ if(saveDatabase)await databasePut(KEY+".before-import",{payload:old,revision:saveRevision});else localStorage.setItem(KEY+".before-import",old);
  state=networkBind(candidate);saveBlocked=false;protectedRaw=null;save();managementVisible=state.phase==="prep";closeSheet();paint();
  if(state.phase==="open")menuSheet();toast("Đã nhập save; bản trước được sao lưu.");
 }
@@ -6877,7 +7017,7 @@ document.addEventListener("click",e=>{if(e.detail!==0&&Date.now()<contestTapBloc
 document.addEventListener("visibilitychange",()=>{stopContestAnimation();if(!document.hidden&&modal==="contest"&&state.contest?.active?.current?.pour)startContestAnimation()});
 document.addEventListener("click",e=>{
  const t=e.target.closest("[data-action]");
- if(!t||t.disabled)return;
+ if(storageBooting||!t||t.disabled)return;
  if(consumeStockHoldClick(t.dataset.action,t.dataset.key))return;
  if(t.classList.contains("touch")){
   t.classList.add("pressed");setTimeout(()=>t.classList.remove("pressed"),180);
@@ -6891,12 +7031,13 @@ document.addEventListener("keydown",e=>{
 });
 $("sheet").addEventListener("cancel",()=>{modal=""});
 $("sheet").addEventListener("close",()=>{if(!$("sheet").open)modal=""});
-setInterval(()=>{pulseActive=true;pulseCount++;try{tickUI()}finally{pulseActive=false}},200);
+setInterval(()=>{if(storageBooting)return;pulseActive=true;pulseCount++;try{tickUI()}finally{pulseActive=false}},200);
 $("saveFile").addEventListener("change",async event=>{
  const file=event.target.files?.[0];if(!file)return;
- try{if(file.size>2*1024*1024)throw Error("Tệp save quá lớn.");loadImportedSave(await file.text())}catch(e){toast("Không nhập được: "+e.message)}
+ try{if(file.size>64*1024*1024)throw Error("Tệp save quá lớn.");await loadImportedSave(await file.text())}catch(e){toast("Không nhập được: "+e.message)}
  event.target.value="";
 });
+restoreDatabaseSave().then(()=>{
 const initialDecorationPreview=requestedDecorationPreview(window.location.search);
 if(initialDecorationPreview&&!saveBlocked)beginDecorationPreview(initialDecorationPreview);
 if(state.phase==="prep"&&!decorationPreview)prepareMorning(state);
@@ -6905,6 +7046,8 @@ if(document.getElementById("bootNotice"))document.getElementById("bootNotice").h
 if(saveBlocked)showSheet("recovery","Bảo vệ save cũ",
  '<p>Không thể đọc save hiện tại. Dữ liệu gốc chưa bị ghi đè. Hãy xuất bản gốc hoặc nhập save hợp lệ.</p><button class="primary wide" data-action="exportSave">Xuất dữ liệu gốc</button><button class="wide" data-action="importSave">Nhập save</button><button class="wide" data-action="resetAsk">Tạo quán mới có xác nhận</button>');
 else if(!decorationPreview){if(state.phase==="prep"){intro();if(state.events.notice||state.events.active)showEvent()}else if(state.phase==="report")reportSheet();else menuSheet();}
+
+});
 
 /* Read-only visual QA. Changing the theme does not purchase anything, mutate
    state, call save(), advance time, or replace any interactive element. */
@@ -7055,7 +7198,7 @@ window.BeanAroundSeasonChecks={run(){
  for(const [id,g]of Object.entries(SEASON_PACKAGES))for(let month=1;month<=12;month++)test(id+" month "+month,()=>{const s=shop(month),before=s.cash;if(g.months.includes(month)){buySeasonPackage(s,id);a(s.cash===before-30000&&activeDecoration(s)?.id===id)}else{fails(()=>buySeasonPackage(s,id));a(s.cash===before&&!s.seasonPackage)}});
  test("charge once and book full decoration cost, no revenue grant",()=>{const s=shop();buySeasonPackage(s,"xmas");a(s.stats.decorExpense===30000&&s.stats.spent===30000&&s.lifetimeRevenue===0);fails(()=>buySeasonPackage(s,"xmas"));a(s.stats.decorExpense===30000)});
  test("last day purchase lasts 30 inclusive days across month boundary",()=>{const s=shop(12);s.day+=29;buySeasonPackage(s,"xmas");const d=s.day;s.day=d+29;a(activeDecoration(s)&&onlineDecorationFactor(s)===2);s.day++;a(!activeDecoration(s)&&decorationFactor(s)===1&&seasonDecor(s)==="everyday")});
- test("no stacking across two themes",()=>{const s=shop(8);buySeasonPackage(s,"midautumn");s.day+=5;const raw=JSON.stringify(s);fails(()=>buySeasonPackage(s,"midautumn"));a(JSON.stringify(s)===raw)});
+ test("no stacking across two themes",()=>{const s=shop(8);buySeasonPackage(s,"autumn");s.day+=5;const raw=JSON.stringify(s);fails(()=>buySeasonPackage(s,"autumn"));a(JSON.stringify(s)===raw)});
  test("expired package can be renewed only in selling month",()=>{const s=shop(11);buySeasonPackage(s,"xmas");s.day+=30;buySeasonPackage(s,"xmas");a(s.stats.decorExpense===60000);s.day+=30;fails(()=>buySeasonPackage(s,"xmas"));buySeasonPackage(s,"tet");a(activeDecoration(s).id==="tet")});
  test("insufficient balance and unknown id are atomic",()=>{const s=shop();s.cash=29999;const raw=JSON.stringify(s);fails(()=>buySeasonPackage(s,"xmas"));fails(()=>buySeasonPackage(s,"bogus"));a(JSON.stringify(s)===raw)});
  test("service and report cannot buy",()=>{for(const phase of ["open","report"]){const s=shop();s.phase=phase;fails(()=>buySeasonPackage(s,"xmas"));a(!s.seasonPackage)}});
@@ -7063,10 +7206,10 @@ window.BeanAroundSeasonChecks={run(){
  test("missing field migrates safely and grants no decoration",()=>{const s=shop(),m=migrateSave(clone(s));a(m.cash===s.cash&&!activeDecoration(m)&&seasonDecor(m)==="everyday")});
  test("reload retains paid package without fee duplication or time loss",()=>{const s=shop();buySeasonPackage(s,"xmas");const m=migrateSave(clone(s));a(m.cash===s.cash&&m.seasonPackage.end===s.day+29&&m.stats.decorExpense===30000&&seasonDecor(m)==="xmas")});
  test("corrupt duration rejected without mutating input",()=>{const s=shop();buySeasonPackage(s,"xmas");s.seasonPackage.end++;const raw=JSON.stringify(s);fails(()=>migrateSave(s));a(JSON.stringify(s)===raw)});
- test("calendar is game day based regardless wall clock",()=>{const s=shop(4);buySeasonPackage(s,"summer");const raw=JSON.stringify(s);for(let i=0;i<10;i++)a(seasonInfo(s).month===4&&activeDecoration(s));a(JSON.stringify(s)===raw)});
+ test("calendar is game day based regardless wall clock",()=>{const s=shop(5);buySeasonPackage(s,"summer");const raw=JSON.stringify(s);for(let i=0;i<10;i++)a(seasonInfo(s).month===5&&activeDecoration(s));a(JSON.stringify(s)===raw)});
  test("decoration does not change recipe duration or stock",()=>{const s=shop(),stock=JSON.stringify(s.stock),t=actionSeconds(s,"espresso");buySeasonPackage(s,"xmas");a(JSON.stringify(s.stock)===stock&&actionSeconds(s,"espresso")===t)});
- test("seasonal package changes online only, not walk-in demand",()=>{const s=shop(4),before=trafficDemand(s);buySeasonPackage(s,"summer");a(trafficDemand(s)===before&&decorationFactor(s)===1&&onlineDecorationFactor(s)===2)});
- test("online demand grows but never exceeds configured capacity",()=>{const s=chainTestShop(151);s.online.tablet=s.online.enabled=true;const before=onlineVolume(s);buySeasonPackage(s,"summer");a(onlineVolume(s)>=before&&onlineVolume(s)<=onlineCapacity(s))});
+ test("seasonal package changes online only, not walk-in demand",()=>{const s=shop(5),before=trafficDemand(s);buySeasonPackage(s,"summer");a(trafficDemand(s)===before&&decorationFactor(s)===1&&onlineDecorationFactor(s)===2)});
+ test("online demand grows but never exceeds configured capacity",()=>{const s=chainTestShop(181);s.online.tablet=s.online.enabled=true;const before=onlineVolume(s);buySeasonPackage(s,"summer");a(onlineVolume(s)>=before&&onlineVolume(s)<=onlineCapacity(s))});
  test("separate branch purchase does not charge or decorate parent",()=>{const root=chainTestShop(61);networkBind(root);const b=openBranch(root,2);b.cash=100000;const cash=root.cash;buySeasonPackage(b,"tet");a(root.cash===cash&&!activeDecoration(root)&&activeDecoration(b).id==="tet"&&b.stats.decorExpense===30000)});
  test("new branch inherits no package from parent",()=>{const root=chainTestShop(61);networkBind(root);buySeasonPackage(root,"tet");const b=openBranch(root,2);a(!activeDecoration(b)&&seasonDecor(b)==="everyday")});
  test("global opened day blocks branch prep purchases",()=>{const root=chainTestShop(61);networkBind(root);const b=openBranch(root,2);root.visitPlan.activeDay=root.day;b.cash=100000;fails(()=>buySeasonPackage(b,"tet"));a(!b.seasonPackage)});
@@ -7099,8 +7242,8 @@ window.BeanAroundOnlineSeasonChecks={run(){
 window.BeanAroundAtmosphereChecks={run(){
  const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{const before=cafeThemeOverride;try{cafeThemeOverride=null;f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}finally{cafeThemeOverride=before}};
  test("four distinct environments share one renderer",()=>{a(Object.keys(SeasonTheme).length===4&&new Set(Object.values(SeasonTheme).map(t=>t.background)).size===4);for(const t of Object.values(SeasonTheme))a(/\.(svg|webp)$/.test(t.background)&&t.headerDecor===t.id&&t.ctaDecor===t.id&&t.navDecor===t.id)});
- test("calendar uses game month, not computer month",()=>{for(let month=1;month<=12;month++){const s=newGame(()=>.5);s.day=((month-11+12)%12)*30+1;const id=month<=3?"spring":month<=6?"summer":month<=10?"autumn":"winter";a(cafeThemeId(s)===id)}});
- test("active paid package selects matching season until expiry",()=>{const s=newGame(()=>.5);for(const[id,theme]of Object.entries(CAFE_PACKAGE_THEME)){s.seasonPackage={id,start:1,end:30,paid:30000};a(cafeThemeId(s)===theme);s.day=31;a(cafeThemeId(s)==="winter");s.day=1}});
+ test("unpaid shops do not receive a package skin from the calendar",()=>{for(let month=1;month<=12;month++){const s=newGame(()=>.5);s.day=((month-11+12)%12)*30+1;a(cafeThemeId(s)===null)}});
+ test("active paid package selects matching season until expiry",()=>{const s=newGame(()=>.5);for(const[id,theme]of Object.entries(CAFE_PACKAGE_THEME)){s.seasonPackage={id,start:1,end:30,paid:30000};a(cafeThemeId(s)===theme);s.day=31;a(cafeThemeId(s)===null);s.day=1}});
  test("preview query accepts only known themes without interpreting HTML",()=>{for(const id of [...Object.keys(SeasonTheme),"off"])a(requestedCafeTheme("?season-theme="+id)===id);for(const value of ["spring-extra","<script>","__proto__","constructor"])a(requestedCafeTheme("?season-theme="+value)===null)});
  test("visual theme override is not a gameplay or save change",()=>{const s=chainTestShop(28);s.online.tablet=s.online.enabled=true;const raw=JSON.stringify(s),revenue=onlineVolume(s),duration=actionSeconds(s,"espresso");for(const id of Object.keys(SeasonTheme)){cafeThemeOverride=id;const html=seasonScene(s);a(html.includes('data-cafe-art="'+id+'"')&&JSON.stringify(s)===raw&&onlineVolume(s)===revenue&&actionSeconds(s,"espresso")===duration)}});
  test("theme palette never overrides shop brand variables",()=>{for(const t of Object.values(SeasonTheme)){const style=cafeThemeStyle(t);a(!style.includes("--brand-")&&!style.includes("--wood:")&&style.includes("--cafe-light:"))}});
@@ -7139,7 +7282,7 @@ window.BeanAroundVisitChecks={run(){
  test("old save keeps money stock staff and active progress",()=>{const s=chainTestShop(29),old=JSON.stringify({cash:s.cash,stock:s.stock,employees:s.employees});const m=migrateSave(s);networkBind(m);a(JSON.stringify({cash:m.cash,stock:m.stock,employees:m.employees})===old&&m.visitPlan.selected===1)});
  test("new solo shop starts with20 cups",()=>{const s=newGame(()=>.5);networkBind(s);a(plannedTraffic(s)===20);s.day=5;s.reputation=90;a(plannedTraffic(s)<=20)});
  test("owned team still serves up to60",()=>{const s=full();a(plannedTraffic(s)===60)});
- test("short shift stops manual duty at270 active seconds",()=>{const s=full();s.online.enabled=false;openDay(s);s.cadence.seconds=269.8;clockStep(s,.2);a(s.cadence.awaiting&&s.cadence.seconds===270);const before=JSON.stringify(s.stock);clockStep(s,10);a(s.cadence.seconds===270&&JSON.stringify(s.stock)===before)});
+ test("short shift stops manual duty at240 active seconds",()=>{const s=full();s.online.enabled=false;openDay(s);s.cadence.seconds=239.8;clockStep(s,.2);a(s.cadence.awaiting&&s.cadence.seconds===240);const before=JSON.stringify(s.stock);clockStep(s,10);a(s.cadence.seconds===240&&JSON.stringify(s.stock)===before)});
  test("reading clarification does not spend owner duty",()=>{const s=full();openDay(s);s.order.needsClarification=true;const t=s.cadence.seconds;clockStep(s,1);a(s.cadence.seconds===t)});
  test("five interventions for a staffed short shift",()=>{const s=full();openDay(s);a(ensureTakeoverPlan(s).target===5)});
  test("early-close option produces an actual report",()=>{const s=full();openDay(s);s.cadence.awaiting=true;finishOwnerShift(s,false);a(s.phase==="report"&&s.stats.grossRevenue===0&&s.stats.closedByOwner)});
@@ -7170,7 +7313,7 @@ window.BeanAroundVisitChecks={run(){
  test("emergency supply purchases real lots and fee exactly once",()=>{const root=withBranch(),b=selectVisitedShop(root,2);openDay(b);root.stock.bean=[];root.branchControl.stockDecision="pending";root.visitPlan.attention=1;const q=networkSupplyQuote(root),cash=root.cash;networkResolveStock(root,1,"restock");a(root.cash===roundK(cash-q.total)&&quantity(root,"bean")>0&&root.stats.supplyPremium===q.premium);fails(()=>networkResolveStock(root,1,"restock"));a(root.cash===roundK(cash-q.total))});
  test("unaffordable emergency purchase leaves stock and cash intact",()=>{const root=withBranch(),b=selectVisitedShop(root,2);openDay(b);root.stock.bean=[];root.cash=0;root.branchControl.stockDecision="pending";const stock=JSON.stringify(root.stock);fails(()=>networkResolveStock(root,1,"restock"));a(root.cash===0&&JSON.stringify(root.stock)===stock)});
  test("can close only the shop in trouble",()=>{const root=withBranch(),b=selectVisitedShop(root,2);openDay(b);root.branchControl.stockDecision="pending";networkResolveStock(root,1,"close");a(root.phase==="report"&&b.phase==="open")});
- test("seasonal scenes require a paid package and revert on expiry",()=>{const s=full();s.day=31;a(seasonDecor(s)==="everyday");buySeasonPackage(s,"xmas");a(seasonDecor(s)==="xmas");s.day=61;a(seasonDecor(s)==="everyday");buySeasonPackage(s,"tet");a(seasonDecor(s)==="tet");s.day=151;buySeasonPackage(s,"summer");a(seasonDecor(s)==="summer")});
+ test("seasonal scenes require a paid package and revert on expiry",()=>{const s=full();s.day=31;a(seasonDecor(s)==="everyday");buySeasonPackage(s,"xmas");a(seasonDecor(s)==="xmas");s.day=61;a(seasonDecor(s)==="everyday");buySeasonPackage(s,"tet");a(seasonDecor(s)==="tet");s.day=181;buySeasonPackage(s,"summer");a(seasonDecor(s)==="summer")});
  test("equipment visibly changes the machine and counter scene",()=>{const s=newGame(()=>.5),before=machineDrawing(s),scene=shopPostcard(s);s.upgrades.espresso=true;s.upgrades.grinder=true;s.upgrades.counter=true;a(machineDrawing(s)!==before&&shopPostcard(s)!==scene)});
  test("different branches have distinct machines and grinder colors",()=>{const root=withBranch(true),b=root.chain.branch,c=root.chain.branch3;a(machineDrawing(b)!==machineDrawing(c)&&shopLook(b).grinder!==shopLook(c).grinder&&b.brand.accent!==c.brand.accent)});
  test("new save fields reject corrupt timing without overwriting",()=>{const s=full();openDay(s);s.cadence.seconds=-1;const old=JSON.stringify(s);fails(()=>migrateSave(s));a(JSON.stringify(s)===old)});
@@ -7188,7 +7331,7 @@ window.BeanAroundOperationsChecks={run(){
  test("next day resets off with no daily fee",()=>{const s=shop();openDay(s);setManagerDuty(s,true);closeShop(s);nextDay(s,()=>.9);a(!managerDuty(s).enabled&&!managerDuty(s).paid&&!s.stats.managerService)});
  test("off leaves cups and handover to player",()=>{const s=shop();openDay(s);for(let i=0;i<5;i++)clockStep(s,.2);a(!s.cup&&s.served===0)});
  test("enabled picks cup and consumes real stock",()=>{const s=shop();openDay(s);setManagerDuty(s,true);s.order.needsClarification=false;const n=quantity(s,"cup");managerStep(s,.4);a(s.cup&&quantity(s,"cup")===n-1)});
- test("enabled waits for real production timers",()=>{const s=shop();openDay(s);setManagerDuty(s,true);for(let i=0;i<3;i++)clockStep(s,.2);a(s.cup&&s.stats.orders===0&&s.job)});
+ test("enabled waits for real production timers",()=>{const s=shop();s.online.enabled=false;openDay(s);s.order.needsClarification=false;setRecipeOnOrder(s,s.order,"latte");setManagerDuty(s,true);for(let i=0;i<3;i++)clockStep(s,.2);a(s.cup&&s.stats.orders===0&&s.job)});
  test("disabled cancels delegation without cancelling drink",()=>{const s=shop();openDay(s);setManagerDuty(s,true);managerStep(s,.4);const uid=s.order.uid,cup=s.cup;setManagerDuty(s,false);managerStep(s,2);a(!managerActive(s)&&s.order.uid===uid&&s.cup===cup)});
  test("absence suspends delegation and preserves payment",()=>{const s=shop();openDay(s);setManagerDuty(s,true);s.employees.manager.workingToday=false;a(!managerActive(s)&&managerDuty(s).paid);s.employees.manager.workingToday=true;a(managerActive(s)&&s.stats.managerService===550)});
  test("manager receives no owner manual intervention tip",()=>{const s=shop(),o={uid:"manager-tip",managerHandled:true,ownerTipEligible:true,ownerManual:true,ownerManualSteps:5};a(ownerCompletionTip(s,o,{correct:true,stars:5},8)===0&&!s.stats.ownerBonusTips)});

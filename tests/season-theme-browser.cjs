@@ -28,6 +28,7 @@ const server=http.createServer((req,res)=>{
  fs.readFile(file,(error,data)=>{if(error){res.writeHead(404);res.end();return}res.setHeader("Content-Type",types[path.extname(file)]||"application/octet-stream");res.end(data)});
 });
 async function setup(page,recipe="latte",working=false){
+ await page.waitForFunction(()=>typeof storageBooting==="undefined"||!storageBooting);
  await page.evaluate(({recipe,working})=>{
   let qaSeed=123456789;gameRandom=()=>((qaSeed=(Math.imul(qaSeed,1664525)+1013904223)>>>0)/4294967296);
   const s=newGame(()=>.5);
@@ -132,9 +133,76 @@ function sameRects(before,after,label){
   }
  }
 
+
+ for(const [file,crops]of [
+  ["season-rooms-2026.png",[[0,520,"tet-2026-cafe-room"],[521,1041,"summer-2026-cafe-room"],[1042,1536,"autumn-2026-cafe-room"]]],
+  ["summer-autumn-bars-2026.png",[[0,193,"summer-2026-ui-header"],[194,355,"summer-2026-ui-deliver"],[356,545,"summer-2026-ui-order"],[546,732,"summer-2026-ui-footer"],[733,930,"autumn-2026-ui-header"],[931,1089,"autumn-2026-ui-deliver"],[1090,1277,"autumn-2026-ui-order"],[1278,1536,"autumn-2026-ui-footer"]]],
+  ["tet-bars-2026.png",[[0,443,"tet-2026-ui-header"],[444,739,"tet-2026-ui-deliver"],[740,1086,"tet-2026-ui-order"],[1087,1456,"tet-2026-ui-footer"]]]
+ ]){
+  const source="data:image/png;base64,"+fs.readFileSync(path.join(root,"assets/bean-around/sources",file)).toString("base64");
+  const out=await artPage.evaluate(async({source,crops})=>{const im=new Image();im.src=source;await im.decode();return crops.map(([a,b,name])=>{const c=document.createElement("canvas");c.width=name.includes("room")?780:1170;c.height=Math.round(c.width*(b-a)/im.width);c.getContext("2d").drawImage(im,0,a,im.width,b-a,0,0,c.width,c.height);return {name,data:c.toDataURL("image/webp",.91)}})},{source,crops});
+  for(const a of out){const target=path.join(root,"assets/bean-around",a.name+".webp");if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(a.data.split(",")[1],"base64"));if(process.env.BROWSER!=="webkit")console.log("PACKAGE_ASSET_"+a.name+"="+a.data)}
+ }
+
  await artPage.close();
 
  try{
+
+  const opsContext=await browser.newContext();
+  const opsPage=await opsContext.newPage();await opsPage.goto(url+"/index.html");
+  await opsPage.waitForFunction(()=>typeof storageBooting!=="undefined"&&!storageBooting);
+  report.operations=await opsPage.evaluate(()=>{
+   const checks=[],check=(name,fn)=>{try{checks.push({name,ok:true,result:fn()})}catch(e){checks.push({name,ok:false,error:e.message})}},assert=(v,m)=>{if(!v)throw Error(m||"assertion")};
+   const stock=s=>{for(const[k,g]of Object.entries(G))s.stock[k]=[{n:100000,expiry:s.day+99,unitCost:g.unitCost}];for(const[k,g]of Object.entries(BAKES))s.bakery.stock[k]=[{n:10000,expiry:s.day+99,unitCost:g.cost}]};
+   const full=()=>{const s=chainTestShop(63);for(const k of Object.keys(EQUIPMENT))s.upgrades[k]=true;for(const k of Object.keys(STAFF))Object.assign(s.employees[k],{hired:true,workingToday:true});s.online.tablet=s.online.enabled=true;s.online.quotaUnit="orders";s.bakery.owned=true;stock(s);Object.assign(s.events,{preparedDay:s.day,active:null,broken:null});s.ops.active=s.ops.scheduled=null;return s};
+   for(const quota of [300,750,1500,1700])check("complete "+quota+" parcels by 240 active seconds",()=>{
+    let s=full();s.phase="open";s.dayGoal=60;s.served=0;s.order=makeOrder(s,()=>.5);s.online.dayQuota=quota;s.online.remaining=quota;s.online.issued=0;s.online.queue=[];deliveryDefaults(s);beginOnlinePacing(s);let halfway=0;
+    const oldRandom=gameRandom;let seed=47;gameRandom=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
+    try{for(let t=0;t<1200;t++){advanceOnlinePacing(s,.2);clockDelta=.2;tickOnline(s);if(t===599){halfway=s.stats.onlineReceipts;s=migrateSave(clone(s))}}
+    }finally{gameRandom=oldRandom}
+    assert(s.stats.onlineReceipts===quota,"served "+s.stats.onlineReceipts+"/"+quota+" remaining "+s.online.remaining+" queue "+s.online.queue.length);
+    assert(halfway>0&&halfway<quota*.7,"bad pacing");assert(s.stats.failedReceipts===0,"failed parcels");assert(s.stats.ingredientsUsed>0&&s.stats.onlineFees>0,"free revenue");assert(s.cleanliness>=95,"dirty counter");assert(!s.reviews.some(r=>r.outcome?.errors?.includes("quầy chưa sạch")),"dirty reviews");
+    return {receipts:s.stats.onlineReceipts,cups:s.stats.onlineOrders,halfway,cleanliness:s.cleanliness,bytes:JSON.stringify(s).length};
+   });
+   check("missing stock never creates free sales",()=>{const s=full();s.phase="open";s.stock.cup=[];s.online.dayQuota=s.online.remaining=10;s.online.issued=0;s.online.queue=[];beginOnlinePacing(s);s.online.pacing.progress=1;for(let i=0;i<30;i++){clockDelta=.2;tickOnline(s)}assert(s.stats.grossRevenue===0,"free sales")});
+   check("network actions charge each wallet once and preserve branch identities",()=>{
+    const root=full(),b=maxTestBranch(root,openBranch(root,2));stock(b);state=networkBind(root);root.events.advertising=0;b.events.deliveryAdDay=0;const r=root.cash,c=b.cash;
+    networkOperation("advertise");assert(root.cash===r-1000&&b.cash===c-1000,"ad wallets");networkOperation("advertise");assert(root.cash===r-1000&&b.cash===c-1000,"duplicate charge");
+    root.cleanliness=20;b.cleanliness=30;networkOperation("clean");assert(root.cleanliness===100&&b.cleanliness===100&&root.chain.branch===b,"clean/reference");
+    root.condition=50;b.condition=40;networkOperation("repair");assert(root.condition===100&&b.condition===100,"maintenance");
+    const before=root.cash,bc=b.cash;b.cash=0;for(const k of Object.keys(G))b.stock[k]=[];const message=networkOperation("stock",{bean:1});assert(root.cash<before&&b.cash===0&&message.includes("chưa áp dụng"),"partial wallet rollback");b.cash=bc;
+    assert(validCore(root),"invalid root");
+   });
+   check("package purchase months and legacy entitlement",()=>{const expected={tet:[1,2],summer:[5,6],autumn:[8,9],xmas:[11,12]};for(const[k,v]of Object.entries(expected))assert(JSON.stringify(SEASON_PACKAGES[k].months)===JSON.stringify(v),k);const s=full();s.seasonPackage={id:"midautumn",start:s.day,end:s.day+29,paid:30000};assert(activeDecoration(s)&&onlineDecorationFactor(s)===2,"legacy package lost")});
+
+   check("managed network completes online in each shop within four-minute active shift",()=>{
+    const root=full();networkBind(root);const b2=maxTestBranch(root,openBranch(root,2));stock(b2);const b3=maxTestBranch(root,openBranch(root,3));stock(b3);
+    state=networkBind(root);openDay(state);setManagerDuty(state,true);for(const s of networkShops(root)){s.ops.active=null;s.ops.scheduled=null;s.events.active=null;}
+    let ticks=0;while(root.phase==="open"&&!root.cadence.awaiting&&ticks++<1600){clockStep(root,.2);if(root.order?.needsClarification)confirmOrder(root)}
+    const results=networkShops(root).map(s=>({shop:locationNumber(s),target:s===root?s.online.dayQuota:s.branchControl.onlineGoal,receipts:s.stats.onlineReceipts,phase:s.phase,clean:s.cleanliness,condition:s.condition,repair:s.stats.repair,pending:s.online.remaining}));
+    for(const row of results){assert(row.receipts===row.target,"network "+JSON.stringify(results));assert(row.clean>=94,"network dirty");assert(row.condition>=74,"managed machine neglected")}
+    return results;
+   });
+
+   return checks;
+  });
+  assert(report.operations.every(x=>x.ok),"operations failed: "+JSON.stringify(report.operations.filter(x=>!x.ok)));
+  // Simulate localStorage quota/security denial, then prove IndexedDB restores the complete save.
+  await opsPage.evaluate(async()=>{state=networkBind(newGame(()=>.5));state.cash=123456;state.day=9;Storage.prototype.setItem=function(){throw new DOMException("quota","QuotaExceededError")};save(true);while(saveWriting||saveQueue)await new Promise(r=>setTimeout(r,10));});
+  await opsPage.reload();await opsPage.waitForFunction(()=>!storageBooting);
+  assert(await opsPage.evaluate(()=>state.cash===123456&&state.day===9&&!saveBlocked),"IndexedDB did not restore after localStorage failure");
+  report.saveFallback="localStorage quota failure -> IndexedDB -> reload passed";
+  report.regression=await opsPage.evaluate(()=>{
+   const before=state,root=visitRoot,rows=[];try{
+    for(const[k,v]of Object.entries(window))if(/^BeanAround.*Checks$/.test(k)&&typeof v?.run==="function"){try{const result=v.run();if(Array.isArray(result))rows.push(...result.map(x=>({...x,suite:k})))}catch(e){rows.push({suite:k,ok:false,error:e.message})}}
+    const d=BeanAroundDiagnostics.run();rows.push(...d.tests.map(x=>({...x,suite:"diagnostics"})));
+   }finally{state=before;visitRoot=root}
+   return {count:rows.length,failed:rows.filter(x=>x.ok===false||x.passed===false)};
+  });
+
+  assert(report.regression.failed.length===0,"regression: "+JSON.stringify(report.regression.failed));
+  await opsContext.close();
+
   for(const viewport of [{width:390,height:844},{width:375,height:812},{width:430,height:932}]){
    const context=await browser.newContext({viewport,deviceScaleFactor:1,isMobile:true,hasTouch:true,reducedMotion:"reduce"});
    const page=await context.newPage();
@@ -160,11 +228,11 @@ function sameRects(before,after,label){
      const game=document.getElementById("game"),t=SeasonTheme[game.dataset.cafeTheme],order=game.querySelector(".compact-order");
      return {header:getComputedStyle(game.querySelector(".topbar")).backgroundColor,room:game.querySelector(".cafe-room").getAttribute("src"),note:order.dataset.cafeNote,expectedRoom:t.background};
     });
-    const expectedColors={spring:"rgb(255, 247, 235)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(132, 28, 35)"};
+    const expectedColors={spring:"rgb(142, 24, 32)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(132, 28, 35)"};
     assert(visual.header===expectedColors[theme],"season header color missing "+JSON.stringify(visual));
     assert(visual.room===visual.expectedRoom,"wrong seasonal environment");
     assert(visual.note==="show","simple order should show safe note");
-    if(theme==="winter"||theme==="spring"){
+    if(["winter","spring","summer","autumn"].includes(theme)){
      const art=await page.evaluate(()=>({parts:Array.from(document.querySelectorAll(".cafe-component-skin")).map(el=>el.dataset.skin).sort(),note:getComputedStyle(document.querySelector(".compact-order"),"::after").content,props:document.querySelector(".cafe-winter-counter-props")?getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display:"none"}));
      assert(JSON.stringify(art.parts)===JSON.stringify(["cta","header","nav","order"]),"missing winter component art: "+JSON.stringify(art));
      assert(art.note==="none","old decorative note overlaps the approved order design");
@@ -222,7 +290,7 @@ function sameRects(before,after,label){
     await page.evaluate(()=>{hireStaff(state,"online");showSheet("onlineQA","Online chi nhánh",onlineMarkup())});
     await page.locator('button[data-action="advertise"]').last().click();
     const ownAd=await page.evaluate(()=>({active:deliveryCampaign(state),cash:state.cash,main:networkOwner(state).cash}));
-    assert(ownAd.active&&ownAd.cash===activeBranch.branch-6500-250-1000&&ownAd.main===activeBranch.main,"selected branch advertising UI charged wrong shop or flag");
+    assert(ownAd.active&&ownAd.cash===activeBranch.branch-6500-250-1000&&ownAd.main===activeBranch.main-1000,"selected branch advertising UI charged wrong shop or flag");
     report.branchOnlineUI="purchase and advertising buttons passed";
     await setup(page,"latte");
     const retention=await page.evaluate(()=>{
@@ -263,7 +331,7 @@ function sameRects(before,after,label){
    await page.locator(".deliver-art").click();
    const saleAfter=await page.evaluate(()=>({uid:state.order?.uid,revenue:state.lifetimeRevenue}));
    assert(saleAfter.uid!==saleBefore.uid&&saleAfter.revenue>saleBefore.revenue,"decorated delivery CTA failed to settle order");
-   await page.evaluate(()=>window.BeanAroundSeasonTheme.setPreview("summer"));
+   await page.evaluate(()=>window.BeanAroundSeasonTheme.setPreview("off"));
    assert(await page.locator(".cafe-component-skin").count()===0,"component art did not unmount");
    report.liveLabels=await page.evaluate(()=>Object.fromEntries(["#headerStars","#rating",".navbar button:nth-child(4) svg"].map(selector=>{const el=document.querySelector(selector),r=el.getBoundingClientRect(),s=getComputedStyle(el);return [selector,{text:el.textContent,display:s.display,opacity:s.opacity,visibility:s.visibility,zIndex:s.zIndex,rect:{x:r.x,y:r.y,width:r.width,height:r.height}}]})));
    report.viewports.push({viewport,geometry:"unchanged",touch:"passed",delivery:"real completed recipe served"});

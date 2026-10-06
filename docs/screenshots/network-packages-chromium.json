@@ -1,0 +1,237 @@
+{
+  "baseline": "578ef270",
+  "screenshots": [
+    "autumn-390x844.png",
+    "spring-390x844.png",
+    "summer-390x844.png",
+    "winter-390x844.png",
+    "equipment-latte-idle.png",
+    "equipment-latte-working.png",
+    "equipment-apple-idle.png",
+    "equipment-apple-working.png",
+    "equipment-mangoCoconut-idle.png",
+    "equipment-mangoCoconut-working.png",
+    "autumn-375x812.png",
+    "spring-375x812.png",
+    "summer-375x812.png",
+    "winter-375x812.png",
+    "autumn-430x932.png",
+    "spring-430x932.png",
+    "summer-430x932.png",
+    "winter-430x932.png"
+  ],
+  "viewports": [
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "geometry": "unchanged",
+      "touch": "passed",
+      "delivery": "real completed recipe served"
+    },
+    {
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "geometry": "unchanged",
+      "touch": "passed",
+      "delivery": "real completed recipe served"
+    },
+    {
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "geometry": "unchanged",
+      "touch": "passed",
+      "delivery": "real completed recipe served"
+    }
+  ],
+  "errors": [],
+  "operations": [
+    {
+      "name": "complete 300 parcels by 240 active seconds",
+      "ok": true,
+      "result": {
+        "receipts": 300,
+        "cups": 589,
+        "halfway": 167,
+        "cleanliness": 95,
+        "bytes": 431680
+      }
+    },
+    {
+      "name": "complete 750 parcels by 240 active seconds",
+      "ok": true,
+      "result": {
+        "receipts": 750,
+        "cups": 1543,
+        "halfway": 418,
+        "cleanliness": 95,
+        "bytes": 1050185
+      }
+    },
+    {
+      "name": "complete 1500 parcels by 240 active seconds",
+      "ok": true,
+      "result": {
+        "receipts": 1500,
+        "cups": 3107,
+        "halfway": 837,
+        "cleanliness": 95,
+        "bytes": 1917568
+      }
+    },
+    {
+      "name": "complete 1700 parcels by 240 active seconds",
+      "ok": true,
+      "result": {
+        "receipts": 1700,
+        "cups": 3428,
+        "halfway": 949,
+        "cleanliness": 95,
+        "bytes": 2092994
+      }
+    },
+    {
+      "name": "missing stock never creates free sales",
+      "ok": true
+    },
+    {
+      "name": "network actions charge each wallet once and preserve branch identities",
+      "ok": true
+    },
+    {
+      "name": "package purchase months and legacy entitlement",
+      "ok": true
+    },
+    {
+      "name": "managed network completes online in each shop within four-minute active shift",
+      "ok": true,
+      "result": [
+        {
+          "shop": 1,
+          "target": 200,
+          "receipts": 200,
+          "phase": "report",
+          "clean": 94.96,
+          "condition": 77.63999999999788,
+          "repair": 0,
+          "pending": 0
+        },
+        {
+          "shop": 2,
+          "target": 162,
+          "receipts": 162,
+          "phase": "report",
+          "clean": 95,
+          "condition": 100,
+          "repair": 0,
+          "pending": 0
+        },
+        {
+          "shop": 3,
+          "target": 144,
+          "receipts": 144,
+          "phase": "report",
+          "clean": 95,
+          "condition": 100,
+          "repair": 0,
+          "pending": 0
+        }
+      ]
+    }
+  ],
+  "saveFallback": "localStorage quota failure -> IndexedDB -> reload passed",
+  "regression": {
+    "count": 1089,
+    "failed": []
+  },
+  "branchLaunch": [
+    {
+      "name": "branch 2 real paid path reaches about 300 at fifth shift",
+      "ok": true
+    },
+    {
+      "name": "branch 3 real paid path reaches about 300 at fifth shift",
+      "ok": true
+    },
+    {
+      "name": "launch cannot be purchased without online station and worker",
+      "ok": true
+    },
+    {
+      "name": "launch charged once, preserves ownership on reload",
+      "ok": true
+    },
+    {
+      "name": "days off do not complete training",
+      "ok": true
+    },
+    {
+      "name": "advertising and active trained workers remain required",
+      "ok": true
+    },
+    {
+      "name": "poor quality still reduces demand; no fixed order grant",
+      "ok": true
+    },
+    {
+      "name": "season bonus doubles real branch forecast after early path",
+      "ok": true
+    },
+    {
+      "name": "selected branch advertising uses its own campaign flag and wallet",
+      "ok": true
+    },
+    {
+      "name": "main shop has no launch subsidy and existing save not granted it",
+      "ok": true
+    }
+  ],
+  "branchOnlineUI": "purchase and advertising buttons passed",
+  "liveLabels": {
+    "#headerStars": {
+      "text": "★★★★★",
+      "display": "block",
+      "opacity": "1",
+      "visibility": "visible",
+      "zIndex": "auto",
+      "rect": {
+        "x": 318,
+        "y": 8.65625,
+        "width": 102,
+        "height": 23.1875
+      }
+    },
+    "#rating": {
+      "text": "5,0",
+      "display": "inline",
+      "opacity": "1",
+      "visibility": "visible",
+      "zIndex": "auto",
+      "rect": {
+        "x": 400.53125,
+        "y": 33.84375,
+        "width": 19.46875,
+        "height": 16
+      }
+    },
+    ".navbar button:nth-child(4) svg": {
+      "text": "",
+      "display": "block",
+      "opacity": "1",
+      "visibility": "visible",
+      "zIndex": "auto",
+      "rect": {
+        "x": 288.5,
+        "y": 888,
+        "width": 23,
+        "height": 23
+      }
+    }
+  },
+  "status": "passed"
+}
