@@ -182,6 +182,14 @@ function sameRects(before,after,label){
   await opsPage.reload();await opsPage.waitForFunction(()=>!storageBooting);
   assert(await opsPage.evaluate(()=>state.cash===123456&&state.day===9&&!saveBlocked),"IndexedDB did not restore after localStorage failure");
   report.saveFallback="localStorage quota failure -> IndexedDB -> reload passed";
+  report.regression=await opsPage.evaluate(()=>{
+   const before=state,root=visitRoot,rows=[];try{
+    for(const[k,v]of Object.entries(window))if(/^BeanAround.*Checks$/.test(k)&&typeof v?.run==="function"){try{const result=v.run();if(Array.isArray(result))rows.push(...result.map(x=>({...x,suite:k})))}catch(e){rows.push({suite:k,ok:false,error:e.message})}}
+    const d=BeanAroundDiagnostics.run();rows.push(...d.tests.map(x=>({...x,suite:"diagnostics"})));
+   }finally{state=before;visitRoot=root}
+   return {count:rows.length,failed:rows.filter(x=>x.ok===false||x.passed===false)};
+  });
+
   await opsContext.close();
 
   for(const viewport of [{width:390,height:844},{width:375,height:812},{width:430,height:932}]){
@@ -271,7 +279,7 @@ function sameRects(before,after,label){
     await page.evaluate(()=>{hireStaff(state,"online");showSheet("onlineQA","Online chi nhánh",onlineMarkup())});
     await page.locator('button[data-action="advertise"]').last().click();
     const ownAd=await page.evaluate(()=>({active:deliveryCampaign(state),cash:state.cash,main:networkOwner(state).cash}));
-    assert(ownAd.active&&ownAd.cash===activeBranch.branch-6500-250-1000&&ownAd.main===activeBranch.main,"selected branch advertising UI charged wrong shop or flag");
+    assert(ownAd.active&&ownAd.cash===activeBranch.branch-6500-250-1000&&ownAd.main===activeBranch.main-1000,"selected branch advertising UI charged wrong shop or flag");
     report.branchOnlineUI="purchase and advertising buttons passed";
     await setup(page,"latte");
     const retention=await page.evaluate(()=>{

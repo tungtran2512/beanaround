@@ -2378,7 +2378,7 @@ function cleanShop(s){
  if(s.phase==="open")throw Error("Vệ sinh trước hoặc sau ca.");if(s.cleanliness===100)throw Error("Quầy đã sạch.");
  pay(s,Math.min(12,s.cash),"maintenance");s.cleanliness=100;
 }
-function repairShopV7(s){prepOnly(s);if(!s.events.broken&&s.condition>=100)throw Error("Máy đang tốt.");pay(s,Math.min(80,s.cash*.08),"repair");s.events.broken=null;s.condition=100}
+function repairShopV7(s){prepOnly(s);if(!s.events.broken&&s.condition>=100&&!s.ops?.acBroken&&!s.ops?.lidBroken)throw Error("Máy đang tốt.");pay(s,Math.min(80,s.cash*.08),"repair");s.events.broken=null;s.condition=100}
 function advertise(s){if(s.isBranch){advertiseBranchShop(s);return}prepOnly(s);if(s.events.advertising)throw Error("Đã quảng cáo hôm nay.");pay(s,1000,"advertising");s.events.advertising=1;s.events.traffic*=1.15;gainRep(s,.3)}
 /* ==================== ECONOMY / INVENTORY / REPORTING ==================== */
 function packPrice(s,k){return roundK(G[k].cost*(s.events.sale?.85:1)*(s.events.delay?(G[k].pack-1)/G[k].pack:1))}
@@ -3964,7 +3964,7 @@ function tickUI(){
  if(!document.hidden&&networkOwner(state).visitPlan?.attention&&state.phase==="open"){if(modal!=="networkAttention")networkAttentionSheet();return}
  if(state.cadence?.awaiting&&state.phase==="open"){if(modal!=="shortShift")shortShiftSheet();return}
  if(state.cadence?.handedOff&&!document.hidden&&state.phase==="open"&&!modal){for(let i=0;i<40&&state.phase==="open";i++)clockStep(state,.2);save();paint();if(state.phase==="report")reportSheet();return}
- const shiftLabel=$("shiftMeter");if(shiftLabel&&state.cadence){const secs=Math.max(0,270-Math.floor(state.cadence.seconds));shiftLabel.textContent="Ca trực còn "+Math.floor(secs/60)+":"+String(secs%60).padStart(2,"0")}
+ const shiftLabel=$("shiftMeter");if(shiftLabel&&state.cadence){const secs=Math.max(0,state.cadence.limit-Math.floor(state.cadence.seconds));shiftLabel.textContent="Ca trực còn "+Math.floor(secs/60)+":"+String(secs%60).padStart(2,"0")}
  if(document.hidden||state.phase!=="open")return;
  const bakeBadge=document.querySelector(".bakery-service-bar .selected .stock-badge");if(bakeBadge&&state.order?.bakery?.status==="preparing")bakeBadge.textContent=Math.ceil(state.order.bakery.remaining)+"s";
  textIfChanged("shopClock",shopTime(state));textIfChanged("teamMessage",(managerActive(state)?"👔 Quản lý · ":"")+state.frontStatus);const bakeLabel=document.querySelector(".bakery-service .art-label");if(bakeLabel&&state.order?.bakery?.status==="preparing")bakeLabel.textContent=Math.ceil(state.order.bakery.remaining)+"s";
@@ -6311,8 +6311,8 @@ window.BeanAroundArrivalPacingChecks={run(){
  test("opening receives only one parcel, never entire daily queue",()=>{const s=shop();openDay(s);a(s.online.dayQuota===500&&s.online.issued===1&&s.online.remaining===499&&s.online.queue.length<=3&&s.online.pacing.progress===0&&shopTime(s)==="07:00")});
  test("arrival curve bounded monotonic and final order held until2150",()=>{const s=shop();openDay(s);let old=0;for(let i=0;i<=1000;i++){s.online.pacing.progress=i/1000;const n=onlineArrivalAllowance(s);a(n>=old&&n<=500);old=n}a(old===500);s.online.pacing.progress=14.75/15;a(onlineArrivalAllowance(s)===495);s.online.pacing.progress=14.82/15;a(onlineArrivalAllowance(s)<500);s.online.pacing.progress=14.84/15;a(onlineArrivalAllowance(s)===500)});
  test("lunch evening and closing waves have distinct cumulative quotas",()=>{const s=shop();openDay(s);for(const[p,n]of [[4/15,110],[7/15,260],[10/15,330],[13/15,450]]){s.online.pacing.progress=p;a(onlineArrivalAllowance(s)===n)}});
- test("many automated receipts cannot accelerate the clock before counter",()=>{const s=shop();openDay(s);s.stats.onlineReceipts=400;s.online.pacing.elapsed=300;s.served=0;advanceOnlinePacing(s,1);a(s.online.pacing.progress===0&&onlineArrivalAllowance(s)===1)});
- test("slow counter caps timeline without prematurely cancelling daily quota",()=>{const s=shop();openDay(s);s.online.pacing.elapsed=10000;s.served=15;advanceOnlinePacing(s,1);a(s.online.pacing.progress===.25&&onlineArrivalAllowance(s)<120&&s.online.dayQuota===500)});
+ test("online schedule finishes even if counter is slow",()=>{const s=shop();openDay(s);s.stats.onlineReceipts=400;s.online.pacing.elapsed=230;s.served=0;advanceOnlinePacing(s,1);a(s.online.pacing.progress===1&&onlineArrivalAllowance(s)===500)});
+ test("counter progress no longer caps online arrivals",()=>{const s=shop();openDay(s);s.online.pacing.elapsed=114;s.served=0;advanceOnlinePacing(s,1);a(s.online.pacing.progress===.5&&s.online.dayQuota===500)});
  test("future arrivals carry no timer or stock consumption",()=>{const s=shop();openDay(s);const before=quantity(s,"cup");s.online.queue=[];s.delivery.pending=[];s.delivery.tickets={};const remaining=s.online.remaining;for(let i=0;i<50;i++)issueOnline(s);a(s.online.remaining===remaining&&!s.online.queue.length&&quantity(s,"cup")===before&&!s.stats.onlineFailed)});
  test("pacing state survives save reload without reroll or offline advancement",()=>{const s=shop();openDay(s);s.served=60;advanceOnlinePacing(s,100);const p=JSON.stringify(s.online.pacing),cash=s.cash,m=migrateSave(clone(s));a(JSON.stringify(m.online.pacing)===p&&m.cash===cash&&m.online.remaining===s.online.remaining&&validCore(m))});
  test("blocking event pauses arrival clock",()=>{const s=shop();openDay(s);const p=JSON.stringify(s.online.pacing);s.ops.active={id:"acFault"};clockStep(s,30);a(JSON.stringify(s.online.pacing)===p)});
@@ -7279,7 +7279,7 @@ window.BeanAroundVisitChecks={run(){
  test("old save keeps money stock staff and active progress",()=>{const s=chainTestShop(29),old=JSON.stringify({cash:s.cash,stock:s.stock,employees:s.employees});const m=migrateSave(s);networkBind(m);a(JSON.stringify({cash:m.cash,stock:m.stock,employees:m.employees})===old&&m.visitPlan.selected===1)});
  test("new solo shop starts with20 cups",()=>{const s=newGame(()=>.5);networkBind(s);a(plannedTraffic(s)===20);s.day=5;s.reputation=90;a(plannedTraffic(s)<=20)});
  test("owned team still serves up to60",()=>{const s=full();a(plannedTraffic(s)===60)});
- test("short shift stops manual duty at270 active seconds",()=>{const s=full();s.online.enabled=false;openDay(s);s.cadence.seconds=269.8;clockStep(s,.2);a(s.cadence.awaiting&&s.cadence.seconds===270);const before=JSON.stringify(s.stock);clockStep(s,10);a(s.cadence.seconds===270&&JSON.stringify(s.stock)===before)});
+ test("short shift stops manual duty at240 active seconds",()=>{const s=full();s.online.enabled=false;openDay(s);s.cadence.seconds=239.8;clockStep(s,.2);a(s.cadence.awaiting&&s.cadence.seconds===240);const before=JSON.stringify(s.stock);clockStep(s,10);a(s.cadence.seconds===240&&JSON.stringify(s.stock)===before)});
  test("reading clarification does not spend owner duty",()=>{const s=full();openDay(s);s.order.needsClarification=true;const t=s.cadence.seconds;clockStep(s,1);a(s.cadence.seconds===t)});
  test("five interventions for a staffed short shift",()=>{const s=full();openDay(s);a(ensureTakeoverPlan(s).target===5)});
  test("early-close option produces an actual report",()=>{const s=full();openDay(s);s.cadence.awaiting=true;finishOwnerShift(s,false);a(s.phase==="report"&&s.stats.grossRevenue===0&&s.stats.closedByOwner)});
