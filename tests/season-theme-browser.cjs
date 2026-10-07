@@ -264,7 +264,7 @@ function sameRects(before,after,label){
    check("package purchase months and legacy entitlement",()=>{const expected={tet:[1,2],summer:[5,6],autumn:[8,9],xmas:[11,12]};for(const[k,v]of Object.entries(expected))assert(JSON.stringify(SEASON_PACKAGES[k].months)===JSON.stringify(v),k);const s=full();s.seasonPackage={id:"midautumn",start:s.day,end:s.day+29,paid:30000};assert(activeDecoration(s)&&onlineDecorationFactor(s)===2,"legacy package lost")});
 
    check("managed network completes online in each shop within four-minute active shift",()=>{
-    const root=full();networkBind(root);const b2=maxTestBranch(root,openBranch(root,2));stock(b2);const b3=maxTestBranch(root,openBranch(root,3));stock(b3);
+    const root=full();root.day=150;root.cash=9000000;root.events.preparedDay=root.day;root.financialHistory=clone(chainTestShop(150).financialHistory);networkBind(root);for(const no of BRANCH_NUMBERS)stock(maxTestBranch(root,openBranch(root,no)));
     state=networkBind(root);openDay(state);setManagerDuty(state,true);for(const s of networkShops(root)){s.ops.active=null;s.ops.scheduled=null;s.events.active=null;}
     let ticks=0;while(root.phase==="open"&&!root.cadence.awaiting&&ticks++<1600){clockStep(root,.2);if(root.order?.needsClarification)confirmOrder(root)}
     const results=networkShops(root).map(s=>({shop:locationNumber(s),target:s===root?s.online.dayQuota:s.branchControl.onlineGoal,receipts:s.stats.onlineReceipts,phase:s.phase,clean:s.cleanliness,condition:s.condition,repair:s.stats.repair,pending:s.online.remaining}));
@@ -319,6 +319,11 @@ function sameRects(before,after,label){
     const expectedColors={spring:"rgb(142, 24, 32)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(132, 28, 35)"};
     assert(visual.header===expectedColors[theme],"season header color missing "+JSON.stringify(visual));
     assert(visual.room===visual.expectedRoom,"wrong seasonal environment");
+    const cropped=await page.evaluate(()=>["header","order","nav"].every(part=>{
+     const el=document.querySelector('[data-skin="'+part+'"] .cafe-skin-slices');
+     return el&&getComputedStyle(el).backgroundSize==="cover"&&getComputedStyle(el.firstElementChild).display==="none";
+    }));
+    assert(cropped,"season artwork must crop without distorting intrinsic proportions");
     assert(visual.note==="show","simple order should show safe note");
     if(["winter","spring","summer","autumn"].includes(theme)){
      const art=await page.evaluate(()=>({parts:Array.from(document.querySelectorAll(".cafe-component-skin")).map(el=>el.dataset.skin).sort(),note:getComputedStyle(document.querySelector(".compact-order"),"::after").content,props:document.querySelector(".cafe-winter-counter-props")?getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display:"none"}));
