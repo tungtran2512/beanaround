@@ -162,6 +162,32 @@ function sameRects(before,after,label){
    const stock=s=>{for(const[k,g]of Object.entries(G))s.stock[k]=[{n:100000,expiry:s.day+99,unitCost:g.unitCost}];for(const[k,g]of Object.entries(BAKES))s.bakery.stock[k]=[{n:10000,expiry:s.day+99,unitCost:g.cost}]};
    const full=()=>{const s=chainTestShop(63);for(const k of Object.keys(EQUIPMENT))s.upgrades[k]=true;for(const k of Object.keys(STAFF))Object.assign(s.employees[k],{hired:true,workingToday:true});s.online.tablet=s.online.enabled=true;s.online.quotaUnit="orders";s.bakery.owned=true;stock(s);Object.assign(s.events,{preparedDay:s.day,active:null,broken:null});s.ops.active=s.ops.scheduled=null;return s};
 
+   check("five-star online reward is local, exact, repeatable and read-only",()=>{
+    const root=full();root.day=150;root.cash=9000000;root.financialHistory=clone(chainTestShop(150).financialHistory);networkBind(root);
+    for(const no of BRANCH_NUMBERS)maxTestBranch(root,openBranch(root,no));
+    for(const shop of networkShops(root)){
+     shop.reputation=100;shop.customersServed=100000;shop.events.deliveryAdDay=shop.day;shop.events.advertising=1;
+     shop.ratingSummary={sum:499,count:100};assert(fiveStarOnlineFactor(shop)===1,"rounded rating got reward");
+     shop.ratingSummary={sum:0,count:0};assert(fiveStarOnlineFactor(shop)===1,"unreviewed shop rewarded");
+     shop.ratingSummary={sum:500,count:100};
+     const before=JSON.stringify(shop),normalBase=basePromotedOnlineCapacity(shop),normalForecast=onlineVolumeBase({...shop,ratingSummary:{sum:499.99,count:100}});
+     assert(fiveStarOnlineFactor(shop)===1.5,"five-star reward missing");
+     assert(onlineCapacity(shop)===Math.floor(normalBase*1.5+1e-7),"capacity bonus");
+     assert(Math.abs(onlineVolumeBase(shop)-normalForecast*1.5)<=3,"demand bonus");
+     onlineVolumeBase(shop);onlineCapacity(shop);assert(JSON.stringify(shop)===before,"reward mutated rating or state");
+     addRating(shop,4);assert(fiveStarOnlineFactor(shop)===1,"reward survives lower rating");
+     assert(onlineCapacity(shop)===normalBase,"capacity did not revert");
+    }
+    root.ratingSummary={sum:5,count:1};
+    assert(branches(root).every(b=>fiveStarOnlineFactor(b)===1),"main rating leaked to branch");
+    const b=root.chain.branch5;b.ratingSummary={sum:500,count:100};b.contest.promoStart=b.day;b.contest.promoEnd=b.day+14;root.contest.promoStart=root.day;root.contest.promoEnd=root.day+14;syncContestPromotion(root);
+    b.seasonPackage={id:"summer",start:b.day,end:b.day+29,paid:30000};
+    assert(onlineCapacity(b)===3824,"stacking/rounding changed");
+    const count=branchForecast(root,5).online;assert(count>0&&count<=3824,"branch forecast");
+    b.business.onlineLimit=100;assert(branchForecast(root,5).online===100,"admission limit ignored");
+    const restored=migrateSave(clone(root));assert(fiveStarOnlineFactor(restored.chain.branch5)===1.5,"reload lost eligibility");
+    return {maxCapacity:3824,branchForecast:count};
+   });
    check("five shops open sequentially with independent capital, saves and visits",()=>{
     const root=chainTestShop(150);root.cash=6000000;networkBind(root);
     for(const no of BRANCH_NUMBERS){

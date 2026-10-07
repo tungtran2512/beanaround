@@ -2757,7 +2757,7 @@ function deliveryGrowthMarkup(s,branch=false){
  ["Quầy đôi + Giao theo lô (ngày 13, 2 ca) + Barista 4, đóng gói 2, Bàn chia đơn",!!s.upgrades.packingCounter&&trainedWorking(s,"batchDispatch")&&extraOnlineTeam(s,1),"400"],
  ["Cụm máy bổ sung + Barista 3 học Vận hành cụm máy (ngày 15, 2 ca)",!!s.upgrades.dualGroup&&trainedWorking(s,"machineWorkflow"),"450"],
  ["Trạm ba làn + Điều phối 500 (ngày 17, 2 ca) + Barista 5, đóng gói 3, Dây chuyền giao nhanh",!!s.upgrades.multiStation&&trainedWorking(s,"fulfillmentLead")&&extraOnlineTeam(s,2),"500"]];
- return (s.isBranch?branchOnlineRoadmap(s):"")+contestPromoMarkup(s)+'<section class="business-card"><h3>PHÁT TRIỂN SHOPEE FOOD</h3><p>Trần đội ngũ: <b>'+onlineCapacity(s)+' đơn/ca</b>. Cần đủ các bậc trước; nhu cầu thực tế còn tùy rating, giá và thời tiết.</p><p>Giá Shopee Food +15% so với giá quầy; phí 18% tính trên doanh thu online thực thu, trước giá vốn.</p>'+
+ return (s.isBranch?branchOnlineRoadmap(s):"")+fiveStarOnlineMarkup(s)+contestPromoMarkup(s)+'<section class="business-card"><h3>PHÁT TRIỂN SHOPEE FOOD</h3><p>Trần đội ngũ: <b>'+onlineCapacity(s)+' đơn/ca</b>. Cần đủ các bậc trước; nhu cầu thực tế còn tùy rating, giá và thời tiết.</p><p>Giá Shopee Food +15% so với giá quầy; phí 18% tính trên doanh thu online thực thu, trước giá vốn.</p>'+
  rows.map(([name,ok,cap])=>'<div class="financial-row"><span>'+(ok?"✓ ":"○ ")+name+'</span><b>'+cap+' đơn</b></div>').join("")+
  '<p>Quầy tối đa 60 khách/ngày, kể cả cuối tuần và lễ. Ngày đầu 20; chưa có barista tối đa 30. Thời tiết và rating vẫn ảnh hưởng lượng khách thực tế. Quầy chi nhánh hoàn thiện hướng tới 90% quán chính; online quán 2/3/4/5 có lợi thế +15%/+30%/+40%/+50% khi cùng nhân sự, nâng cấp, chất lượng và điều kiện bán.</p>'+
  (deliveryCampaign(s)?'<p class="owned-mark">✓ Đã chạy quảng cáo ca này</p>':btn("📣 QUẢNG CÁO SHOPEE FOOD · 1.000k",branch?"branchAdvertise":"advertise","","wide primary"))+
@@ -3838,6 +3838,9 @@ function legacyReportMarkup(){
 /* ==================== BARISTA CUP MOBILE UI ==================== */
 let contestRAF=0,contestLastFrame=0,contestTapBlock=0;
 function contestTrophy(){return '<svg class="contest-trophy" viewBox="0 0 100 100" aria-hidden="true"><path d="M30 15H70V41Q70 62 50 67Q30 62 30 41Z" fill="#e5b354" stroke="#794c20" stroke-width="3"/><path d="M30 22H17V34Q17 49 33 49M70 22H83V34Q83 49 67 49" fill="none" stroke="#bc802d" stroke-width="6"/><path d="M50 65V80M32 86H68" stroke="#794c20" stroke-width="7" stroke-linecap="round"/><path d="M50 27L54 36L64 37L56 44L58 54L50 49L42 54L44 44L36 37L46 36Z" fill="#fff5d5"/></svg>'}
+function fiveStarOnlineMarkup(s){
+ return '<p class="notice">'+(fiveStarOnlineFactor(s)>1?'5★ · Đang thưởng +50% đơn và công suất online cho quán này.':'Thưởng 5★ · +50% online khi điểm đánh giá thực tế của quán đạt đúng 5 sao.')+' Cộng cùng vô địch và trang trí; ngừng khi điểm giảm. Dự báo cập nhật theo rating, đơn đã nhận trong ca vẫn được phục vụ.</p>';
+}
 function contestPromoMarkup(s){
  if(contestBoost(s)===1)return "";
  return '<p class="notice contest-promo">🏆 VÔ ĐỊCH TOÀN CHUỖI · Nhu cầu & công suất Shopee +70% · còn '+((networkOwner(s).contest?.promoEnd||s.contest.promoEnd)-s.day+1)+' ngày, gồm hôm nay. Trần đội ngũ '+onlineCapacity(s)+' đơn; giới hạn tự đặt vẫn giữ. Nhớ bấm Gợi ý nhập hàng.</p>';
@@ -4351,7 +4354,9 @@ function onlineCapacityBase(s){
  if(!s.upgrades.multiStation||!trainedWorking(s,"fulfillmentLead")||!extraOnlineTeam(s,2))return 450;
  return 500;
 }
-function onlineCapacity(s){return basePromotedOnlineCapacity(s)*onlineDecorationFactor(s)}
+// Read the existing aggregate without mutating reviews or rounding 4.9x up to five stars.
+function fiveStarOnlineFactor(s){return s.ratingSummary?.count>0&&ratingValue(s)===5?1.5:1}
+function onlineCapacity(s){return Math.floor(basePromotedOnlineCapacity(s)*fiveStarOnlineFactor(s)+1e-7)*onlineDecorationFactor(s)}
 function additionalOnlineSlots(s){return Math.max(0,Math.min(onlineCapacity(s),s.business?.onlineLimit??onlineCapacity(s))-s.online.dayQuota)}
 function holidayActive(s){return !!s.holiday.kind&&s.day>=s.holiday.start&&s.day<=s.holiday.end}
 function holidayFactor(s){return holidayActive(s)?1.5:1}
@@ -4395,7 +4400,7 @@ function onlineVolumeBase(s){
  const demand=Math.max(0,marketDemand(attraction*multiplier*seasonalDemand(s)*(trainedWorking(s,"speedBrew")?1.1:1)*(trainedWorking(s,"packingLine")?1.08:1)*(trainedWorking(s,"dispatchLead")?1.08:1)*(s.upgrades.packingCounter?1.12:1)*(s.upgrades.dualGroup?1.12:1)*(s.upgrades.multiStation?1.12:1),500,s));
  // Round the original parcel forecast first, then double it, including championship demand.
  const baseOrders=Math.floor(Math.min(capacity,demand*contestBoost(s)*onlineLocationFactor(s))*onlineDailyFactor(s));
- return Math.min(baseOrders*onlineDecorationFactor(s),s.business?.onlineLimit??Infinity);
+ return Math.min(Math.floor(baseOrders*fiveStarOnlineFactor(s)+1e-7)*onlineDecorationFactor(s),s.business?.onlineLimit??Infinity);
 }
 function applyBusinessPlan(s,counter,online){
  prepOnly(s);const b=businessDefaults(s);
