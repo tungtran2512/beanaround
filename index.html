@@ -3839,7 +3839,7 @@ function legacyReportMarkup(){
 let contestRAF=0,contestLastFrame=0,contestTapBlock=0;
 function contestTrophy(){return '<svg class="contest-trophy" viewBox="0 0 100 100" aria-hidden="true"><path d="M30 15H70V41Q70 62 50 67Q30 62 30 41Z" fill="#e5b354" stroke="#794c20" stroke-width="3"/><path d="M30 22H17V34Q17 49 33 49M70 22H83V34Q83 49 67 49" fill="none" stroke="#bc802d" stroke-width="6"/><path d="M50 65V80M32 86H68" stroke="#794c20" stroke-width="7" stroke-linecap="round"/><path d="M50 27L54 36L64 37L56 44L58 54L50 49L42 54L44 44L36 37L46 36Z" fill="#fff5d5"/></svg>'}
 function fiveStarOnlineMarkup(s){
- return '<p class="notice">'+(fiveStarOnlineFactor(s)>1?'5★ · Đang thưởng +50% đơn và công suất online cho quán này.':'Thưởng 5★ · +50% online khi điểm đánh giá thực tế của quán đạt đúng 5 sao.')+' Cộng cùng vô địch và trang trí; ngừng khi điểm giảm. Dự báo cập nhật theo rating, đơn đã nhận trong ca vẫn được phục vụ.</p>';
+ return '<p class="notice">'+(fiveStarOnlineFactor(s)>1?'5★ · Đang thưởng +50% đơn và công suất online cho quán này.':'Thưởng 5★ · +50% online khi điểm số trên màn hình quán hiển thị 5,0.')+' Cộng cùng vô địch và trang trí; ngừng khi điểm hiển thị xuống dưới 5,0. Dự báo cập nhật ngay; số đơn ca đang mở đã chốt, thưởng áp dụng khi mở ca tiếp theo. Giới hạn online tự đặt vẫn được giữ.</p>';
 }
 function contestPromoMarkup(s){
  if(contestBoost(s)===1)return "";
@@ -4354,8 +4354,12 @@ function onlineCapacityBase(s){
  if(!s.upgrades.multiStation||!trainedWorking(s,"fulfillmentLead")||!extraOnlineTeam(s,2))return 450;
  return 500;
 }
-// Read the existing aggregate without mutating reviews or rounding 4.9x up to five stars.
-function fiveStarOnlineFactor(s){return s.ratingSummary?.count>0&&ratingValue(s)===5?1.5:1}
+// Eligibility follows the numeric rating shown in headerPaintV9, including its
+// review source and one-decimal formatting. Never rewrite ratings or reviews.
+function fiveStarOnlineFactor(s){
+ const r=reviewSummary(s);
+ return r.count>0&&r.average.toLocaleString("vi-VN",{minimumFractionDigits:1,maximumFractionDigits:1})==="5,0"?1.5:1;
+}
 function onlineCapacity(s){return Math.floor(basePromotedOnlineCapacity(s)*fiveStarOnlineFactor(s)+1e-7)*onlineDecorationFactor(s)}
 function additionalOnlineSlots(s){return Math.max(0,Math.min(onlineCapacity(s),s.business?.onlineLimit??onlineCapacity(s))-s.online.dayQuota)}
 function holidayActive(s){return !!s.holiday.kind&&s.day>=s.holiday.start&&s.day<=s.holiday.end}
