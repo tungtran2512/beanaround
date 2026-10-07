@@ -188,17 +188,28 @@ function sameRects(before,after,label){
      assert(branchRequirements(root,no).some(x=>!x.done),"loss ignored");
     }
    });
-   check("all online branch equipment purchasable before twelfth shift",()=>{
+   check("paid staffing, training and equipment reach full online by shift eleven",()=>{
+    const results=[];
     for(const no of BRANCH_NUMBERS){
-     const root=chainTestShop(150);root.cash=6000000;networkBind(root);
+     const root=chainTestShop(150);root.cash=9000000;networkBind(root);
      for(let n=2;n<no;n++)maxTestBranch(root,openBranch(root,n));
-     const b=openBranch(root,no);b.branchAge=10;b.cash=500000;
-     for(const k of Object.keys(STAFF))Object.assign(b.employees[k],{hired:true,workingToday:true});
-     for(const[id,c]of Object.entries(COURSES))b.training.courses[id]={progress:c.shifts,done:true,enrolledDay:root.day-10};
-     for(const id of ["tabletPro","onlineLaunch","counter","branding","prepLine","packingCounter","dualGroup","dispatchBelt","multiStation"])upgradeBranch(root,id,no);
+     const b=openBranch(root,no);branchTransfer(root,500000,no);
+     for(const k of Object.keys(STAFF))if(!b.employees[k].hired)hireStaff(b,k);
+     upgradeBranch(root,"tabletPro",no);upgradeBranch(root,"onlineLaunch",no);
+     for(const id of ["delivery","speedBrew","packingLine","dispatchLead","batchDispatch","machineWorkflow"])enrollCourse(b,id);
+     for(let age=0;age<=10;age++){
+      b.phase=root.phase="prep";
+      for(const id of ["counter","branding","prepLine","packingCounter","dualGroup","dispatchBelt","multiStation"])if(!b.upgrades[id]&&BRANCH_GEAR[id].age<=b.branchAge)upgradeBranch(root,id,no);
+      if(trained(b,"delivery")&&!b.training.courses.fulfillmentLead)enrollCourse(b,"fulfillmentLead");
+      branchAdvertise(root,no);
+      if(age===10)break;
+      chargeOperating(b);advanceTraining(b);b.branchAge++;root.day++;b.day=root.day;b.stats=blankDay();expandState(b);
+     }
      assert(onlineCapacityBase(b)===500,"full capacity "+no);
-     assert(b.cash<500000,"unpaid upgrades");
+     assert(b.cash<LOCATION_CONFIG[no].capital+500000,"unpaid path");
+     results.push({branch:no,shift:b.branchAge+1,capacity:onlineCapacityBase(b),cash:b.cash});
     }
+    return results;
    });
    check("championship applies to every branch and survives reload without duplicate trophies",()=>{
     const root=full();networkBind(root);const b2=maxTestBranch(root,openBranch(root,2));
