@@ -162,6 +162,55 @@ function sameRects(before,after,label){
    const stock=s=>{for(const[k,g]of Object.entries(G))s.stock[k]=[{n:100000,expiry:s.day+99,unitCost:g.unitCost}];for(const[k,g]of Object.entries(BAKES))s.bakery.stock[k]=[{n:10000,expiry:s.day+99,unitCost:g.cost}]};
    const full=()=>{const s=chainTestShop(63);for(const k of Object.keys(EQUIPMENT))s.upgrades[k]=true;for(const k of Object.keys(STAFF))Object.assign(s.employees[k],{hired:true,workingToday:true});s.online.tablet=s.online.enabled=true;s.online.quotaUnit="orders";s.bakery.owned=true;stock(s);Object.assign(s.events,{preparedDay:s.day,active:null,broken:null});s.ops.active=s.ops.scheduled=null;return s};
 
+   check("five shops open sequentially with independent capital, saves and visits",()=>{
+    const root=chainTestShop(150);root.cash=6000000;networkBind(root);
+    for(const no of BRANCH_NUMBERS){
+     const before=root.cash,cfg=LOCATION_CONFIG[no],b=openBranch(root,no);
+     assert(root.cash===before-cfg.setup-cfg.capital&&b.cash===cfg.capital,"capital "+no);
+     assert(b.branchAge===0&&Object.values(b.stock).every(v=>v.length===0),"fresh branch");
+     maxTestBranch(root,b);
+    }
+    assert(branches(root).length===4&&networkShops(root).length===5,"missing shops");
+    const m=migrateSave(clone(root));assert(validCore(m)&&branches(m).length===4,"save five shops");
+    for(const no of SHOP_NUMBERS)assert(locationNumber(selectVisitedShop(m,no))===no,"visit "+no);
+    const bad=clone(m);bad.chain.branch4.chain.branch5=clone(m.chain.branch5);let rejected=false;try{migrateSave(bad)}catch(e){rejected=true}assert(rejected,"nested branch accepted");
+    networkBind(root);
+    return {shops:5,prices:BRANCH_NUMBERS.map(n=>LOCATION_CONFIG[n].setup+LOCATION_CONFIG[n].capital)};
+   });
+   check("new shops reject early opening and unhealthy chain",()=>{
+    for(const no of [4,5]){
+     const root=chainTestShop(LOCATION_CONFIG[no].day-1);root.cash=6000000;networkBind(root);
+     for(let n=2;n<no;n++)maxTestBranch(root,openBranch(root,n));
+     assert(branchRequirements(root,no).some(x=>!x.done),"early unlock");
+     root.day++;for(const shop of networkShops(root)){shop.day=root.day;shop.financialHistory=clone(chainTestShop(root.day).financialHistory)}
+     assert(branchRequirements(root,no).every(x=>x.done),"eligible chain");
+     root.chain.branch.financialHistory[0].profit=-1;
+     assert(branchRequirements(root,no).some(x=>!x.done),"loss ignored");
+    }
+   });
+   check("paid staffing, training and equipment reach full online by shift eleven",()=>{
+    const results=[];
+    for(const no of BRANCH_NUMBERS){
+     const root=chainTestShop(150);root.cash=9000000;networkBind(root);
+     for(let n=2;n<no;n++)maxTestBranch(root,openBranch(root,n));
+     const b=openBranch(root,no);branchTransfer(root,500000,no);
+     for(const k of Object.keys(STAFF))if(!b.employees[k].hired)hireStaff(b,k);
+     upgradeBranch(root,"tabletPro",no);upgradeBranch(root,"onlineLaunch",no);
+     for(const id of ["delivery","speedBrew","packingLine","dispatchLead","batchDispatch","machineWorkflow"])enrollCourse(b,id);
+     for(let age=0;age<=10;age++){
+      b.phase=root.phase="prep";
+      for(const id of ["counter","branding","prepLine","packingCounter","dualGroup","dispatchBelt","multiStation"])if(!b.upgrades[id]&&BRANCH_GEAR[id].age<=b.branchAge)upgradeBranch(root,id,no);
+      if(trained(b,"delivery")&&!b.training.courses.fulfillmentLead)enrollCourse(b,"fulfillmentLead");
+      branchAdvertise(root,no);
+      if(age===10)break;
+      chargeOperating(b);advanceTraining(b);b.branchAge++;root.day++;b.day=root.day;b.stats=blankDay();expandState(b);
+     }
+     assert(onlineCapacityBase(b)===500,"full capacity "+no);
+     assert(b.cash<LOCATION_CONFIG[no].capital+500000,"unpaid path");
+     results.push({branch:no,shift:b.branchAge+1,capacity:onlineCapacityBase(b),cash:b.cash});
+    }
+    return results;
+   });
    check("championship applies to every branch and survives reload without duplicate trophies",()=>{
     const root=full();networkBind(root);const b2=maxTestBranch(root,openBranch(root,2));
     root.contest.promoStart=root.day;root.contest.promoEnd=root.day+14;syncContestPromotion(root);
@@ -181,20 +230,20 @@ function sameRects(before,after,label){
     b.business.onlineLimit=100;assert(branchForecast(root,2).online===100,"branch admission cap ignored");
     return {normal,championship:won,withPackage:won*2};
    });
-   check("equivalent later shops have fifteen percent online advantage and shared daily variation",()=>{
+   check("equivalent branches have independent location advantages and shared daily variation",()=>{
     const root=full();root.reputation=100;root.customersServed=100000;root.contest.promoStart=0;root.contest.promoEnd=0;root.business.onlineLimit=null;
     const ratios=[];
     for(const day of [63,64,65,66,67,68,69]){
      root.day=day;root.events.deliveryAdDay=day;root.events.advertising=1;
      const main=onlineVolumeBase(root);
-     for(const no of [2,3]){const peer=clone(root);peer.isBranch=true;peer.branchNo=no;peer.upgrades.onlineLaunch=false;
-      const count=onlineVolumeBase(peer);assert(main>0&&Math.abs(count-main*1.15)<=1.1,"unbalanced "+main+"/"+count);assert(onlineCapacity(peer)===575,"capacity bonus");ratios.push(count/main);
+     for(const no of [2,3,4,5]){const peer=clone(root);peer.isBranch=true;peer.branchNo=no;peer.upgrades.onlineLaunch=false;
+      const count=onlineVolumeBase(peer);assert(main>0&&Math.abs(count-main*onlineLocationFactor(peer))<=1.1,"unbalanced "+main+"/"+count);assert(onlineCapacity(peer)===Math.floor(500*onlineLocationFactor(peer)+1e-7),"capacity bonus");ratios.push(count/main);
       peer.business.onlineLimit=100;assert(onlineVolumeBase(peer)<=100,"ignored admission limit");
      }
     }
     return {min:Math.min(...ratios),max:Math.max(...ratios)};
    });
-   for(const quota of [300,750,1500,1700,1954])check("complete "+quota+" parcels by 240 active seconds",()=>{
+   for(const quota of [300,750,1500,1700,1954,3825])check("complete "+quota+" parcels by 240 active seconds",()=>{
     let s=full();s.phase="open";s.dayGoal=60;s.served=0;s.order=makeOrder(s,()=>.5);s.online.dayQuota=quota;s.online.remaining=quota;s.online.issued=0;s.online.queue=[];deliveryDefaults(s);beginOnlinePacing(s);let halfway=0;
     const oldRandom=gameRandom;let seed=47;gameRandom=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
     try{for(let t=0;t<1200;t++){advanceOnlinePacing(s,.2);clockDelta=.2;tickOnline(s);if(t===599){halfway=s.stats.onlineReceipts;s=migrateSave(clone(s))}}
@@ -215,7 +264,7 @@ function sameRects(before,after,label){
    check("package purchase months and legacy entitlement",()=>{const expected={tet:[1,2],summer:[5,6],autumn:[8,9],xmas:[11,12]};for(const[k,v]of Object.entries(expected))assert(JSON.stringify(SEASON_PACKAGES[k].months)===JSON.stringify(v),k);const s=full();s.seasonPackage={id:"midautumn",start:s.day,end:s.day+29,paid:30000};assert(activeDecoration(s)&&onlineDecorationFactor(s)===2,"legacy package lost")});
 
    check("managed network completes online in each shop within four-minute active shift",()=>{
-    const root=full();networkBind(root);const b2=maxTestBranch(root,openBranch(root,2));stock(b2);const b3=maxTestBranch(root,openBranch(root,3));stock(b3);
+    const root=full();root.day=150;root.cash=9000000;root.events.preparedDay=root.day;root.financialHistory=clone(chainTestShop(150).financialHistory);networkBind(root);for(const no of BRANCH_NUMBERS)stock(maxTestBranch(root,openBranch(root,no)));
     state=networkBind(root);openDay(state);setManagerDuty(state,true);for(const s of networkShops(root)){s.ops.active=null;s.ops.scheduled=null;s.events.active=null;}
     let ticks=0;while(root.phase==="open"&&!root.cadence.awaiting&&ticks++<1600){clockStep(root,.2);if(root.order?.needsClarification)confirmOrder(root)}
     const results=networkShops(root).map(s=>({shop:locationNumber(s),target:s===root?s.online.dayQuota:s.branchControl.onlineGoal,receipts:s.stats.onlineReceipts,phase:s.phase,clean:s.cleanliness,condition:s.condition,repair:s.stats.repair,pending:s.online.remaining}));
@@ -270,6 +319,11 @@ function sameRects(before,after,label){
     const expectedColors={spring:"rgb(142, 24, 32)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(132, 28, 35)"};
     assert(visual.header===expectedColors[theme],"season header color missing "+JSON.stringify(visual));
     assert(visual.room===visual.expectedRoom,"wrong seasonal environment");
+    const cropped=await page.evaluate(()=>["header","order","nav"].every(part=>{
+     const el=document.querySelector('[data-skin="'+part+'"] .cafe-skin-slices');
+     return el&&getComputedStyle(el).backgroundSize==="cover"&&getComputedStyle(el.firstElementChild).display==="none";
+    }));
+    assert(cropped,"season artwork must crop without distorting intrinsic proportions");
     assert(visual.note==="show","simple order should show safe note");
     if(["winter","spring","summer","autumn"].includes(theme)){
      const art=await page.evaluate(()=>({parts:Array.from(document.querySelectorAll(".cafe-component-skin")).map(el=>el.dataset.skin).sort(),note:getComputedStyle(document.querySelector(".compact-order"),"::after").content,props:document.querySelector(".cafe-winter-counter-props")?getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display:"none"}));
