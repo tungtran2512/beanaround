@@ -92,7 +92,7 @@ function sameRects(before,after,label){
    const name=["header","order","deliver","footer"][i],target=path.join(root,"assets/bean-around/winter-ui-"+name+".webp");
    // Once checked-in, test the actual committed derivative rather than regenerate it.
    if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(strips[i].split(",")[1],"base64"));
-   if(process.env.BROWSER!=="webkit")console.log("WINTER_UI_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
+   if(process.env.BROWSER!=="webkit")process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("WINTER_UI_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
   }
  }
 
@@ -110,7 +110,7 @@ function sameRects(before,after,label){
   for(let i=0;i<strips.length;i++){
    const name=["header","deliver","order","footer"][i],target=path.join(root,"assets/bean-around/spring-ui-"+name+".webp");
    if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(strips[i].split(",")[1],"base64"));
-   if(process.env.BROWSER!=="webkit")console.log("SPRING_UI_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
+   if(process.env.BROWSER!=="webkit")process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("SPRING_UI_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
   }
  }
 
@@ -129,7 +129,7 @@ function sameRects(before,after,label){
   for(let i=0;i<strips.length;i++){
    const name=["header","deliver","order","footer"][i],target=path.join(root,"assets/bean-around/winter-red-ui-"+name+".webp");
    if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(strips[i].split(",")[1],"base64"));
-   if(process.env.BROWSER!=="webkit")console.log("WINTER_RED_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
+   if(process.env.BROWSER!=="webkit")process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("WINTER_RED_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
   }
  }
 
@@ -141,14 +141,29 @@ function sameRects(before,after,label){
  ]){
   const source="data:image/png;base64,"+fs.readFileSync(path.join(root,"assets/bean-around/sources",file)).toString("base64");
   const out=await artPage.evaluate(async({source,crops})=>{const im=new Image();im.src=source;await im.decode();return crops.map(([a,b,name])=>{const c=document.createElement("canvas");c.width=name.includes("room")?780:1170;c.height=Math.round(c.width*(b-a)/im.width);c.getContext("2d").drawImage(im,0,a,im.width,b-a,0,0,c.width,c.height);return {name,data:c.toDataURL("image/webp",.91)}})},{source,crops});
-  for(const a of out){const target=path.join(root,"assets/bean-around",a.name+".webp");if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(a.data.split(",")[1],"base64"));if(process.env.BROWSER!=="webkit")console.log("PACKAGE_ASSET_"+a.name+"="+a.data)}
+  for(const a of out){const target=path.join(root,"assets/bean-around",a.name+".webp");if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(a.data.split(",")[1],"base64"));if(process.env.BROWSER!=="webkit")process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("PACKAGE_ASSET_"+a.name+"="+a.data)}
  }
 
 
  const pourSource="data:image/png;base64,"+fs.readFileSync(path.join(root,"assets/bean-around/sources/red-pour-2026.png")).toString("base64");
  const pourAsset=await artPage.evaluate(async source=>{const im=new Image();im.src=source;await im.decode();const c=document.createElement("canvas");c.width=640;c.height=Math.round(640*im.height/im.width);const ctx=c.getContext("2d");ctx.drawImage(im,0,0,c.width,c.height);const pixels=ctx.getImageData(0,0,c.width,c.height).data;let alpha=0;for(let i=3;i<pixels.length;i+=4)if(pixels[i]===0)alpha++;if(alpha<pixels.length/4*.1)throw Error("pour asset lacks transparent background");return c.toDataURL("image/webp",.94)},pourSource);
  const pourTarget=path.join(root,"assets/bean-around/bean-around-red-pour.webp");if(!fs.existsSync(pourTarget))fs.writeFileSync(pourTarget,Buffer.from(pourAsset.split(",")[1],"base64"));
- console.log("POUR_OPTIMIZED_ASSET="+pourAsset);
+ process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("POUR_OPTIMIZED_ASSET="+pourAsset);
+
+
+ const lakeAtlas="data:image/png;base64,"+fs.readFileSync(path.join(root,"assets/bean-around/sources/spring-winter-lake-2026.png")).toString("base64");
+ const lakeAssets=await artPage.evaluate(async source=>{
+  const im=new Image();im.src=source;await im.decode();
+  const rows=[[5,157,"header"],[164,290,"order"],[298,435,"deliver"],[443,593,"footer"],[603,988,"room"]];
+  const out=[];for(const [season,x,right]of [["spring",6,622],["winter",634,1248]])for(const[y,bottom,part]of rows){
+   const sx=x*im.width/1254,sy=y*im.height/1254,sw=(right-x)*im.width/1254,sh=(bottom-y)*im.height/1254;
+   const c=document.createElement("canvas");c.width=Math.round(sw);c.height=Math.round(sh);
+   c.getContext("2d").drawImage(im,sx,sy,sw,sh,0,0,c.width,c.height);
+   const name=season+"-lake-2026-"+(part==="room"?"cafe-room":"ui-"+part)+".webp";
+   out.push({name,width:c.width,height:c.height,data:c.toDataURL("image/webp",.95)});
+  }return out;
+ },lakeAtlas);
+ for(const a of lakeAssets){const target=path.join(root,"assets/bean-around",a.name);if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(a.data.split(",")[1],"base64"));if(process.env.BROWSER!=="webkit")console.log("LAKE_ASSET "+a.name+"="+a.data)}
 
  await artPage.close();
 
@@ -212,11 +227,11 @@ function sameRects(before,after,label){
     reviews(root,100,0);assert(branches(root).every(b=>fiveStarOnlineFactor(b)===1),"rating leaked to branches");
     const b=root.chain.branch5;reviews(b,99,1);root.contest.promoStart=root.day;root.contest.promoEnd=root.day+14;syncContestPromotion(root);
     b.seasonPackage={id:"summer",start:b.day,end:b.day+29,paid:30000};
-    assert(onlineCapacity(b)===3824,"stacking");
-    const count=branchForecast(root,5).online;assert(count>0&&count<=3824,"branch forecast");
+    assert(onlineCapacity(b)===5736,"stacking");
+    const count=branchForecast(root,5).online;assert(count>0&&count<=5736,"branch forecast");
     b.business.onlineLimit=100;assert(branchForecast(root,5).online===100,"admission limit ignored");
     const restored=migrateSave(clone(root));assert(fiveStarOnlineFactor(restored.chain.branch5)===1.5,"reload lost eligibility");
-    return {maxCapacity:3824,branchForecast:count};
+    return {maxCapacity:5736,branchForecast:count};
    });
    check("five shops open sequentially with independent capital, saves and visits",()=>{
     const root=chainTestShop(150);root.cash=6000000;networkBind(root);
@@ -282,9 +297,9 @@ function sameRects(before,after,label){
     root.contest.promoStart=root.day;root.contest.promoEnd=root.day+14;syncContestPromotion(root);const won=branchForecast(root,2).online;
     assert(won>normal*1.65&&won<normal*1.75,"shared bonus applied incorrectly");
     b.seasonPackage={id:"tet",start:b.day,end:b.day+29,paid:30000};
-    assert(branchForecast(root,2).online===won*2,"season/contest duplicate or missing multiplier");
+    assert(branchForecast(root,2).online===won*3,"season/contest duplicate or missing multiplier");
     b.business.onlineLimit=100;assert(branchForecast(root,2).online===100,"branch admission cap ignored");
-    return {normal,championship:won,withPackage:won*2};
+    return {normal,championship:won,withPackage:won*3};
    });
    check("equivalent branches have independent location advantages and shared daily variation",()=>{
     const root=full();root.reputation=100;root.customersServed=100000;root.contest.promoStart=0;root.contest.promoEnd=0;root.business.onlineLimit=null;
@@ -299,7 +314,7 @@ function sameRects(before,after,label){
     }
     return {min:Math.min(...ratios),max:Math.max(...ratios)};
    });
-   for(const quota of [1,500,3825])check("complete "+quota+" parcels by 240 active seconds",()=>{
+   for(const quota of [1,500,5736])check("complete "+quota+" parcels by 240 active seconds",()=>{
     let s=full();s.phase="open";s.dayGoal=60;s.served=0;s.order=makeOrder(s,()=>.5);s.online.dayQuota=quota;s.online.remaining=quota;s.online.issued=0;s.online.queue=[];deliveryDefaults(s);beginOnlinePacing(s);let halfway=0;
     const oldRandom=gameRandom;let seed=47;gameRandom=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
     try{for(let t=0;t<1200;t++){advanceOnlinePacing(s,.2);clockDelta=.2;tickOnline(s);if(t===599){halfway=s.stats.onlineReceipts;s=migrateSave(clone(s))}}
@@ -317,7 +332,7 @@ function sameRects(before,after,label){
     const before=root.cash,bc=b.cash;b.cash=0;for(const k of Object.keys(G))b.stock[k]=[];const message=networkOperation("stock",{bean:1});assert(root.cash<before&&b.cash===0&&message.includes("chưa áp dụng"),"partial wallet rollback");b.cash=bc;
     assert(validCore(root),"invalid root");
    });
-   check("package purchase months and legacy entitlement",()=>{const expected={tet:[1,2],summer:[5,6],autumn:[8,9],xmas:[11,12]};for(const[k,v]of Object.entries(expected))assert(JSON.stringify(SEASON_PACKAGES[k].months)===JSON.stringify(v),k);const s=full();s.seasonPackage={id:"midautumn",start:s.day,end:s.day+29,paid:30000};assert(activeDecoration(s)&&onlineDecorationFactor(s)===2,"legacy package lost")});
+   check("package purchase months and legacy entitlement",()=>{const expected={tet:[1,2],spring:[3,4],summer:[5,6],autumn:[7,8],winter:[9,10],xmas:[11,12]};for(const[k,v]of Object.entries(expected))assert(JSON.stringify(SEASON_PACKAGES[k].months)===JSON.stringify(v),k);const s=full();s.seasonPackage={id:"midautumn",start:s.day,end:s.day+29,paid:30000};assert(activeDecoration(s)&&onlineDecorationFactor(s)===3,"legacy package lost")});
 
    check("managed network completes online in each shop within four-minute active shift",()=>{
     const root=full();root.day=150;root.cash=9000000;root.events.preparedDay=root.day;root.financialHistory=clone(chainTestShop(150).financialHistory);networkBind(root);for(const no of BRANCH_NUMBERS)stock(maxTestBranch(root,openBranch(root,no)));
@@ -361,7 +376,7 @@ function sameRects(before,after,label){
    await page.screenshot({path:path.join(output,"baseline-"+viewport.width+".png"),fullPage:true});
    await page.goto(url+"/index.html?season-theme=off");await setup(page);
    sameRects(before,await rects(page),"off/"+viewport.width);
-   for(const theme of ["autumn","spring","summer","winter"]){
+   for(const theme of ["autumn","spring","summer","winter","tet","xmas"]){
     const unchanged=await page.evaluate(theme=>{
      const before=JSON.stringify(state),storage=JSON.stringify({...localStorage});
      window.BeanAroundSeasonTheme.setPreview(theme);
@@ -372,22 +387,22 @@ function sameRects(before,after,label){
      const game=document.getElementById("game"),t=SeasonTheme[game.dataset.cafeTheme],order=game.querySelector(".compact-order");
      return {header:getComputedStyle(game.querySelector(".topbar")).backgroundColor,room:game.querySelector(".cafe-room").getAttribute("src"),note:order.dataset.cafeNote,expectedRoom:t.background};
     });
-    const expectedColors={spring:"rgb(142, 24, 32)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(132, 28, 35)"};
+    const expectedColors={tet:"rgb(142, 24, 32)",spring:"rgb(36, 92, 65)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(24, 52, 76)",xmas:"rgb(132, 28, 35)"};
     assert(visual.header===expectedColors[theme],"season header color missing "+JSON.stringify(visual));
     assert(visual.room===visual.expectedRoom,"wrong seasonal environment");
-    const cropped=await page.evaluate(()=>["header","order","nav"].every(part=>{
+    const cropped=await page.evaluate(()=>["header","order","nav","cta"].every(part=>{
      const el=document.querySelector('[data-skin="'+part+'"] .cafe-skin-slices');
      return el&&getComputedStyle(el).backgroundSize==="cover"&&getComputedStyle(el.firstElementChild).display==="none";
     }));
     assert(cropped,"season artwork must crop without distorting intrinsic proportions");
     assert(visual.note==="show","simple order should show safe note");
-    if(["winter","spring","summer","autumn"].includes(theme)){
+    if(["winter","spring","summer","autumn","tet","xmas"].includes(theme)){
      const art=await page.evaluate(()=>({parts:Array.from(document.querySelectorAll(".cafe-component-skin")).map(el=>el.dataset.skin).sort(),note:getComputedStyle(document.querySelector(".compact-order"),"::after").content,props:document.querySelector(".cafe-winter-counter-props")?getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display:"none"}));
      assert(JSON.stringify(art.parts)===JSON.stringify(["cta","header","nav","order"]),"missing winter component art: "+JSON.stringify(art));
      assert(art.note==="none","old decorative note overlaps the approved order design");
      if(theme==="winter")assert(art.props==="none","wide espresso must not compete with tree/chalkboard");
-     if(theme==="winter"){
-      const palette=await page.evaluate(()=>({text:getComputedStyle(document.querySelector(".compact-order b")).color,art:SeasonTheme.winter.uiArtwork}));
+     if(theme==="xmas"){
+      const palette=await page.evaluate(()=>({text:getComputedStyle(document.querySelector(".compact-order b")).color,art:SeasonTheme.xmas.uiArtwork}));
       assert(palette.text==="rgb(255, 245, 221)","winter order labels must contrast with red artwork");
       assert(Object.values(palette.art).every(src=>src.includes("winter-red-ui-")),"winter still references old blue banners");
      }
@@ -415,8 +430,8 @@ function sameRects(before,after,label){
      await page.locator(".bar-bench").screenshot({path:path.join(output,"stage-"+file)});
      const active=await page.locator(".bar-machine").getAttribute("data-machine");
      assert(active===(recipe==="latte"?"espresso":recipe==="apple"?"press":"blend"),"wrong machine");
-     const visibleProps=await page.evaluate(()=>getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display!=="none");
-     assert(visibleProps===(recipe!=="latte"),"winter props must adapt to equipment silhouette");
+     const visibleProps=await page.evaluate(()=>!!document.querySelector(".cafe-winter-counter-props"));
+     assert(!visibleProps,"new winter scene must not duplicate its baked-in props");
     }
     await setup(page,"latte");
     const noteSafety=await page.evaluate(()=>{
@@ -515,7 +530,7 @@ function sameRects(before,after,label){
     for(const s of samples){const im=new Image();im.src=s.data;await im.decode();ctx.fillStyle="#762020";ctx.fillText(s.id+" / "+s.w,x+10,21);ctx.drawImage(im,x,30,s.w,s.h);x+=s.w}
     return canvas.toDataURL("image/jpeg",.85);
    },responsiveSamples);
-   console.log("CAFE_RESPONSIVE_REVIEW_IMAGE="+responsive);
+   process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("CAFE_RESPONSIVE_REVIEW_IMAGE="+responsive);
    fs.writeFileSync(path.join(output,"responsive-contact-sheet.jpg"),Buffer.from(responsive.split(",")[1],"base64"));
    const parts=["header","order","deliver","footer"].map(id=>({id,data:"data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-component-"+id+"-390.png")).toString("base64")}));
    const componentReview=await sheet.evaluate(async parts=>{
@@ -537,10 +552,10 @@ function sameRects(before,after,label){
     const c=document.getElementById("review");c.width=1195;c.height=962;const ctx=c.getContext("2d");ctx.fillStyle="#fff4e6";ctx.fillRect(0,0,1195,962);let x=0;
     for(const s of samples){const im=new Image();im.src=s.data;await im.decode();ctx.drawImage(im,x,0,s.w,s.h);x+=s.w}return c.toDataURL("image/jpeg",.91);
    },springSamples);
-   console.log("SPRING_RESPONSIVE_REVIEW_IMAGE="+springResponsive);
+   process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("SPRING_RESPONSIVE_REVIEW_IMAGE="+springResponsive);
 
    const ready="data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-ready-390.png")).toString("base64");
-   console.log("WINTER_READY_REVIEW_IMAGE="+ready);
+   process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("WINTER_READY_REVIEW_IMAGE="+ready);
 
    // Derive a mobile-sized WebP from the untouched generated source; no runtime dependency.
    const artSource=path.join(root,"assets/bean-around/sources/winter-cafe-2026.png");
@@ -551,13 +566,13 @@ function sameRects(before,after,label){
      const c=document.createElement("canvas");c.width=780;c.height=Math.round(780*im.height/im.width);
      c.getContext("2d").drawImage(im,0,0,c.width,c.height);return c.toDataURL("image/webp",.9);
     },source);
-    console.log("WINTER_OPTIMIZED_ASSET="+webp);
+    process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("WINTER_OPTIMIZED_ASSET="+webp);
     fs.writeFileSync(path.join(output,"winter-cafe-room.webp"),Buffer.from(webp.split(",")[1],"base64"));
    }
    await sheet.close();
   }
-  if(process.env.REVIEW_IMAGE_LOG==="1"&&process.env.BROWSER==="webkit")console.log("WINTER_WEBKIT_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-ready-390.png")).toString("base64"));
-  if(process.env.REVIEW_IMAGE_LOG==="1")console.log("SPRING_READY_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"spring-ready-390.png")).toString("base64"));
+  if(process.env.REVIEW_IMAGE_LOG==="1"&&process.env.BROWSER==="webkit")process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("WINTER_WEBKIT_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-ready-390.png")).toString("base64"));
+  if(process.env.REVIEW_IMAGE_LOG==="1")process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("SPRING_READY_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"spring-ready-390.png")).toString("base64"));
 
   const stabilityContext=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   const stabilityPage=await stabilityContext.newPage();await stabilityPage.goto(url+"/index.html?season-theme=winter");
@@ -579,7 +594,7 @@ function sameRects(before,after,label){
   });
   await stabilityPage.waitForTimeout(500);
   await stabilityPage.screenshot({path:path.join(output,"kettle-water-stage.png")});
-  console.log("KETTLE_GAME_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"kettle-water-stage.png")).toString("base64"));
+  process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("KETTLE_GAME_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"kettle-water-stage.png")).toString("base64"));
   await stabilityPage.evaluate(()=>{managementVisible=true;managementTab="stock";paint()});
   await stabilityPage.evaluate(()=>window.scrollTo(0,0));
   const headerStart=await stabilityPage.locator(".topbar").evaluate(el=>el.getBoundingClientRect().top);
@@ -598,7 +613,7 @@ function sameRects(before,after,label){
   await pourPage.evaluate(()=>{setRecipeOnOrder(state,state.order,"pour");state.order.needsClarification=false;state.job=null;state.cup.steps=["espresso"];state.cup.sealed=false;paint();});
   assert(await pourPage.locator(".bar-machine use[href='#pour']").count()===1,"red pour-over not at active filter stage");
   await pourPage.waitForTimeout(400);await pourPage.screenshot({path:path.join(output,"red-pour-stage.png")});
-  console.log("POUR_GAME_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"red-pour-stage.png")).toString("base64"));
+  process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("POUR_GAME_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"red-pour-stage.png")).toString("base64"));
   report.pourArtwork="active filter stage uses red dripper and glass server; unchanged control layout";
   await pourContext.close();
 
