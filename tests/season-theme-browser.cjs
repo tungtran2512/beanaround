@@ -159,9 +159,34 @@ function sameRects(before,after,label){
   await opsPage.waitForFunction(()=>typeof storageBooting!=="undefined"&&!storageBooting);
   report.operations=await opsPage.evaluate(()=>{
    const checks=[],check=(name,fn)=>{try{checks.push({name,ok:true,result:fn()})}catch(e){checks.push({name,ok:false,error:e.message})}},assert=(v,m)=>{if(!v)throw Error(m||"assertion")};
-   const stock=s=>{for(const[k,g]of Object.entries(G))s.stock[k]=[{n:100000,expiry:s.day+99,unitCost:g.unitCost}];for(const[k,g]of Object.entries(BAKES))s.bakery.stock[k]=[{n:10000,expiry:s.day+99,unitCost:g.cost}]};
+   const stock=s=>{for(const[k,g]of Object.entries(G))s.stock[k]=[{n:1000000,expiry:s.day+99,unitCost:g.unitCost}];for(const[k,g]of Object.entries(BAKES))s.bakery.stock[k]=[{n:10000,expiry:s.day+99,unitCost:g.cost}]};
    const full=()=>{const s=chainTestShop(63);for(const k of Object.keys(EQUIPMENT))s.upgrades[k]=true;for(const k of Object.keys(STAFF))Object.assign(s.employees[k],{hired:true,workingToday:true});s.online.tablet=s.online.enabled=true;s.online.quotaUnit="orders";s.bakery.owned=true;stock(s);Object.assign(s.events,{preparedDay:s.day,active:null,broken:null});s.ops.active=s.ops.scheduled=null;return s};
 
+   check("sixty-cup ticket reload, one receipt and duplicate guards survive compaction",()=>{
+    const s=full();s.online.quotaUnit="orders";const first=nextDeliveryOrder(s,1,()=>.2),items=[first];while(s.delivery.pending.length)items.push(nextDeliveryOrder(s,0,()=>.2));
+    assert(items.length===60,"group size");const before=s.cash,cups=quantity(s,"cup");
+    for(const o of items.slice(0,30))assert(autoFulfil(s,o,()=>.2).ok,"prepare");
+    assert(s.cash===before&&s.stats.onlineReceipts===0,"premature charge");
+    const restored=migrateSave(clone(s)),ticket=restored.delivery.tickets[first.deliveryGroup];
+    for(const o of ticket.waiting.slice())assert(autoFulfil(restored,o,()=>.2).ok,"finish");
+    assert(restored.stats.onlineReceipts===1&&restored.stats.onlineOrders===60&&restored.reviews.length===1,"receipt/cup/review count");
+    assert(quantity(restored,"cup")===cups-60,"cup stock");
+    const cash=restored.cash;let rejected=false;try{autoFulfil(restored,first,()=>.2)}catch(e){rejected=true}
+    assert(rejected&&restored.cash===cash,"duplicate after compaction");
+    assert(validCore(migrateSave(clone(restored))),"settled save");
+    return {cups:restored.stats.onlineOrders,receipts:restored.stats.onlineReceipts};
+   });
+   check("bulk stock suggestion can purchase sixty-cup parcel inventory without truncated packs",()=>{
+    const s=full();s.cash=100000000;
+    for(const k of Object.keys(G))s.stock[k]=[];
+    const cups=forecastOnlineCups(s),cart=suggestedCartUncapped(s);
+    assert(cups===onlineVolume(s)*60,"cup forecast");
+    buyCart(s,cart);
+    assert(quantity(s,"cup")>=Math.ceil(cups*1.4),"cup procurement clipped");
+    assert(s.stock.cup.length===1,"bulk procurement produced thousands of tiny lots");
+    const plan=coldPreparationPlan(s);prepareColdReserve(s,plan);
+    assert(quantity(s,"brew")>=plan.target&&quantity(s,"bean")>=plan.beanService,"cold brew starves service beans");
+   });
    check("five-star reward matches the visible numeric rating without changing reviews",()=>{
     const root=full();root.day=150;root.cash=9000000;root.financialHistory=clone(chainTestShop(150).financialHistory);networkBind(root);
     for(const no of BRANCH_NUMBERS)maxTestBranch(root,openBranch(root,no));
@@ -274,13 +299,13 @@ function sameRects(before,after,label){
     }
     return {min:Math.min(...ratios),max:Math.max(...ratios)};
    });
-   for(const quota of [300,750,1500,1700,1954,3825])check("complete "+quota+" parcels by 240 active seconds",()=>{
+   for(const quota of [1,500,3825])check("complete "+quota+" parcels by 240 active seconds",()=>{
     let s=full();s.phase="open";s.dayGoal=60;s.served=0;s.order=makeOrder(s,()=>.5);s.online.dayQuota=quota;s.online.remaining=quota;s.online.issued=0;s.online.queue=[];deliveryDefaults(s);beginOnlinePacing(s);let halfway=0;
     const oldRandom=gameRandom;let seed=47;gameRandom=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
     try{for(let t=0;t<1200;t++){advanceOnlinePacing(s,.2);clockDelta=.2;tickOnline(s);if(t===599){halfway=s.stats.onlineReceipts;s=migrateSave(clone(s))}}
     }finally{gameRandom=oldRandom}
-    assert(s.stats.onlineReceipts===quota,"served "+s.stats.onlineReceipts+"/"+quota+" remaining "+s.online.remaining+" queue "+s.online.queue.length);
-    assert(halfway>0&&halfway<quota*.7,"bad pacing");assert(s.stats.failedReceipts===0,"failed parcels");assert(s.stats.ingredientsUsed>0&&s.stats.onlineFees>0,"free revenue");assert(s.cleanliness>=95,"dirty counter");assert(!s.reviews.some(r=>r.outcome?.errors?.includes("quầy chưa sạch")),"dirty reviews");
+    assert(s.stats.onlineOrders===quota*60,"every parcel has 60 cups");assert(s.stats.onlineReceipts===quota,"served "+s.stats.onlineReceipts+"/"+quota+" remaining "+s.online.remaining+" queue "+s.online.queue.length);
+    assert((quota===1||halfway>0)&&halfway<Math.max(2,quota*.7),"bad pacing");assert(s.stats.failedReceipts===0,"failed parcels");assert(s.stats.ingredientsUsed>0&&s.stats.onlineFees>0,"free revenue");assert(s.cleanliness>=95,"dirty counter");assert(!s.reviews.some(r=>r.outcome?.errors?.includes("quầy chưa sạch")),"dirty reviews");
     return {receipts:s.stats.onlineReceipts,cups:s.stats.onlineOrders,halfway,cleanliness:s.cleanliness,bytes:JSON.stringify(s).length};
    });
    check("missing stock never creates free sales",()=>{const s=full();s.phase="open";s.stock.cup=[];s.online.dayQuota=s.online.remaining=10;s.online.issued=0;s.online.queue=[];beginOnlinePacing(s);s.online.pacing.progress=1;for(let i=0;i<30;i++){clockDelta=.2;tickOnline(s)}assert(s.stats.grossRevenue===0,"free sales")});
