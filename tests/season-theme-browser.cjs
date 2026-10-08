@@ -212,11 +212,11 @@ function sameRects(before,after,label){
     reviews(root,100,0);assert(branches(root).every(b=>fiveStarOnlineFactor(b)===1),"rating leaked to branches");
     const b=root.chain.branch5;reviews(b,99,1);root.contest.promoStart=root.day;root.contest.promoEnd=root.day+14;syncContestPromotion(root);
     b.seasonPackage={id:"summer",start:b.day,end:b.day+29,paid:30000};
-    assert(onlineCapacity(b)===3824,"stacking");
-    const count=branchForecast(root,5).online;assert(count>0&&count<=3824,"branch forecast");
+    assert(onlineCapacity(b)===5736,"stacking");
+    const count=branchForecast(root,5).online;assert(count>0&&count<=5736,"branch forecast");
     b.business.onlineLimit=100;assert(branchForecast(root,5).online===100,"admission limit ignored");
     const restored=migrateSave(clone(root));assert(fiveStarOnlineFactor(restored.chain.branch5)===1.5,"reload lost eligibility");
-    return {maxCapacity:3824,branchForecast:count};
+    return {maxCapacity:5736,branchForecast:count};
    });
    check("five shops open sequentially with independent capital, saves and visits",()=>{
     const root=chainTestShop(150);root.cash=6000000;networkBind(root);
@@ -282,9 +282,9 @@ function sameRects(before,after,label){
     root.contest.promoStart=root.day;root.contest.promoEnd=root.day+14;syncContestPromotion(root);const won=branchForecast(root,2).online;
     assert(won>normal*1.65&&won<normal*1.75,"shared bonus applied incorrectly");
     b.seasonPackage={id:"tet",start:b.day,end:b.day+29,paid:30000};
-    assert(branchForecast(root,2).online===won*2,"season/contest duplicate or missing multiplier");
+    assert(branchForecast(root,2).online===won*3,"season/contest duplicate or missing multiplier");
     b.business.onlineLimit=100;assert(branchForecast(root,2).online===100,"branch admission cap ignored");
-    return {normal,championship:won,withPackage:won*2};
+    return {normal,championship:won,withPackage:won*3};
    });
    check("equivalent branches have independent location advantages and shared daily variation",()=>{
     const root=full();root.reputation=100;root.customersServed=100000;root.contest.promoStart=0;root.contest.promoEnd=0;root.business.onlineLimit=null;
@@ -299,7 +299,7 @@ function sameRects(before,after,label){
     }
     return {min:Math.min(...ratios),max:Math.max(...ratios)};
    });
-   for(const quota of [1,500,3825])check("complete "+quota+" parcels by 240 active seconds",()=>{
+   for(const quota of [1,500,5736])check("complete "+quota+" parcels by 240 active seconds",()=>{
     let s=full();s.phase="open";s.dayGoal=60;s.served=0;s.order=makeOrder(s,()=>.5);s.online.dayQuota=quota;s.online.remaining=quota;s.online.issued=0;s.online.queue=[];deliveryDefaults(s);beginOnlinePacing(s);let halfway=0;
     const oldRandom=gameRandom;let seed=47;gameRandom=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
     try{for(let t=0;t<1200;t++){advanceOnlinePacing(s,.2);clockDelta=.2;tickOnline(s);if(t===599){halfway=s.stats.onlineReceipts;s=migrateSave(clone(s))}}
@@ -317,7 +317,7 @@ function sameRects(before,after,label){
     const before=root.cash,bc=b.cash;b.cash=0;for(const k of Object.keys(G))b.stock[k]=[];const message=networkOperation("stock",{bean:1});assert(root.cash<before&&b.cash===0&&message.includes("chưa áp dụng"),"partial wallet rollback");b.cash=bc;
     assert(validCore(root),"invalid root");
    });
-   check("package purchase months and legacy entitlement",()=>{const expected={tet:[1,2],summer:[5,6],autumn:[8,9],xmas:[11,12]};for(const[k,v]of Object.entries(expected))assert(JSON.stringify(SEASON_PACKAGES[k].months)===JSON.stringify(v),k);const s=full();s.seasonPackage={id:"midautumn",start:s.day,end:s.day+29,paid:30000};assert(activeDecoration(s)&&onlineDecorationFactor(s)===2,"legacy package lost")});
+   check("package purchase months and legacy entitlement",()=>{const expected={tet:[1,2],spring:[3,4],summer:[5,6],autumn:[7,8],winter:[9,10],xmas:[11,12]};for(const[k,v]of Object.entries(expected))assert(JSON.stringify(SEASON_PACKAGES[k].months)===JSON.stringify(v),k);const s=full();s.seasonPackage={id:"midautumn",start:s.day,end:s.day+29,paid:30000};assert(activeDecoration(s)&&onlineDecorationFactor(s)===3,"legacy package lost")});
 
    check("managed network completes online in each shop within four-minute active shift",()=>{
     const root=full();root.day=150;root.cash=9000000;root.events.preparedDay=root.day;root.financialHistory=clone(chainTestShop(150).financialHistory);networkBind(root);for(const no of BRANCH_NUMBERS)stock(maxTestBranch(root,openBranch(root,no)));
