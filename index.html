@@ -2272,7 +2272,7 @@ function tickOnline(s){
   // Bounded slices keep real inventory, remakes and ticket accounting on the existing path.
   for(let pass=0;budget>0.0001&&pass<512;pass++){
    issueOnline(s);if(!s.online.queue.length)break;
-   const step=Math.min(.2,budget);budget-=step;
+   const step=Math.min(budget,Math.max(.2,budget/(512-pass)));budget-=step;
    for(let i=Math.min(slots,s.online.queue.length)-1;i>=0;i--){
     const o=s.online.queue[i];o.work=Math.max(0,roundTime(o.work-step));
     if(o.work===0){const result=o.receipt?(completeAuto(s,o.receipt),{ok:true}):autoFulfil(s,o,gameRandom,true);
@@ -2433,7 +2433,8 @@ function prepareColdReserve(s,plan=coldPreparationPlan(s)){
  if(!plan.batches)return 0;
  if(quantity(s,"bean")<plan.beanForBrew+plan.beanService||quantity(s,"water")<plan.waterForBrew+plan.waterService)
   throw Error("Chưa đủ cà phê/nước để ủ và giữ dự phòng pha các món khác. Bấm Gợi ý nhập hàng rồi xác nhận nhập; hàng đang giao chưa được tính vào kho.");
- for(let i=0;i<plan.batches;i++)brewBatch(s);
+ const cost=spendStock(s,"bean",plan.beanForBrew,false)+spendStock(s,"water",plan.waterForBrew,false);
+ s.stock.brew.push(storageLot(s,"brew",plan.portions,cost/plan.portions));
  return plan.batches;
 }
 function buyAndPrepareCold(s,items){
@@ -2467,7 +2468,12 @@ function buyCartV7(s,items){
  prepOnly(s);if(!Object.keys(items).length)throw Error("Giỏ trống.");
  for(const [k,q]of Object.entries(items))if(!G[k]||k==="brew"||!ingredientAvailable(s,k)||!Number.isInteger(q)||q<0||q>stockPackLimit(s))throw Error("Số gói không hợp lệ.");
  const cost=cartCost(s,items);if(cost>s.cash)throw Error("Giỏ vượt vốn "+roundK(cost-s.cash)+"k; giảm số gói.");
- for(const [k,q]of Object.entries(items))for(let i=0;i<q;i++)buyStock(s,k);
+ for(const [k,q]of Object.entries(items))if(q){
+ const price=roundK(packPrice(s,k)*q),n=(G[k].pack-(s.events.delay?1:0))*q;
+ const finance=financeDefaults(s);finance.stockPurchases=roundK(finance.stockPurchases+price);
+ s.cash=roundK(s.cash-price);s.stats.spent=roundK(s.stats.spent+price);
+ s.stock[k].push(storageLot(s,k,n,price/n));
+ }
 }
 function operatingForecast(s){
  return {rent:!s.isBranch&&s.day<=10?0:2000,utilities:(s.isBranch?250+(s.upgrades.tabletPro?100:0)+(s.upgrades.espresso?150:0):500)+storageUtilities(s),salary:Object.keys(STAFF).reduce((n,k)=>n+((working(s,k)&&s.employees[k].tempDay!==s.day&&s.employees[k].coverDay!==s.day)||s.employees[k].transferDay===s.day?STAFF[k].dailySalary:0),0),maintenance:s.upgrades.insurance?5:0};
@@ -2761,7 +2767,7 @@ function deliveryGrowthMarkup(s,branch=false){
  rows.map(([name,ok,cap])=>'<div class="financial-row"><span>'+(ok?"✓ ":"○ ")+name+'</span><b>'+cap+' đơn</b></div>').join("")+
  '<p>Quầy tối đa 60 khách/ngày, kể cả cuối tuần và lễ. Ngày đầu 20; chưa có barista tối đa 30. Thời tiết và rating vẫn ảnh hưởng lượng khách thực tế. Quầy chi nhánh hoàn thiện hướng tới 90% quán chính; online quán 2/3/4/5 có lợi thế +15%/+30%/+40%/+50% khi cùng nhân sự, nâng cấp, chất lượng và điều kiện bán.</p>'+
  (deliveryCampaign(s)?'<p class="owned-mark">✓ Đã chạy quảng cáo ca này</p>':btn("📣 QUẢNG CÁO SHOPEE FOOD · 1.000k",branch?"branchAdvertise":"advertise","","wide primary"))+
- '<small>Ngân sách 1.000k/ca ghi vào Marketing. Tăng nhu cầu 25%; không bảo đảm bán hết. Lượng đơn thay đổi theo ngày: quán phát triển đầy đủ thường dự kiến khoảng 800–1.000 ly, chia thành đơn một ly và đơn nhóm. Thuê người một lần, trả lương khi đi làm. Đào tạo chỉ trả học phí một lần.</small></section>';
+ '<small>Ngân sách 1.000k/ca ghi vào Marketing. Tăng nhu cầu 25%; không bảo đảm bán hết. Lượng đơn thay đổi theo ngày: mỗi đơn online mới có đúng 60 cốc. Hạn mức, thưởng và quảng cáo vẫn tính theo số đơn, không phải số cốc. Thuê người một lần, trả lương khi đi làm. Đào tạo chỉ trả học phí một lần.</small></section>';
 }
 function advertiseBranchShop(b){
  prepOnly(b);if(!b.upgrades.tabletPro||!working(b,"online"))throw Error("Cần quầy online và nhân viên Shopee Food đi làm.");
@@ -2983,7 +2989,7 @@ function recordReview(s,o,result){
 /* ==================== SHOPEE GROUP ORDERS ==================== */
 /* SHOPEE PARCEL QUOTAS: one receipt may contain several drinks and cakes.
    Existing open shifts without quotaUnit keep their legacy cup quotas. */
-const SHOPEE_MEAN_CUPS=2,SHOPEE_MEAN_CAKES=1.26;
+const SHOPEE_MEAN_CUPS=60,SHOPEE_MEAN_CAKES=1.65;
 /* Persistent in-game arrival schedule. Quotas count parcels, never cups.
    The final wave arrives at 21:50. Unaccepted arrivals have no patience timer. */
 const ONLINE_DAY_CURVE=[[0,0],[2/15,.12],[4/15,.22],[7/15,.52],[10/15,.66],[13/15,.90],[14.75/15,.99],[14.8333333333/15,1],[1,1]];
@@ -2999,8 +3005,8 @@ const ONLINE_SHIFT_SECONDS=240;
 function onlineWorkRate(s,quota=s.online.dayQuota){
  const menu=activeMenu(s);
  const longest=Math.max(1,...menu.map(r=>drinkSeconds(s,{id:r.id,size:"L",sweet:1,iced:true,topping:eligibleToppings(s,r)[0]||null})));
- // Worst case: three drinks per parcel, cakes, and one remake. Upgrade gates still set accepted volume.
- return Math.max(1,quota*3*(longest*2+4)/(Math.max(1,onlineStaffSlots(s))*180));
+ // Budget actual cups per parcel, cakes and one remake. Upgrade gates still set parcel volume.
+ return Math.max(1,quota*(onlineUsesOrders(s)?SHOPEE_MEAN_CUPS:4)*(longest*2+4)/(Math.max(1,onlineStaffSlots(s))*180));
 }
 function maintainServiceQuality(s){
  // Cleaning is part of the working support/manager's paid shift, not a rating override.
@@ -3079,7 +3085,7 @@ function nextDeliveryOrder(s,remaining,random=gameRandom){
  const d=deliveryDefaults(s);
  if(!d.pending.length){
   if(remaining<1)throw Error("Đã đủ số đơn Shopee nhận trong ca.");
-  const roll=random(),size=roll<.40?1:roll<.60?2:3,id=s.day+"-parcel-"+(++d.seq);
+  const size=SHOPEE_MEAN_CUPS,id=s.day+"-parcel-"+(++d.seq);
   const items=Array.from({length:size},(_,i)=>{const o=makeOrderV112(s,random,"online");o.uid=id+"-"+i;o.channel="online";o.deliveryGroup=id;o.deliverySize=size;o.deliveryIndex=i;o.needsClarification=false;o.regularId=null;o.time=o.maxTime=120;return o});
   const ticket=d.tickets[id]={id,size,customerName:items[0].customerName,waiting:items.slice(),ready:[],failed:{},closed:false,quoted:0};
   attachBake(s,items[0],random);
@@ -3133,6 +3139,13 @@ function dispatchDelivery(s,t){
  if(reference){addRating(s,stars);recordReview(s,reference,{stars,errors,sale,tip:0,cancelled:!items.length});const review=s.reviews.at(-1);if(review&&t.size>1)review.text="Đơn nhóm "+t.size+" ly. "+review.text;gainRep(s,stars>=4?.2:-.6)}
  t.closed=true;t.sale=sale;t.fees=fees;t.fulfilled=items.length;t.stars=stars;t.bakeryCount=items.filter(r=>r.order.bakery).length;
  t.lines=[...items.map(r=>({id:r.order.id,bakery:r.order.bakery?.id||null,status:"delivered"})),...Object.values(t.failed).map(r=>({id:r.order.id,status:"cancelled"}))];
+ if(t.size===SHOPEE_MEAN_CUPS){
+  // Closed ticket is the durable duplicate-settlement guard. Keep accounting
+  // aggregates, not hundreds of thousands of redundant per-cup save records.
+  for(const o of [...items.map(r=>r.order),...Object.values(t.failed).map(r=>r.order)])if(!s.finalizedOrders[o.uid]?.refund)delete s.finalizedOrders[o.uid];
+  const counts=new Map();for(const line of t.lines){const key=[line.id,line.bakery||"",line.status].join("|");const row=counts.get(key)||{...line,quantity:0};row.quantity++;counts.set(key,row)}t.lines=[...counts.values()];
+  if(s.stats.salesLog.length>1000)s.stats.salesLog=s.stats.salesLog.slice(-1000);
+ }
  t.ready=[];t.waiting=[];t.failed={};updateReceiptAverages(s);
  return {stars,sale,tip:0,errors,deliveryGroup:t.id,items:items.length};
 }
@@ -3154,9 +3167,9 @@ function validDelivery(s){
  if(s.online?.quotaUnit!==undefined&&!["orders","cups"].includes(s.online.quotaUnit))return false;
  const d=s.delivery;if(!d)return true;
  if(d.day!==s.day){if(s.phase==="prep"&&!d.pending?.length&&Object.values(d.tickets||{}).every(t=>t.closed))return true;return false}
- if(d.version!==1||!Number.isInteger(d.seq)||d.seq<0||!Array.isArray(d.pending)||d.pending.length>4||!d.tickets||Object.keys(d.tickets).length>MAX_ONLINE_ORDERS)return false;
+ if(d.version!==1||!Number.isInteger(d.seq)||d.seq<0||!Array.isArray(d.pending)||d.pending.length>SHOPEE_MEAN_CUPS||!d.tickets||Object.keys(d.tickets).length>MAX_ONLINE_ORDERS)return false;
  for(const t of Object.values(d.tickets)){
-  if(!Number.isInteger(t.size)||t.size<1||t.size>4||!Array.isArray(t.waiting)||!Array.isArray(t.ready)||!t.failed||typeof t.closed!=="boolean")return false;
+  if(!Number.isInteger(t.size)||t.size<1||t.size>SHOPEE_MEAN_CUPS||!Array.isArray(t.waiting)||!Array.isArray(t.ready)||!t.failed||typeof t.closed!=="boolean")return false;
   if(t.closed)continue;
   if(t.waiting.length+t.ready.length+Object.keys(t.failed).length!==t.size)return false;
   const orders=[...t.waiting,...t.ready.map(r=>r.order),...Object.values(t.failed).map(r=>r.order)],uids=new Set();
@@ -4110,7 +4123,7 @@ function syncContestPromotion(root){
 }
 function contestBoost(s){const root=networkOwner(s),c=(s.isBranch&&root!==s?root:s).contest;return c&&c.promoStart<=s.day&&c.promoEnd>=s.day&&c.promoStart>0?1.7:1}
 function onlineLocationFactor(s){return s.isBranch?({2:1.15,3:1.3,4:1.4,5:1.5}[branchNumber(s)]||1):1}
-function stockPackLimit(s){return contestBoost(s)>1||onlineDecorationFactor(s)>1?1000:onlineVolume(s)>150?500:100}
+function stockPackLimit(s){return Math.max(contestBoost(s)>1||onlineDecorationFactor(s)>1?1000:onlineVolume(s)>150?500:100,Math.ceil(forecastOnlineCups(s)*4))}
 function contestAvailable(s){const c=contestDefaults(s);return !s.isBranch&&s.phase==="prep"&&contestPeriod(s)>c.lastPeriod&&!c.active}
 function contestMeta(key){
  if(key.startsWith("top:")){const t=TOPPINGS[key.slice(4)];return t?{name:t.name,art:t.icon}:null}
@@ -5042,7 +5055,7 @@ function networkOtherTick(root,active,dt){
   if(!networkMaintainBackground(b,dt))continue;
   if(b.online.pacing)b.online.pacing.progress=progress;
   const release=Math.min(c.goal,Math.max(1,Math.ceil(c.goal*districtProgress(b,progress))));
-  for(let i=0;i<Math.max(16,Math.ceil(onlineWorkRate(b,c.onlineGoal)*onlineStaffSlots(b)*3));i++){if(c.job||c.issued<release)branchJobTick(b,"job",dt);branchJobTick(b,"onlineJob",dt);if(c.notice.startsWith("Thiếu nguyên liệu")&&!c.stockDecision){c.stockDecision="pending";root.visitPlan.attention=root.visitPlan.attention||locationNumber(b);break}}
+  for(let i=0;i<Math.max(16,Math.ceil(onlineWorkRate(b,c.onlineGoal)*onlineStaffSlots(b)*3));i++){if(!c.job&&c.issued>=release&&!c.onlineJob&&!b.delivery?.pending.length&&!canIssueOnlineParcel(b,c.onlineIssued,c.onlineGoal))break;if(c.job||c.issued<release)branchJobTick(b,"job",dt);branchJobTick(b,"onlineJob",dt);if(c.notice.startsWith("Thiếu nguyên liệu")&&!c.stockDecision){c.stockDecision="pending";root.visitPlan.attention=root.visitPlan.attention||locationNumber(b);break}}
   if(c.issued>=c.goal&&c.onlineIssued>=c.onlineGoal&&!b.delivery.pending.length&&!c.job&&!c.onlineJob){b.phase="report";c.notice="Đã hoàn thành ca theo kế hoạch."}
  }
 }
@@ -5826,7 +5839,7 @@ function bakeryReserved(s,id){
 function cartBakeId(key){return key.startsWith("bake:")?key.slice(5):null}
 function cartItem(s,key){const id=cartBakeId(key);return id?BAKES[id]?{...BAKES[id],pack:1,available:bakeryUnlocked(s,id)}:null:G[key]?{...G[key],available:key!=="brew"&&ingredientAvailable(s,key)}:null}
 function cartUnitPrice(s,key){const id=cartBakeId(key);return id?BAKES[id]?.cost||0:packPrice(s,key)}
-function bakeryPackLimit(s){return contestBoost(s)>1||onlineDecorationFactor(s)>1?1000:500}
+function bakeryPackLimit(s){return Math.max(contestBoost(s)>1||onlineDecorationFactor(s)>1?1000:500,Math.ceil(forecastOnlineCakes(s)*2+100))}
 function cartLimit(s,key){return cartBakeId(key)?bakeryPackLimit(s):stockPackLimit(s)}
 function buyCart(s,items){
  prepOnly(s);if(!Object.keys(items).length)throw Error("Giỏ trống.");
@@ -6164,7 +6177,7 @@ function bakeryStationBar(s,pages){
 }
 function deliveryPanelMarkup(s){
  const tickets=Object.values(s.delivery?.tickets||{}),open=tickets.filter(t=>!t.closed),shown=[...open,...tickets.filter(t=>t.closed).slice(-3).reverse()].slice(0,8);
- return '<section class="business-card"><h3>PHIẾU GIAO SHOPEE FOOD</h3>'+(s.phase==="open"&&!onlineUsesOrders(s)?'<p class="notice">Ca cũ giữ hạn mức ly đã nhận. Từ ngày mới, hạn mức sẽ tính theo đơn giao hàng.</p>':'')+'<p>'+ (s.stats.onlineReceipts??s.stats.onlineOrders)+' đơn đã giao · '+s.stats.onlineOrders+' ly · '+(s.stats.onlineBakeryOrders||0)+' đơn kèm bánh / '+(s.stats.onlineBakeryQuantity??s.stats.onlineBakeryOrders??0)+' bánh.</p><p>40% đơn một ly; nhóm 40% đơn 2–3 ly chia đều; thêm 20% đơn ba ly. Tổng: 40% một ly, 20% hai ly, 40% ba ly — 500 đơn ≈ 1.000 ly. Giới hạn tính theo đơn. Khoảng 40% đơn có bánh; đơn từ 3 ly có thể gọi 1–3 bánh. Mỗi phiếu có một review.</p>'+
+ return '<section class="business-card"><h3>PHIẾU GIAO SHOPEE FOOD</h3>'+(s.phase==="open"&&!onlineUsesOrders(s)?'<p class="notice">Ca cũ giữ hạn mức ly đã nhận. Từ ngày mới, hạn mức sẽ tính theo đơn giao hàng.</p>':'')+'<p>'+ (s.stats.onlineReceipts??s.stats.onlineOrders)+' đơn đã giao · '+s.stats.onlineOrders+' ly · '+(s.stats.onlineBakeryOrders||0)+' đơn kèm bánh / '+(s.stats.onlineBakeryQuantity??s.stats.onlineBakeryOrders??0)+' bánh.</p><p>100% đơn online mới gồm 60 cốc/đơn — 500 đơn = 30.000 cốc. Đơn cũ đang xử lý giữ nguyên số cốc. Giới hạn tính theo đơn. Khoảng 40% đơn có bánh; đơn từ 3 ly có thể gọi 1–3 bánh. Mỗi phiếu có một review.</p>'+
  shown.map(t=>'<div class="delivery-ticket"><b>#'+t.id.split("-").at(-1)+' · '+escapeHTML(t.customerName)+' · '+t.size+' ly · '+(t.bakeryCount??[...t.waiting,...t.ready.map(r=>r.order)].filter(o=>o.bakery).length)+' bánh</b><span>'+(t.closed?(t.fulfilled?'✓ Đã giao '+t.fulfilled+'/'+t.size:'Đã hủy'):'Đang pha · '+t.ready.length+'/'+t.size+' ly xong')+'</span><small>'+(t.closed?MONEY(t.sale)+' · phí '+MONEY(t.fees):'Đơn giá đã chốt '+MONEY(t.quoted))+'</small></div>').join("")+(shown.length?"":'<p>Chưa nhận phiếu nào trong ca.</p>')+'</section>';
 }
 function bakeryRetailAction(action,key){
@@ -6346,7 +6359,7 @@ const TOPPING_ART={"saltedCaramelFoam":"<path d=\"M19 54h62l-7 27H27Z\" fill=\"#
 window.BeanAroundArrivalPacingChecks={run(){
  const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{try{f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}};
  const shop=()=>{const s=chainTestShop(63);for(const k of Object.keys(EQUIPMENT))s.upgrades[k]=true;s.online.tablet=s.online.enabled=true;s.online.quotaUnit="orders";deliveryDefaults(s);Object.assign(s.events,{weather:"sun",traffic:1.2,advertising:1,preparedDay:63});s.business.counterLimit=120;return s};
- test("new group distribution40one20two40three and mean2",()=>{const s=shop(),counts={1:0,2:0,3:0,4:0};for(let i=0;i<100;i++){let first=true;const o=nextDeliveryOrder(s,1,()=>first?(first=false,(i+.5)/100):.8),t=s.delivery.tickets[o.deliveryGroup];counts[t.size]++;s.delivery.pending=[]}a(counts[1]===40&&counts[2]===20&&counts[3]===40&&!counts[4]&&SHOPEE_MEAN_CUPS===2)});
+ test("all online parcels contain sixty cups",()=>{const s=shop();for(let i=0;i<100;i++){const o=nextDeliveryOrder(s,1,()=>(i+.5)/100),t=s.delivery.tickets[o.deliveryGroup];a(t.size===60&&t.waiting.length===60);s.delivery.pending=[]}a(SHOPEE_MEAN_CUPS===60)});
  test("opening receives only one parcel, never entire daily queue",()=>{const s=shop();openDay(s);a(s.online.dayQuota===500&&s.online.issued===1&&s.online.remaining===499&&s.online.queue.length<=3&&s.online.pacing.progress===0&&shopTime(s)==="07:00")});
  test("arrival curve bounded monotonic and final order held until2150",()=>{const s=shop();openDay(s);let old=0;for(let i=0;i<=1000;i++){s.online.pacing.progress=i/1000;const n=onlineArrivalAllowance(s);a(n>=old&&n<=500);old=n}a(old===500);s.online.pacing.progress=14.75/15;a(onlineArrivalAllowance(s)===495);s.online.pacing.progress=14.82/15;a(onlineArrivalAllowance(s)<500);s.online.pacing.progress=14.84/15;a(onlineArrivalAllowance(s)===500)});
  test("lunch evening and closing waves have distinct cumulative quotas",()=>{const s=shop();openDay(s);for(const[p,n]of [[4/15,110],[7/15,260],[10/15,330],[13/15,450]]){s.online.pacing.progress=p;a(onlineArrivalAllowance(s)===n)}});
@@ -6360,7 +6373,7 @@ window.BeanAroundArrivalPacingChecks={run(){
  test("day without online retains ordinary closing flow",()=>{const s=shop();s.online.enabled=false;s.business.counterLimit=1;openDay(s);s.order.needsClarification=false;simulationFill(s);deliver(s);a(!s.online.pacing.enabled&&s.phase==="report"&&shopTime(s)==="22:00")});
  test("branch arrival timeline follows main shop and never front-loads all parcels",()=>{const s=shop(),b=maxTestBranch(s,openBranch(s,2));for(const[k,g]of Object.entries(G))b.stock[k]=[{n:50000,expiry:100,unitCost:g.unitCost}];openDay(s);a(b.online.pacing?.enabled&&b.branchControl.onlineIssued===0);branchTick(s,.2);a(b.branchControl.onlineIssued===1);s.online.pacing.progress=.5;branchTick(s,.2);a(b.online.pacing.progress===.5&&onlineArrivalAllowance(b,b.branchControl.onlineGoal)<b.branchControl.onlineGoal)});
  test("invalid pacing save rejected",()=>{const s=shop();openDay(s);s.online.pacing.progress=2;a(!validCore(s))});
- test("arrival forecast updates stock and gross from1000 actual expected cups",()=>{const s=shop(),f=businessForecast(s);a(f.online===500&&f.onlineCups===1000&&forecastOnlineCakes(s)===0);s.bakery.owned=s.bakery.oven=s.bakery.chiller=true;a(forecastOnlineCakes(s)===252)});
+ test("arrival forecast updates stock and gross from30000 actual expected cups",()=>{const s=shop(),f=businessForecast(s);a(f.online===500&&f.onlineCups===30000&&forecastOnlineCakes(s)===0);s.bakery.owned=s.bakery.oven=s.bakery.chiller=true;a(Math.abs(forecastOnlineCakes(s)-330)<.0001)});
  return rows;
 }};
 window.BeanAroundParcelQuotaChecks={run(){
@@ -6372,20 +6385,20 @@ window.BeanAroundParcelQuotaChecks={run(){
  if(cakes>1&&size>2)for(let i=1;i<Math.min(cakes,size);i++)if(!items[i].bakery)attachBake(s,items[i],()=>.2,true);
  return items};
  const fulfil=(s,items)=>{for(const o of items)a(autoFulfil(s,o,()=>.2).ok);return s.delivery.tickets[items[0].deliveryGroup]};
- test("quota one order may issue three cups and drains accepted pending items",()=>{const s=shop();s.phase="open";s.served=s.dayGoal;s.online.remaining=s.online.dayQuota=1;s.online.issued=0;const old=gameRandom;gameRandom=()=>.99;try{issueOnline(s)}finally{gameRandom=old}a(s.online.issued===1&&s.online.remaining===0&&s.online.queue.length===3&&Object.values(s.delivery.tickets)[0].size===3)});
- test("new mix yields exactly200 cups per100 stratified orders",()=>{const s=shop();let cups=0;for(let i=0;i<100;i++){let first=true;const o=nextDeliveryOrder(s,1,()=>first?(first=false,(i+.5)/100):.8);const items=[o];while(s.delivery.pending.length)items.push(nextDeliveryOrder(s,0,()=>.8));cups+=items.length;fulfil(s,items)}a(cups===200&&s.stats.onlineReceipts===100&&s.stats.onlineOrders===200)});
- test("a three-cup group can naturally order three cakes",()=>{const s=shop();
- let found=false;const random=seedRng(123);for(let i=0;i<300&&!found;i++){let first=true;const item=nextDeliveryOrder(s,1,()=>first?(first=false,.99):random()),items=[item];while(s.delivery.pending.length)items.push(nextDeliveryOrder(s,0,random));const ticket=s.delivery.tickets[item.deliveryGroup];a(ticket.size===3);found=ticket.bakeryCount===3;fulfil(s,items)}a(found)});
+ test("quota one order issues sixty cups and drains accepted pending items",()=>{const s=shop();s.phase="open";s.served=s.dayGoal;s.online.remaining=s.online.dayQuota=1;s.online.issued=0;const old=gameRandom;gameRandom=()=>.99;try{issueOnline(s)}finally{gameRandom=old}a(s.online.issued===1&&s.online.remaining===0&&s.online.queue.length+s.delivery.pending.length===60&&Object.values(s.delivery.tickets)[0].size===60)});
+ test("one hundred orders yield exactly6000 cups",()=>{const s=shop();let cups=0;for(let i=0;i<100;i++){let first=true;const o=nextDeliveryOrder(s,1,()=>first?(first=false,(i+.5)/100):.8);const items=[o];while(s.delivery.pending.length)items.push(nextDeliveryOrder(s,0,()=>.8));cups+=items.length;fulfil(s,items)}a(cups===6000&&s.stats.onlineReceipts===100&&s.stats.onlineOrders===6000)});
+ test("a sixty-cup group can naturally order three cakes",()=>{const s=shop();
+ let found=false;const random=seedRng(123);for(let i=0;i<300&&!found;i++){let first=true;const item=nextDeliveryOrder(s,1,()=>first?(first=false,.99):random()),items=[item];while(s.delivery.pending.length)items.push(nextDeliveryOrder(s,0,random));const ticket=s.delivery.tickets[item.deliveryGroup];a(ticket.size===60);found=ticket.bakeryCount===3;fulfil(s,items)}a(found)});
  test("multiple cakes debit separate real units and one receipt exact18percent fee",()=>{const s=shop(),items=group(s),before=Object.values(s.bakery.stock).flat().reduce((n,l)=>n+l.n,0),cakes=items.filter(o=>o.bakery).length,quote=roundK(items.reduce((n,o)=>n+o.quotedPrice+(o.bakery?.price||0),0));const t=fulfil(s,items),after=Object.values(s.bakery.stock).flat().reduce((n,l)=>n+l.n,0);a(cakes===3&&before-after===3&&t.sale===quote&&t.fees===roundK(quote*.18)&&s.stats.onlineBakeryOrders===1&&s.stats.onlineBakeryQuantity===3&&s.stats.onlineReceipts===1&&s.reviews.length===1)});
  test("one available cake never reserved three times",()=>{const s=shop();for(const k of Object.keys(BAKES))s.bakery.stock[k]=[];s.bakery.stock.croissant=[{n:1,expiry:s.day+2,unitCost:16}];const items=group(s);a(items.filter(o=>o.bakery).length===1&&bakeryReserved(s,"croissant")===1);fulfil(s,items);a(bakeryQuantity(s,"croissant")===0&&s.stats.onlineBakeryQuantity===1)});
  test("group cake unit prices freeze before menu price change",()=>{const s=shop(),items=group(s),sum=items.reduce((n,o)=>n+(o.bakery?.price||0),0);setBakeryPrice(s,"croissant",80);fulfil(s,items);a(s.stats.onlineBakeryRevenue===roundK(sum))});
  test("reload retains order quota, pending group and all cake reservations",()=>{const s=shop(),items=group(s);s.phase="open";s.served=s.dayGoal;autoFulfil(s,items[0],()=>.2);const m=migrateSave(clone(s));a(onlineUsesOrders(m)&&validCore(m));fulfil(m,m.delivery.tickets[items[0].deliveryGroup].waiting.slice());a(m.stats.onlineReceipts===1&&m.stats.onlineBakeryQuantity===3)});
  test("old in-flight cup quota preserved until following opening",()=>{const s=shop();delete s.online.quotaUnit;s.phase="open";s.served=s.dayGoal;s.online.remaining=7;s.online.dayQuota=10;const o=nextDeliveryOrder(s,2,()=>.99);a(s.delivery.tickets[o.deliveryGroup].size===2);const m=migrateSave(clone(s));a(!onlineUsesOrders(m)&&m.online.remaining===7&&m.online.dayQuota===10&&m.delivery.pending.length===1&&m.cash===s.cash)});
  test("legacy prepared game switches safely to parcel quotas on opening",()=>{const s=shop();delete s.online.quotaUnit;s.business.counterLimit=1;openDay(s);a(onlineUsesOrders(s)&&s.online.dayQuota===500&&s.online.issued<=10)});
- test("forecast500 orders uses1000 cups and extra group cakes",()=>{const s=shop(),f=businessForecast(s);a(f.online===500&&f.onlineCups===1000&&f.cups===f.counter+1000&&f.orders===f.counter+500);a(Math.abs(forecastOnlineCakes(s)-252)<.0001);for(const k of Object.keys(G))s.stock[k]=[];a(stockPlan(s).cup>=Math.ceil((f.counter+1000)*1.15));for(const k of Object.keys(BAKES))s.bakery.stock[k]=[];a(Object.values(bakerySuggestions(s)).reduce((n,q)=>n+q,0)>=Math.ceil((f.counter*.5+252)*1.2))});
- test("report and month distinguish receipt cups cake-bearing orders and cakes",()=>{const s=shop(),items=group(s);fulfil(s,items);finalizeDay(s);const row=s.financialHistory.at(-1);a(row.orders===1&&row.cups===3&&row.detail.onlineBakeryOrders===1&&row.detail.onlineBakeryQuantity===3);const m=s.business.months.find(m=>m.index===Math.floor((s.day-1)/30));a(m.finance.detail.onlineBakeryQuantity===3)});
+ test("forecast500 orders uses30000 cups and extra group cakes",()=>{const s=shop(),f=businessForecast(s);a(f.online===500&&f.onlineCups===30000&&f.cups===f.counter+30000&&f.orders===f.counter+500);a(Math.abs(forecastOnlineCakes(s)-330)<.0001);for(const k of Object.keys(G))s.stock[k]=[];a(stockPlan(s).cup>=Math.ceil((f.counter+30000)*1.15));for(const k of Object.keys(BAKES))s.bakery.stock[k]=[];a(Object.values(bakerySuggestions(s)).reduce((n,q)=>n+q,0)>=Math.ceil((f.counter*.5+330)*1.2))});
+ test("report and month distinguish receipt cups cake-bearing orders and cakes",()=>{const s=shop(),items=group(s);fulfil(s,items);finalizeDay(s);const row=s.financialHistory.at(-1);a(row.orders===1&&row.cups===60&&row.detail.onlineBakeryOrders===1&&row.detail.onlineBakeryQuantity===3);const m=s.business.months.find(m=>m.index===Math.floor((s.day-1)/30));a(m.finance.detail.onlineBakeryQuantity===3)});
  test("new mode validates and unknown quota unit cannot overwrite a save",()=>{const s=shop();a(validCore(s));s.online.quotaUnit="unknown";a(!validCore(s))});
- test("pausing new orders still finishes accepted group",()=>{const s=shop();s.phase="open";s.served=s.dayGoal;let first=true;const o=nextDeliveryOrder(s,1,()=>first?(first=false,.99):.2);s.online.remaining=0;s.online.dayQuota=s.online.issued=1;s.online.queue=[{...o,work:1}];s.ops.onlinePaused=true;issueOnline(s);a(s.online.queue.length===3&&s.online.remaining===0&&s.online.issued===1&&!s.delivery.pending.length)});
+ test("pausing new orders still finishes accepted group",()=>{const s=shop();s.phase="open";s.served=s.dayGoal;let first=true;const o=nextDeliveryOrder(s,1,()=>first?(first=false,.99):.2);s.online.remaining=0;s.online.dayQuota=s.online.issued=1;s.online.queue=[{...o,work:1}];s.ops.onlinePaused=true;issueOnline(s);a(s.online.queue.length+s.delivery.pending.length===60&&s.online.remaining===0&&s.online.issued===1)});
  test("failed cake line counts one partial parcel without phantom cake sale",()=>{const s=shop(),items=group(s);autoFulfil(s,items[0],()=>.2);failOnline(s,items[1]);fulfil(s,items.slice(2));a(s.stats.onlineReceipts===1&&s.stats.partialReceipts===1&&s.stats.onlineBakeryQuantity===2&&s.stats.onlineBakeryOrders===1&&s.reviews.length===1)});
  return rows;
 }};
@@ -7383,7 +7396,7 @@ window.BeanAroundOperationsChecks={run(){
  test("recommendation covers every enabled recipe",()=>{const s=shop(),need=stockPlan(s);for(const r of activeMenu(s))for(const step of r.steps){const k=A[step]?.[1];if(k)a(need[k]>0,"missing "+k)}});
  test("existing stock subtracted, expired stock excluded",()=>{const s=newGame(()=>.5);s.stock.cup=[];const n=suggestedCartUncapped(s).cup;s.stock.cup=[{n:10000,expiry:0,unitCost:1}];a(suggestedCartUncapped(s).cup===n);s.stock.cup[0].expiry=20;a(!suggestedCartUncapped(s).cup)});
  test("full recommendation does not shrink with low cash",()=>{const s=shop();for(const k of Object.keys(G))s.stock[k]=[];const full=JSON.stringify(suggestedCartUncapped(s));s.cash=1;a(JSON.stringify(suggestedCartUncapped(s))===full);fails(()=>buyCart(s,suggestedCartUncapped(s)))});
- test("Shopee varies 800 900 1000 forecast cups",()=>{const volumes=[64,65,63].map(day=>forecastOnlineCups(shop(day)));a(JSON.stringify(volumes)==="[800,900,1000]")});
+ test("Shopee varies 24000 27000 30000 forecast cups",()=>{const volumes=[64,65,63].map(day=>forecastOnlineCups(shop(day)));a(JSON.stringify(volumes)==="[24000,27000,30000]")});
  test("Shopee forecast stable through repeat reads and reload",()=>{const s=shop(64),n=onlineVolume(s);a(n===400&&onlineVolume(s)===n&&onlineVolume(migrateSave(s))===n)});
  test("accepted parcels do not disappear after reload",()=>{const s=shop(64);openDay(s);const m=migrateSave(s);a(m.online.dayQuota===400&&m.online.remaining===s.online.remaining)});
  test("business order limit remains respected",()=>{const s=shop(64);s.business.onlineLimit=100;a(onlineVolume(s)===100)});
@@ -7400,8 +7413,8 @@ window.BeanAroundCloseShopChecks={run(){
  test("partly made cup wastes already consumed stock and clears timed job",()=>{const s=shop();s.order.needsClarification=false;chooseCup(s,s.order.size);ingredient(s,"espresso");startIngredient(s,"milk");const stock=JSON.stringify(s.stock),used=s.stats.ingredientsUsed;closeShop(s);a(!s.job&&!s.cup&&!s.frontJob&&s.stats.waste===1&&s.stats.wasteCost>0&&s.stats.ingredientsUsed===used&&JSON.stringify(s.stock)===stock)});
  test("actual closing time persists and next day works with existing staff",()=>{const s=shop();s.shift.minute=875;closeShop(s);a(shopTime(s)==="14:35");const m=migrateSave(s),hired=Object.keys(m.employees).filter(k=>m.employees[k].hired);a(shopTime(m)==="14:35"&&m.cash===s.cash&&validCore(m));nextDay(m,()=>.9);a(m.day===20&&m.phase==="prep"&&shopTime(m)==="07:00"&&!m.stats.closedByOwner&&hired.every(k=>m.employees[k].hired))});
  test("active incident does not block closing or next day and keeps costs",()=>{const s=shop();s.ops.active={id:"lidFault"};s.ops.lidBroken=true;s.events.active={id:"machine"};const cash=s.cash,expenses=s.stats.spent;closeShop(s);a(!s.ops.active&&!s.events.active&&s.cash===cash&&s.stats.spent===expenses);nextDay(s,()=>.9);a(s.phase==="prep")});
- test("online pending group items cancel and prepayments refund exactly once",()=>{const s=shop();s.online.quotaUnit="orders";deliveryDefaults(s);let first=true;const o=nextDeliveryOrder(s,1,()=>first?(first=false,.99):.2);s.online.queue=[{...o,work:3}];s.online.remaining=40;const ticket=s.delivery.tickets[o.deliveryGroup],pending=s.delivery.pending[0];a(ticket.size===3&&pending);pending.paidAmount=55;const same=ticket.waiting.find(x=>x.uid===pending.uid);same.paidAmount=55;s.cash+=55;const cash=s.cash;closeShop(s);a(s.cash===cash-55&&s.stats.refunds===55&&s.stats.onlineFailed===3&&s.stats.failedReceipts===1&&ticket.closed&&!s.delivery.pending.length&&s.online.remaining===0);a(s.finalizedOrders[pending.uid].refund===55&&validCore(migrateSave(s)))});
- test("completed online items settle once while remaining group items cancel",()=>{const s=shop();s.online.quotaUnit="orders";deliveryDefaults(s);let first=true;const o=nextDeliveryOrder(s,1,()=>first?(first=false,.99):.2),ticket=s.delivery.tickets[o.deliveryGroup];autoFulfil(s,o,()=>.1);a(ticket.ready.length===1&&s.stats.grossRevenue===0);closeShop(s);a(ticket.closed&&ticket.fulfilled===1&&s.stats.onlineOrders===1&&s.stats.onlineFailed===2&&s.stats.partialReceipts===1&&s.stats.onlineFees>0);const cash=s.cash,m=migrateSave(s);a(m.cash===cash&&m.stats.onlineOrders===1)});
+ test("online pending group items cancel and prepayments refund exactly once",()=>{const s=shop();s.online.quotaUnit="orders";deliveryDefaults(s);let first=true;const o=nextDeliveryOrder(s,1,()=>first?(first=false,.99):.2);s.online.queue=[{...o,work:3}];s.online.remaining=40;const ticket=s.delivery.tickets[o.deliveryGroup],pending=s.delivery.pending[0];a(ticket.size===60&&pending);pending.paidAmount=55;const same=ticket.waiting.find(x=>x.uid===pending.uid);same.paidAmount=55;s.cash+=55;const cash=s.cash;closeShop(s);a(s.cash===cash-55&&s.stats.refunds===55&&s.stats.onlineFailed===60&&s.stats.failedReceipts===1&&ticket.closed&&!s.delivery.pending.length&&s.online.remaining===0);a(s.finalizedOrders[pending.uid].refund===55&&validCore(migrateSave(s)))});
+ test("completed online items settle once while remaining group items cancel",()=>{const s=shop();s.online.quotaUnit="orders";deliveryDefaults(s);let first=true;const o=nextDeliveryOrder(s,1,()=>first?(first=false,.99):.2),ticket=s.delivery.tickets[o.deliveryGroup];autoFulfil(s,o,()=>.1);a(ticket.ready.length===1&&s.stats.grossRevenue===0);closeShop(s);a(ticket.closed&&ticket.fulfilled===1&&s.stats.onlineOrders===1&&s.stats.onlineFailed===59&&s.stats.partialReceipts===1&&s.stats.onlineFees>0);const cash=s.cash,m=migrateSave(s);a(m.cash===cash&&m.stats.onlineOrders===1)});
  test("empty online tail can close without requiring missing ingredients",()=>{const s=shop();s.order=null;s.counterWaiting=[];s.served=s.dayGoal;s.online.remaining=25;const cash=s.cash;closeShop(s);a(s.phase==="report"&&s.online.remaining===0&&s.cash===cash&&s.stats.ownerClosedOrders===undefined)});
  return rows;
 }};
