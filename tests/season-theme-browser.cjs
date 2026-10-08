@@ -150,6 +150,21 @@ function sameRects(before,after,label){
  const pourTarget=path.join(root,"assets/bean-around/bean-around-red-pour.webp");if(!fs.existsSync(pourTarget))fs.writeFileSync(pourTarget,Buffer.from(pourAsset.split(",")[1],"base64"));
  console.log("POUR_OPTIMIZED_ASSET="+pourAsset);
 
+
+ const lakeAtlas="data:image/png;base64,"+fs.readFileSync(path.join(root,"assets/bean-around/sources/spring-winter-lake-2026.png")).toString("base64");
+ const lakeAssets=await artPage.evaluate(async source=>{
+  const im=new Image();im.src=source;await im.decode();
+  const rows=[[5,157,"header"],[164,290,"order"],[298,435,"deliver"],[443,593,"footer"],[603,988,"room"]];
+  const out=[];for(const [season,x,right]of [["spring",6,622],["winter",634,1248]])for(const[y,bottom,part]of rows){
+   const sx=x*im.width/1254,sy=y*im.height/1254,sw=(right-x)*im.width/1254,sh=(bottom-y)*im.height/1254;
+   const c=document.createElement("canvas");c.width=Math.round(sw);c.height=Math.round(sh);
+   c.getContext("2d").drawImage(im,sx,sy,sw,sh,0,0,c.width,c.height);
+   const name=season+"-lake-2026-"+(part==="room"?"cafe-room":"ui-"+part)+".webp";
+   out.push({name,width:c.width,height:c.height,data:c.toDataURL("image/webp",.95)});
+  }return out;
+ },lakeAtlas);
+ for(const a of lakeAssets){const target=path.join(root,"assets/bean-around",a.name);if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(a.data.split(",")[1],"base64"));if(process.env.BROWSER!=="webkit")console.log("LAKE_ASSET "+a.name+"="+a.data)}
+
  await artPage.close();
 
  try{
@@ -361,7 +376,7 @@ function sameRects(before,after,label){
    await page.screenshot({path:path.join(output,"baseline-"+viewport.width+".png"),fullPage:true});
    await page.goto(url+"/index.html?season-theme=off");await setup(page);
    sameRects(before,await rects(page),"off/"+viewport.width);
-   for(const theme of ["autumn","spring","summer","winter"]){
+   for(const theme of ["autumn","spring","summer","winter","tet","xmas"]){
     const unchanged=await page.evaluate(theme=>{
      const before=JSON.stringify(state),storage=JSON.stringify({...localStorage});
      window.BeanAroundSeasonTheme.setPreview(theme);
@@ -372,22 +387,22 @@ function sameRects(before,after,label){
      const game=document.getElementById("game"),t=SeasonTheme[game.dataset.cafeTheme],order=game.querySelector(".compact-order");
      return {header:getComputedStyle(game.querySelector(".topbar")).backgroundColor,room:game.querySelector(".cafe-room").getAttribute("src"),note:order.dataset.cafeNote,expectedRoom:t.background};
     });
-    const expectedColors={spring:"rgb(142, 24, 32)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(132, 28, 35)"};
+    const expectedColors={tet:"rgb(142, 24, 32)",spring:"rgb(36, 92, 65)",summer:"rgb(22, 90, 70)",autumn:"rgb(126, 31, 40)",winter:"rgb(24, 52, 76)",xmas:"rgb(132, 28, 35)"};
     assert(visual.header===expectedColors[theme],"season header color missing "+JSON.stringify(visual));
     assert(visual.room===visual.expectedRoom,"wrong seasonal environment");
-    const cropped=await page.evaluate(()=>["header","order","nav"].every(part=>{
+    const cropped=await page.evaluate(()=>["header","order","nav","cta"].every(part=>{
      const el=document.querySelector('[data-skin="'+part+'"] .cafe-skin-slices');
      return el&&getComputedStyle(el).backgroundSize==="cover"&&getComputedStyle(el.firstElementChild).display==="none";
     }));
     assert(cropped,"season artwork must crop without distorting intrinsic proportions");
     assert(visual.note==="show","simple order should show safe note");
-    if(["winter","spring","summer","autumn"].includes(theme)){
+    if(["winter","spring","summer","autumn","tet","xmas"].includes(theme)){
      const art=await page.evaluate(()=>({parts:Array.from(document.querySelectorAll(".cafe-component-skin")).map(el=>el.dataset.skin).sort(),note:getComputedStyle(document.querySelector(".compact-order"),"::after").content,props:document.querySelector(".cafe-winter-counter-props")?getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display:"none"}));
      assert(JSON.stringify(art.parts)===JSON.stringify(["cta","header","nav","order"]),"missing winter component art: "+JSON.stringify(art));
      assert(art.note==="none","old decorative note overlaps the approved order design");
      if(theme==="winter")assert(art.props==="none","wide espresso must not compete with tree/chalkboard");
-     if(theme==="winter"){
-      const palette=await page.evaluate(()=>({text:getComputedStyle(document.querySelector(".compact-order b")).color,art:SeasonTheme.winter.uiArtwork}));
+     if(theme==="xmas"){
+      const palette=await page.evaluate(()=>({text:getComputedStyle(document.querySelector(".compact-order b")).color,art:SeasonTheme.xmas.uiArtwork}));
       assert(palette.text==="rgb(255, 245, 221)","winter order labels must contrast with red artwork");
       assert(Object.values(palette.art).every(src=>src.includes("winter-red-ui-")),"winter still references old blue banners");
      }
@@ -415,8 +430,8 @@ function sameRects(before,after,label){
      await page.locator(".bar-bench").screenshot({path:path.join(output,"stage-"+file)});
      const active=await page.locator(".bar-machine").getAttribute("data-machine");
      assert(active===(recipe==="latte"?"espresso":recipe==="apple"?"press":"blend"),"wrong machine");
-     const visibleProps=await page.evaluate(()=>getComputedStyle(document.querySelector(".cafe-winter-counter-props")).display!=="none");
-     assert(visibleProps===(recipe!=="latte"),"winter props must adapt to equipment silhouette");
+     const visibleProps=await page.evaluate(()=>!!document.querySelector(".cafe-winter-counter-props"));
+     assert(!visibleProps,"new winter scene must not duplicate its baked-in props");
     }
     await setup(page,"latte");
     const noteSafety=await page.evaluate(()=>{
