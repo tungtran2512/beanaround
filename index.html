@@ -6060,7 +6060,8 @@ function stockBranch(s,no=2){
  const cost=cartCost(b,cart)+Object.entries(breads).reduce((n,[k,q])=>n+q*BAKES[k].cost,0),reserve=Object.values(operatingForecast(b)).reduce((a,x)=>a+x,0);
  if(cost>b.cash-reserve)throw Error("Chi nhánh thiếu vốn nhập đủ hàng và trả ca; chuyển vốn hoặc giảm menu.");
  if(Object.keys(cart).length)buyCart(b,cart);for(const[k,n]of Object.entries(breads))if(n)buyBakes(b,k,n);
- let guard=600;while(needs.brew&&quantity(b,"brew")<needs.brew&&guard-->0){try{brewBatch(b)}catch(e){b.branchControl.notice=e.message;break}}
+ const batches=Math.ceil(Math.max(0,(needs.brew||0)-quantity(b,"brew"))/4);
+ if(batches)prepareColdReserve(b,{target:needs.brew,batches,portions:batches*4,beanForBrew:batches*2,waterForBrew:batches*2,beanService:Math.max(0,(needs.bean||0)-batches*2),waterService:Math.max(0,(needs.water||0)-batches*2)});
  return cost;
 }
 function startBranchDay(s){
