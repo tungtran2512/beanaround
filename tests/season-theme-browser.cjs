@@ -92,7 +92,7 @@ function sameRects(before,after,label){
    const name=["header","order","deliver","footer"][i],target=path.join(root,"assets/bean-around/winter-ui-"+name+".webp");
    // Once checked-in, test the actual committed derivative rather than regenerate it.
    if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(strips[i].split(",")[1],"base64"));
-   if(process.env.BROWSER!=="webkit")console.log("WINTER_UI_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
+   if(process.env.BROWSER!=="webkit")process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("WINTER_UI_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
   }
  }
 
@@ -110,7 +110,7 @@ function sameRects(before,after,label){
   for(let i=0;i<strips.length;i++){
    const name=["header","deliver","order","footer"][i],target=path.join(root,"assets/bean-around/spring-ui-"+name+".webp");
    if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(strips[i].split(",")[1],"base64"));
-   if(process.env.BROWSER!=="webkit")console.log("SPRING_UI_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
+   if(process.env.BROWSER!=="webkit")process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("SPRING_UI_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
   }
  }
 
@@ -129,7 +129,7 @@ function sameRects(before,after,label){
   for(let i=0;i<strips.length;i++){
    const name=["header","deliver","order","footer"][i],target=path.join(root,"assets/bean-around/winter-red-ui-"+name+".webp");
    if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(strips[i].split(",")[1],"base64"));
-   if(process.env.BROWSER!=="webkit")console.log("WINTER_RED_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
+   if(process.env.BROWSER!=="webkit")process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("WINTER_RED_ASSET_"+name.toUpperCase()+"=data:image/webp;base64,"+fs.readFileSync(target).toString("base64"));
   }
  }
 
@@ -141,14 +141,14 @@ function sameRects(before,after,label){
  ]){
   const source="data:image/png;base64,"+fs.readFileSync(path.join(root,"assets/bean-around/sources",file)).toString("base64");
   const out=await artPage.evaluate(async({source,crops})=>{const im=new Image();im.src=source;await im.decode();return crops.map(([a,b,name])=>{const c=document.createElement("canvas");c.width=name.includes("room")?780:1170;c.height=Math.round(c.width*(b-a)/im.width);c.getContext("2d").drawImage(im,0,a,im.width,b-a,0,0,c.width,c.height);return {name,data:c.toDataURL("image/webp",.91)}})},{source,crops});
-  for(const a of out){const target=path.join(root,"assets/bean-around",a.name+".webp");if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(a.data.split(",")[1],"base64"));if(process.env.BROWSER!=="webkit")console.log("PACKAGE_ASSET_"+a.name+"="+a.data)}
+  for(const a of out){const target=path.join(root,"assets/bean-around",a.name+".webp");if(!fs.existsSync(target))fs.writeFileSync(target,Buffer.from(a.data.split(",")[1],"base64"));if(process.env.BROWSER!=="webkit")process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("PACKAGE_ASSET_"+a.name+"="+a.data)}
  }
 
 
  const pourSource="data:image/png;base64,"+fs.readFileSync(path.join(root,"assets/bean-around/sources/red-pour-2026.png")).toString("base64");
  const pourAsset=await artPage.evaluate(async source=>{const im=new Image();im.src=source;await im.decode();const c=document.createElement("canvas");c.width=640;c.height=Math.round(640*im.height/im.width);const ctx=c.getContext("2d");ctx.drawImage(im,0,0,c.width,c.height);const pixels=ctx.getImageData(0,0,c.width,c.height).data;let alpha=0;for(let i=3;i<pixels.length;i+=4)if(pixels[i]===0)alpha++;if(alpha<pixels.length/4*.1)throw Error("pour asset lacks transparent background");return c.toDataURL("image/webp",.94)},pourSource);
  const pourTarget=path.join(root,"assets/bean-around/bean-around-red-pour.webp");if(!fs.existsSync(pourTarget))fs.writeFileSync(pourTarget,Buffer.from(pourAsset.split(",")[1],"base64"));
- console.log("POUR_OPTIMIZED_ASSET="+pourAsset);
+ process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("POUR_OPTIMIZED_ASSET="+pourAsset);
 
 
  const lakeAtlas="data:image/png;base64,"+fs.readFileSync(path.join(root,"assets/bean-around/sources/spring-winter-lake-2026.png")).toString("base64");
@@ -530,7 +530,7 @@ function sameRects(before,after,label){
     for(const s of samples){const im=new Image();im.src=s.data;await im.decode();ctx.fillStyle="#762020";ctx.fillText(s.id+" / "+s.w,x+10,21);ctx.drawImage(im,x,30,s.w,s.h);x+=s.w}
     return canvas.toDataURL("image/jpeg",.85);
    },responsiveSamples);
-   console.log("CAFE_RESPONSIVE_REVIEW_IMAGE="+responsive);
+   process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("CAFE_RESPONSIVE_REVIEW_IMAGE="+responsive);
    fs.writeFileSync(path.join(output,"responsive-contact-sheet.jpg"),Buffer.from(responsive.split(",")[1],"base64"));
    const parts=["header","order","deliver","footer"].map(id=>({id,data:"data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-component-"+id+"-390.png")).toString("base64")}));
    const componentReview=await sheet.evaluate(async parts=>{
@@ -552,10 +552,10 @@ function sameRects(before,after,label){
     const c=document.getElementById("review");c.width=1195;c.height=962;const ctx=c.getContext("2d");ctx.fillStyle="#fff4e6";ctx.fillRect(0,0,1195,962);let x=0;
     for(const s of samples){const im=new Image();im.src=s.data;await im.decode();ctx.drawImage(im,x,0,s.w,s.h);x+=s.w}return c.toDataURL("image/jpeg",.91);
    },springSamples);
-   console.log("SPRING_RESPONSIVE_REVIEW_IMAGE="+springResponsive);
+   process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("SPRING_RESPONSIVE_REVIEW_IMAGE="+springResponsive);
 
    const ready="data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-ready-390.png")).toString("base64");
-   console.log("WINTER_READY_REVIEW_IMAGE="+ready);
+   process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("WINTER_READY_REVIEW_IMAGE="+ready);
 
    // Derive a mobile-sized WebP from the untouched generated source; no runtime dependency.
    const artSource=path.join(root,"assets/bean-around/sources/winter-cafe-2026.png");
@@ -566,13 +566,13 @@ function sameRects(before,after,label){
      const c=document.createElement("canvas");c.width=780;c.height=Math.round(780*im.height/im.width);
      c.getContext("2d").drawImage(im,0,0,c.width,c.height);return c.toDataURL("image/webp",.9);
     },source);
-    console.log("WINTER_OPTIMIZED_ASSET="+webp);
+    process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("WINTER_OPTIMIZED_ASSET="+webp);
     fs.writeFileSync(path.join(output,"winter-cafe-room.webp"),Buffer.from(webp.split(",")[1],"base64"));
    }
    await sheet.close();
   }
-  if(process.env.REVIEW_IMAGE_LOG==="1"&&process.env.BROWSER==="webkit")console.log("WINTER_WEBKIT_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-ready-390.png")).toString("base64"));
-  if(process.env.REVIEW_IMAGE_LOG==="1")console.log("SPRING_READY_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"spring-ready-390.png")).toString("base64"));
+  if(process.env.REVIEW_IMAGE_LOG==="1"&&process.env.BROWSER==="webkit")process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("WINTER_WEBKIT_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"winter-ready-390.png")).toString("base64"));
+  if(process.env.REVIEW_IMAGE_LOG==="1")process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("SPRING_READY_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"spring-ready-390.png")).toString("base64"));
 
   const stabilityContext=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   const stabilityPage=await stabilityContext.newPage();await stabilityPage.goto(url+"/index.html?season-theme=winter");
@@ -594,7 +594,7 @@ function sameRects(before,after,label){
   });
   await stabilityPage.waitForTimeout(500);
   await stabilityPage.screenshot({path:path.join(output,"kettle-water-stage.png")});
-  console.log("KETTLE_GAME_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"kettle-water-stage.png")).toString("base64"));
+  process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("KETTLE_GAME_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"kettle-water-stage.png")).toString("base64"));
   await stabilityPage.evaluate(()=>{managementVisible=true;managementTab="stock";paint()});
   await stabilityPage.evaluate(()=>window.scrollTo(0,0));
   const headerStart=await stabilityPage.locator(".topbar").evaluate(el=>el.getBoundingClientRect().top);
@@ -613,7 +613,7 @@ function sameRects(before,after,label){
   await pourPage.evaluate(()=>{setRecipeOnOrder(state,state.order,"pour");state.order.needsClarification=false;state.job=null;state.cup.steps=["espresso"];state.cup.sealed=false;paint();});
   assert(await pourPage.locator(".bar-machine use[href='#pour']").count()===1,"red pour-over not at active filter stage");
   await pourPage.waitForTimeout(400);await pourPage.screenshot({path:path.join(output,"red-pour-stage.png")});
-  console.log("POUR_GAME_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"red-pour-stage.png")).toString("base64"));
+  process.env.REVIEW_FULL_IMAGE_LOG==="1"&&console.log("POUR_GAME_REVIEW_IMAGE=data:image/png;base64,"+fs.readFileSync(path.join(output,"red-pour-stage.png")).toString("base64"));
   report.pourArtwork="active filter stage uses red dripper and glass server; unchanged control layout";
   await pourContext.close();
 
