@@ -3614,7 +3614,7 @@ window.BeanAroundExpansionChecks={run(){
 }};
 function chainTestShop(day=61){
  const s=newGame(()=>.5);s.day=day;s.cash=1500000;s.events.preparedDay=day;s.reputation=90;s.ratingSummary={sum:4800,count:1000};s.playerQuality={sum:4800,count:1000};s.customersServed=2000;
- for(const[k,g]of Object.entries(G))s.stock[k]=[{n:50000,expiry:day+99,unitCost:g.unitCost}];
+ for(const[k,g]of Object.entries(G))s.stock[k]=[{n:500000,expiry:day+99,unitCost:g.unitCost}];
  for(const id of Object.keys(STAFF))Object.assign(s.employees[id],{hired:true,workingToday:true});
  for(const[id,c]of Object.entries(COURSES))s.training.courses[id]={done:true,progress:c.shifts,enrolledDay:1};
  for(const m of Object.values(s.menu))m.unlocked=m.enabled=true;
@@ -3622,7 +3622,7 @@ function chainTestShop(day=61){
  return s;
 }
 function maxTestBranch(s,b){
- b.day=s.day;b.cash=200000;b.branchAge=20;b.reputation=s.reputation;b.customersServed=s.customersServed;b.ratingSummary=clone(s.ratingSummary);b.playerQuality=clone(s.playerQuality);
+ b.day=s.day;b.cash=2000000;b.branchAge=20;b.reputation=s.reputation;b.customersServed=s.customersServed;b.ratingSummary=clone(s.ratingSummary);b.playerQuality=clone(s.playerQuality);
  for(const id of Object.keys(BRANCH_GEAR))b.upgrades[id]=true;
  for(const[id,c]of Object.entries(COURSES))b.training.courses[id]={done:true,progress:c.shifts,enrolledDay:1};
  for(const id of Object.keys(STAFF))Object.assign(b.employees[id],{hired:true,workingToday:true});
@@ -5055,7 +5055,7 @@ function networkOtherTick(root,active,dt){
   if(!networkMaintainBackground(b,dt))continue;
   if(b.online.pacing)b.online.pacing.progress=progress;
   const release=Math.min(c.goal,Math.max(1,Math.ceil(c.goal*districtProgress(b,progress))));
-  for(let i=0;i<Math.max(16,Math.ceil(onlineWorkRate(b,c.onlineGoal)*onlineStaffSlots(b)*3));i++){if(!c.job&&c.issued>=release&&!c.onlineJob&&!b.delivery?.pending.length&&!canIssueOnlineParcel(b,c.onlineIssued,c.onlineGoal))break;if(c.job||c.issued<release)branchJobTick(b,"job",dt);branchJobTick(b,"onlineJob",dt);if(c.notice.startsWith("Thiếu nguyên liệu")&&!c.stockDecision){c.stockDecision="pending";root.visitPlan.attention=root.visitPlan.attention||locationNumber(b);break}}
+  for(let i=0;i<Math.max(16,Math.ceil(onlineWorkRate(b,c.onlineGoal)*onlineStaffSlots(b)*3));i++){if(!c.job&&c.issued>=release&&!c.onlineJob&&!b.delivery?.pending.length&&(c.onlineIssued>=c.onlineGoal||!canIssueOnlineParcel(b,c.onlineIssued,c.onlineGoal)))break;if(c.job||c.issued<release)branchJobTick(b,"job",dt);branchJobTick(b,"onlineJob",dt);if(c.notice.startsWith("Thiếu nguyên liệu")&&!c.stockDecision){c.stockDecision="pending";root.visitPlan.attention=root.visitPlan.attention||locationNumber(b);break}}
   if(c.issued>=c.goal&&c.onlineIssued>=c.onlineGoal&&!b.delivery.pending.length&&!c.job&&!c.onlineJob){b.phase="report";c.notice="Đã hoàn thành ca theo kế hoạch."}
  }
 }
@@ -6118,7 +6118,12 @@ function branchTick(s,dt){
  for(const b of branches(s)){
  if(b.phase!=="open")continue;const c=b.branchControl;c.elapsed+=dt;if(b.online.pacing?.enabled&&s.online.pacing?.enabled)b.online.pacing.progress=s.online.pacing.progress;
  if(!working(b,"barista")||!working(b,"manager")){c.notice="Thiếu người phụ trách; ca tạm ngừng.";continue}
- branchJobTick(b,"job",dt);branchJobTick(b,"onlineJob",dt);
+ branchJobTick(b,"job",dt);
+ const work=Math.max(1,Math.ceil(onlineWorkRate(b,c.onlineGoal)*onlineStaffSlots(b)*3));
+ for(let i=0;i<work;i++){
+  if(!c.onlineJob&&!b.delivery?.pending.length&&(c.onlineIssued>=c.onlineGoal||!canIssueOnlineParcel(b,c.onlineIssued,c.onlineGoal)))break;
+  branchJobTick(b,"onlineJob",dt);
+ }
  if(c.issued>=c.goal&&c.onlineIssued>=c.onlineGoal&&!b.delivery?.pending.length&&!c.job&&!c.onlineJob)b.phase="report";
  }
 }
@@ -6360,7 +6365,7 @@ window.BeanAroundArrivalPacingChecks={run(){
  const rows=[],a=(v,m="assertion")=>{if(!v)throw Error(m)},test=(name,f)=>{try{f();rows.push({name,ok:true})}catch(e){rows.push({name,ok:false,error:e.message})}};
  const shop=()=>{const s=chainTestShop(63);for(const k of Object.keys(EQUIPMENT))s.upgrades[k]=true;s.online.tablet=s.online.enabled=true;s.online.quotaUnit="orders";deliveryDefaults(s);Object.assign(s.events,{weather:"sun",traffic:1.2,advertising:1,preparedDay:63});s.business.counterLimit=120;return s};
  test("all online parcels contain sixty cups",()=>{const s=shop();for(let i=0;i<100;i++){const o=nextDeliveryOrder(s,1,()=>(i+.5)/100),t=s.delivery.tickets[o.deliveryGroup];a(t.size===60&&t.waiting.length===60);s.delivery.pending=[]}a(SHOPEE_MEAN_CUPS===60)});
- test("opening receives only one parcel, never entire daily queue",()=>{const s=shop();openDay(s);a(s.online.dayQuota===500&&s.online.issued===1&&s.online.remaining===499&&s.online.queue.length<=3&&s.online.pacing.progress===0&&shopTime(s)==="07:00")});
+ test("opening receives only one parcel, never entire daily queue",()=>{const s=shop();openDay(s);a(s.online.dayQuota===500&&s.online.issued===1&&s.online.remaining===499&&s.online.queue.length<=10&&s.online.queue.length+s.delivery.pending.length===60&&s.online.pacing.progress===0&&shopTime(s)==="07:00")});
  test("arrival curve bounded monotonic and final order held until2150",()=>{const s=shop();openDay(s);let old=0;for(let i=0;i<=1000;i++){s.online.pacing.progress=i/1000;const n=onlineArrivalAllowance(s);a(n>=old&&n<=500);old=n}a(old===500);s.online.pacing.progress=14.75/15;a(onlineArrivalAllowance(s)===495);s.online.pacing.progress=14.82/15;a(onlineArrivalAllowance(s)<500);s.online.pacing.progress=14.84/15;a(onlineArrivalAllowance(s)===500)});
  test("lunch evening and closing waves have distinct cumulative quotas",()=>{const s=shop();openDay(s);for(const[p,n]of [[4/15,110],[7/15,260],[10/15,330],[13/15,450]]){s.online.pacing.progress=p;a(onlineArrivalAllowance(s)===n)}});
  test("online schedule finishes even if counter is slow",()=>{const s=shop();openDay(s);s.stats.onlineReceipts=400;s.online.pacing.elapsed=230;s.served=0;advanceOnlinePacing(s,1);a(s.online.pacing.progress===1&&onlineArrivalAllowance(s)===500)});
@@ -6368,7 +6373,7 @@ window.BeanAroundArrivalPacingChecks={run(){
  test("future arrivals carry no timer or stock consumption",()=>{const s=shop();openDay(s);const before=quantity(s,"cup");s.online.queue=[];s.delivery.pending=[];s.delivery.tickets={};const remaining=s.online.remaining;for(let i=0;i<50;i++)issueOnline(s);a(s.online.remaining===remaining&&!s.online.queue.length&&quantity(s,"cup")===before&&!s.stats.onlineFailed)});
  test("pacing state survives save reload without reroll or offline advancement",()=>{const s=shop();openDay(s);s.served=60;advanceOnlinePacing(s,100);const p=JSON.stringify(s.online.pacing),cash=s.cash,m=migrateSave(clone(s));a(JSON.stringify(m.online.pacing)===p&&m.cash===cash&&m.online.remaining===s.online.remaining&&validCore(m))});
  test("blocking event pauses arrival clock",()=>{const s=shop();openDay(s);const p=JSON.stringify(s.online.pacing);s.ops.active={id:"acFault"};clockStep(s,30);a(JSON.stringify(s.online.pacing)===p)});
- test("pause new arrivals still drains an already accepted three-cup parcel",()=>{const s=shop();openDay(s);s.online.queue=[];s.delivery.pending=[];let first=true;const o=nextDeliveryOrder(s,1,()=>first?(first=false,.99):.2);s.online.queue=[{...o,work:1}];s.online.remaining=0;s.ops.onlinePaused=true;issueOnline(s);a(s.online.queue.length===3&&!s.delivery.pending.length&&s.online.remaining===0)});
+ test("pause new arrivals still retains all sixty accepted cups",()=>{const s=shop();openDay(s);s.online.queue=[];s.delivery.pending=[];let first=true;const o=nextDeliveryOrder(s,1,()=>first?(first=false,.99):.2);s.online.queue=[{...o,work:1}];s.online.remaining=0;s.ops.onlinePaused=true;issueOnline(s);a(s.online.queue.length+s.delivery.pending.length===60&&s.online.remaining===0)});
  test("old open save keeps its accepted queue and unpaced operation",()=>{const s=shop();openDay(s);delete s.online.pacing;const queue=JSON.stringify(s.online.queue),m=migrateSave(clone(s));a(!m.online.pacing&&JSON.stringify(m.online.queue)===queue&&canIssueOnlineParcel(m)&&m.cash===s.cash)});
  test("day without online retains ordinary closing flow",()=>{const s=shop();s.online.enabled=false;s.business.counterLimit=1;openDay(s);s.order.needsClarification=false;simulationFill(s);deliver(s);a(!s.online.pacing.enabled&&s.phase==="report"&&shopTime(s)==="22:00")});
  test("branch arrival timeline follows main shop and never front-loads all parcels",()=>{const s=shop(),b=maxTestBranch(s,openBranch(s,2));for(const[k,g]of Object.entries(G))b.stock[k]=[{n:50000,expiry:100,unitCost:g.unitCost}];openDay(s);a(b.online.pacing?.enabled&&b.branchControl.onlineIssued===0);branchTick(s,.2);a(b.branchControl.onlineIssued===1);s.online.pacing.progress=.5;branchTick(s,.2);a(b.online.pacing.progress===.5&&onlineArrivalAllowance(b,b.branchControl.onlineGoal)<b.branchControl.onlineGoal)});

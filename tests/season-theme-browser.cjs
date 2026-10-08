@@ -162,6 +162,20 @@ function sameRects(before,after,label){
    const stock=s=>{for(const[k,g]of Object.entries(G))s.stock[k]=[{n:1000000,expiry:s.day+99,unitCost:g.unitCost}];for(const[k,g]of Object.entries(BAKES))s.bakery.stock[k]=[{n:10000,expiry:s.day+99,unitCost:g.cost}]};
    const full=()=>{const s=chainTestShop(63);for(const k of Object.keys(EQUIPMENT))s.upgrades[k]=true;for(const k of Object.keys(STAFF))Object.assign(s.employees[k],{hired:true,workingToday:true});s.online.tablet=s.online.enabled=true;s.online.quotaUnit="orders";s.bakery.owned=true;stock(s);Object.assign(s.events,{preparedDay:s.day,active:null,broken:null});s.ops.active=s.ops.scheduled=null;return s};
 
+   check("sixty-cup ticket reload, one receipt and duplicate guards survive compaction",()=>{
+    const s=full();s.online.quotaUnit="orders";const first=nextDeliveryOrder(s,1,()=>.2),items=[first];while(s.delivery.pending.length)items.push(nextDeliveryOrder(s,0,()=>.2));
+    assert(items.length===60,"group size");const before=s.cash,cups=quantity(s,"cup");
+    for(const o of items.slice(0,30))assert(autoFulfil(s,o,()=>.2).ok,"prepare");
+    assert(s.cash===before&&s.stats.onlineReceipts===0,"premature charge");
+    const restored=migrateSave(clone(s)),ticket=restored.delivery.tickets[first.deliveryGroup];
+    for(const o of ticket.waiting.slice())assert(autoFulfil(restored,o,()=>.2).ok,"finish");
+    assert(restored.stats.onlineReceipts===1&&restored.stats.onlineOrders===60&&restored.reviews.length===1,"receipt/cup/review count");
+    assert(quantity(restored,"cup")===cups-60,"cup stock");
+    const cash=restored.cash;let rejected=false;try{autoFulfil(restored,first,()=>.2)}catch(e){rejected=true}
+    assert(rejected&&restored.cash===cash,"duplicate after compaction");
+    assert(validCore(migrateSave(clone(restored))),"settled save");
+    return {cups:restored.stats.onlineOrders,receipts:restored.stats.onlineReceipts};
+   });
    check("bulk stock suggestion can purchase sixty-cup parcel inventory without truncated packs",()=>{
     const s=full();s.cash=100000000;
     for(const k of Object.keys(G))s.stock[k]=[];
