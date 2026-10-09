@@ -2,7 +2,7 @@
 
 ## Gameplay
 
-Six two-month sale windows: Tet Jan–Feb, spring Mar–Apr, summer May–Jun, autumn Jul–Aug, winter Sep–Oct, Christmas Nov–Dec. Each shop pays 30,000k for 60 inclusive game days from purchase. The package multiplies online parcel demand by 3 after other bonuses, before the owner's admission cap. Rating calculations and accepted shift quotas are unchanged. Active legacy 30-day purchases extend once to 60 total days without a second charge; expired purchases remain expired.
+Six two-month sale windows: Tet Jan–Feb, spring Mar–Apr, summer May–Jun, autumn Jul–Aug, winter Sep–Oct, Christmas Nov–Dec. Each shop pays 30,000k for the remainder of the current two-month calendar season. Tet expires at the start of March even when purchased on the last day of February. The game calendar uses 30-day months; buying late does not carry validity into the next season. The package multiplies online parcel demand by 3 after other bonuses, before the owner's admission cap. Rating calculations and accepted shift quotas are unchanged. Legacy purchases are capped at the purchase season boundary on reload without another charge. Shorter legacy durations are never extended and expired packages never revive. Version 3 saves store the absolute calendar end day. Players must buy the currently available package after the season changes.
 
 ## Artwork
 
