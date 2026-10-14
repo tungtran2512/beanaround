@@ -5,11 +5,11 @@ window.BeanAroundCoop=(()=>{
  let hooks,session,room,connected=false,pending=false,stopped=false,streamAbort;
  const $=id=>document.getElementById(id);
  function text(id,value){$(id).textContent=value}
- function disconnected(message){connected=false;$("coopConnection").hidden=false;text("coopConnection",message+" · Đang kết nối lại…");text("coopStatus",message)}
+ function disconnected(message){connected=false;$("coopConnection").hidden=false;text("coopConnectionMessage",message+" · Đang kết nối lại…");text("coopStatus",message)}
  function show(snapshot){
   room=snapshot;connected=true;$("coopConnection").hidden=true;
   text("coopStatus","Phòng "+room.code+" · "+(room.fault?"Lưu quán gặp lỗi":room.paused?"Tạm dừng":"Đang cùng phục vụ"));
-  $("coopPause").hidden=room.you!==room.host;$("coopPause").textContent=room.paused?"Tiếp tục ca":"Tạm dừng";
+  $("coopPause").hidden=room.you!==room.host;$("coopPause").textContent=room.paused?"Tiếp tục":"Dừng ca";
   const people=$("coopPeople");people.replaceChildren();
   for(const member of room.members){
    const span=document.createElement("span");span.textContent=(member.online?"● ":"○ ")+member.name+(member.id===room.host?" · chủ phòng":"");
@@ -57,8 +57,8 @@ window.BeanAroundCoop=(()=>{
    if(!session?.token){location.replace("/coop/");return}
    session.server=(window.BEAN_COOP_SERVER||session.server||"").replace(/\/$/,"");
    const bar=document.createElement("aside");bar.id="coopBar";
-   bar.innerHTML='<b>CO-OP</b><span id="coopStatus" role="status"></span><button id="coopCopy">Chép mã phòng</button><button id="coopPause" hidden>Tạm dừng</button><a href="/coop/">Rời quầy</a><div id="coopPeople"></div>';
-   document.body.prepend(bar);const cover=document.createElement("div");cover.id="coopConnection";cover.setAttribute("role","status");cover.textContent="Đang tải quán co-op…";document.body.append(cover);
+   bar.innerHTML='<b>CO-OP</b><span id="coopStatus" role="status"></span><button id="coopCopy">Mã phòng</button><button id="coopPause" hidden>Tạm dừng</button><a href="/coop/">Rời</a><div id="coopPeople"></div>';
+   document.body.prepend(bar);const cover=document.createElement("div");cover.id="coopConnection";cover.setAttribute("role","status");cover.innerHTML='<span id="coopConnectionMessage">Đang tải quán co-op…</span><a href="/coop/">Trở lại sảnh</a>';document.body.append(cover);
    $("coopCopy").onclick=async()=>{try{await navigator.clipboard.writeText(session.code);hooks.message("Đã chép mã phòng "+session.code)}catch{hooks.message("Mã phòng: "+session.code)}};
    $("coopPause").onclick=()=>command(room.paused?"resume":"pause");
    window.addEventListener("pagehide",()=>{stopped=true;streamAbort?.abort()});

@@ -77,3 +77,21 @@ test("engine bridge loads original rules and rolls through preparation",()=>{
  const s=engine.create();assert.equal(engine.check(s),true);const old=JSON.stringify(s);assert.throws(()=>engine.apply(s,"setCash",""));assert.equal(JSON.stringify(s),old);
  engine.apply(s,"openConfirm","");engine.apply(s,"cup",s.order.size);assert.equal(engine.check(s),true);
 });
+
+test("host transfer pauses room and offline seat removal revokes token",async t=>{
+ const server=createServer({dbPath:":memory:",tickMs:50,hostGraceMs:150});await new Promise(r=>server.listen(0,"127.0.0.1",r));
+ const base="http://127.0.0.1:"+server.address().port,controllers=[];
+ t.after(async()=>{for(const c of controllers)c.abort();await server.shutdown()});
+ async function post(route,body,session){const res=await fetch(base+"/api/coop/"+route,{method:"POST",headers:{"Content-Type":"application/json",...(session?{Authorization:"Bearer "+session.token,"X-Room-Code":session.code}:{})},body:JSON.stringify(body)});return {status:res.status,...await res.json()}}
+ async function connect(session){
+  const c={abort:new AbortController(),state:null};controllers.push(c.abort);
+  const response=await fetch(base+"/api/coop/events",{headers:{Authorization:"Bearer "+session.token,"X-Room-Code":session.code},signal:c.abort.signal});
+  (async()=>{let buf="";const reader=response.body.getReader(),decoder=new TextDecoder();try{while(true){const x=await reader.read();if(x.done)return;buf+=decoder.decode(x.value,{stream:true});let p;while((p=buf.indexOf("\n\n"))>=0){c.state=JSON.parse(buf.slice(6,p));buf=buf.slice(p+2)}}}catch{}})();await until(()=>c.state);return c;
+ }
+ const host=await post("create",{name:"Host"}),guest=await post("join",{code:host.code,name:"Friend"});
+ const a=await connect(host),b=await connect(guest);a.abort.abort();await until(()=>b.state.host===guest.id);
+ assert.equal(b.state.paused,true);
+ const kicked=await post("action",{seq:b.state.seq+1,revision:b.state.revision,action:"removeMember",key:host.id},guest);assert.equal(kicked.status,200);
+ const retry=await fetch(base+"/api/coop/events",{headers:{Authorization:"Bearer "+host.token,"X-Room-Code":host.code}});assert.equal(retry.status,400);
+ const join=await post("join",{code:host.code,name:"Replacement"});assert.equal(join.status,200);
+});

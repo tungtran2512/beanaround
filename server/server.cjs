@@ -4,7 +4,7 @@ const {DatabaseSync}=require("node:sqlite");
 const engine=require("./engine.cjs");
 const ROOT=path.resolve(__dirname,".."),hash=t=>crypto.createHash("sha256").update(t).digest("hex");
 const clone=x=>JSON.parse(JSON.stringify(x));
-function createServer({dbPath=process.env.COOP_DB||path.join(ROOT,"data/coop.sqlite"),allowedOrigins=(process.env.COOP_ORIGINS||"").split(",").filter(Boolean),maxRooms=200,tickMs=200}={}){
+function createServer({dbPath=process.env.COOP_DB||path.join(ROOT,"data/coop.sqlite"),allowedOrigins=(process.env.COOP_ORIGINS||"").split(",").filter(Boolean),maxRooms=200,tickMs=200,hostGraceMs=30000}={}){
  if(dbPath!==":memory:")fs.mkdirSync(path.dirname(dbPath),{recursive:true});
  const db=new DatabaseSync(dbPath);db.exec("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS rooms(code TEXT PRIMARY KEY, payload TEXT NOT NULL)");
  const get=db.prepare("SELECT payload FROM rooms WHERE code=?"),put=db.prepare("INSERT OR REPLACE INTO rooms VALUES(?,?)");
@@ -128,7 +128,7 @@ function createServer({dbPath=process.env.COOP_DB||path.join(ROOT,"data/coop.sql
     const host=r.data.members.find(m=>m.id===r.data.host);
     if(!r.clients.has(r.data.host)){
      host.offlineAt=host.offlineAt||Date.now();
-     if(Date.now()-host.offlineAt>30000){r.data.host=r.clients.keys().next().value;r.data.paused=true;r.data.revision++}
+     if(Date.now()-host.offlineAt>hostGraceMs){r.data.host=r.clients.keys().next().value;r.data.paused=true;r.data.revision++}
     }
     if(r.clients.size>=2&&!r.data.paused&&r.data.state.phase==="open"){
      const key=engine.fingerprint(r.data.state);engine.tick(r.data.state,tickMs/1000);
