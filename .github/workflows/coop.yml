@@ -1,0 +1,45 @@
+name: Co-op rooms
+on:
+  pull_request:
+    paths:
+      - index.html
+      - coop/**
+      - server/**
+      - tests/coop-*.cjs
+      - .github/workflows/coop.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/coop-server.cjs
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    env:
+      BROWSER: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright@1.56.1
+      - run: npx playwright install --with-deps "$BROWSER"
+      - run: node tests/coop-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coop-${{ matrix.browser }}
+          path: artifacts/coop/
+          retention-days: 14

@@ -1,0 +1,14 @@
+
+#coopBar{position:relative;z-index:100;background:#571b2b;color:#fff4df;padding:8px 12px;font:13px system-ui;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#coopBar button,#coopBar a{font:inherit;border:1px solid #d6b989;border-radius:8px;background:#fff5e4;color:#571b2b;padding:8px;min-height:38px;text-decoration:none}
+#coopStatus{flex:1;min-width:150px}#coopPeople{width:100%;display:flex;gap:8px;flex-wrap:wrap}
+#coopPeople span{padding:3px 6px;border:1px solid #ab8977;border-radius:6px}
+#coopPeople button{min-height:24px;padding:2px 5px;margin-left:4px}
+#coopConnection{position:fixed;inset:0;z-index:10000;background:#21120dcc;display:grid;place-items:center;color:#fff;font:18px system-ui;text-align:center;padding:24px}
+#coopConnection[hidden]{display:none}
+.coop-lobby{margin:0;background:#f8efdf;color:#53242c;font:16px/1.5 system-ui}
+.coop-lobby main{max-width:480px;margin:6vh auto;padding:24px}
+.coop-lobby h1{font:700 32px Georgia;color:#8e2032}.coop-lobby section{background:#fffaf1;border:1px solid #d8c0a5;border-radius:18px;padding:20px;margin:18px 0}
+.coop-lobby label{display:block;margin:12px 0}.coop-lobby input,.coop-lobby button{box-sizing:border-box;width:100%;font:inherit;padding:12px;border:1px solid #bea28e;border-radius:10px}
+.coop-lobby button{background:#8e2032;color:white;margin:8px 0;cursor:pointer}.coop-lobby button:disabled{opacity:.5}
+.coop-lobby a{color:#8e2032}#lobbyMessage{min-height:30px}#resumeRoom[hidden]{display:none}
