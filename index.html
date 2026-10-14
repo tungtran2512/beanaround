@@ -1624,6 +1624,7 @@ body.service-mode #game{display:grid;grid-template-rows:auto minmax(0,1fr) auto;
 <div id="confetti" aria-hidden="true"></div>
 <noscript>Game cần JavaScript. Hãy mở tệp trong trình duyệt có bật JavaScript; bản xem trước tệp trên iPhone có thể không chạy trò chơi.</noscript>
 <script>window.addEventListener("error",function(e){var n=document.getElementById("bootNotice"),d=document.getElementById("bootError");if(n)n.hidden=false;if(d)d.textContent=e.message||"Không khởi động được JavaScript."});</script>
+<link rel="stylesheet" href="/coop/style.css"><script src="/coop/config.js"></script><script src="/coop/client.js"></script>
 <script>
 "use strict";
 const G={
@@ -3996,6 +3997,7 @@ async function actV8V112(action,key){
  }catch(e){toast(e.message||"Thao tác chưa thực hiện được.");}
 }
 function tickUI(){
+ if(COOP_MODE)return;
  if(decorationPreview)return;
  if(modal==="stockClose")return;
  if(!document.hidden&&networkOwner(state).visitPlan?.attention&&state.phase==="open"){if(modal!=="networkAttention")networkAttentionSheet();return}
@@ -5394,6 +5396,7 @@ function serviceToolsSheet(){
  btn("Đóng cửa & kết ca","stockClose","","wide")+btn("Trở lại quầy","close","","primary wide"));
 }
 async function actV8(action,key){
+ if(COOP_MODE&&window.BeanAroundCoop.intercept(action,key))return;
  try{
   if(action==="decorPreviewExit"){endDecorationPreview();return}
   if(decorationPreview){toast("Đang xem thử trang trí. Bấm Thoát để tiếp tục chơi.");return}
@@ -6593,6 +6596,7 @@ window.BeanAroundOnlineMenuChecks={run(){
 const $=id=>document.getElementById(id);
 const MONEY=n=>Number(n).toLocaleString("vi-VN")+"k";
 const KEY="bean-around-cafe-v13";
+const COOP_MODE=new URLSearchParams(window.location.search).get("coop")==="1";
 const LEGACY_KEY="goc-ca-phe-illustrated-v3";
 const escapeHTML=s=>String(s).replace(/[&<>"\']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","\'":"&#39;"}[ch]));
 let managementVisible=true,managementTab="stock",upgradeTab="menu",saveBlocked=false,protectedRaw=null;
@@ -6601,7 +6605,7 @@ const average=()=>state.ratingSummary.count?ratingValue(state).toFixed(1):"—";
 let state=newGame(),storageWorks=true,modal="",toastTimer,fxTimer,audioContext,busy=false;
 // ==================== SAVE / LOAD / BACKUP ====================
 function validSave(v){return validCore(v)}
-try{
+if(!COOP_MODE)try{
  const raw=localStorage.getItem(KEY)||localStorage.getItem("bean-around-cafe-v12")||localStorage.getItem("bean-around-cafe-v11")||localStorage.getItem("bean-around-cafe-v10")||localStorage.getItem("bean-around-cafe-v9")||localStorage.getItem("bean-around-cafe-v8")||localStorage.getItem("bean-around-cafe-v7")||localStorage.getItem("bean-around-cafe-v6")||localStorage.getItem("bean-around-cafe-v5")||localStorage.getItem(LEGACY_KEY);
  if(raw){
   protectedRaw=raw;
@@ -6661,6 +6665,7 @@ async function flushSaveQueue(){
  }finally{saveWriting=false}
 }
 function save(force=false){
+ if(COOP_MODE)return;
  if(storageBooting||decorationPreview)return;
  if(!force&&pulseActive&&pulseCount%25!==0)return;
  if(saveBlocked){saveStatus("Save chưa đọc được. Game đang bảo vệ dữ liệu cũ, không tự ghi đè.");return}
@@ -6784,6 +6789,7 @@ function menuSheet(){
 function reportSheet(){showSheet("report","Đã đóng cửa ngày "+state.day,'<p>Ca bán hàng đã kết thúc. Báo cáo được lưu trong Quản lý.</p>'+networkSummaryMarkup(networkOwner(state),state)+btn("XEM TRONG QUẢN LÝ","manage","","primary wide")+btn("SANG NGÀY MỚI","nextDay","","wide"))}
 function howSheet(){
  showSheet("how","Một ly nước ngon",
+ (COOP_MODE?"":'<p><a href="/coop/">CHƠI CÙNG BẠN · QUÁN CO-OP RIÊNG (2–4 NGƯỜI)</a></p>')+
  '<div class="instructions">1. Chạm chồng ly đúng size đơn hàng.<br>2. Chạm dụng cụ và nguyên liệu theo sổ công thức.<br>3. Có đường / đá thì thêm mỗi loại một lần.<br>4. Chạm chồng nắp bên phải.<br>5. Chạm nút đỏ <b>Giao khách</b>.<br><br>'+
  'Ly L tự dùng gấp đôi nguyên liệu. Bấm lặp sẽ thêm nguyên liệu thật; pha sai vẫn mất nguyên liệu. Thùng rác ở góc trái dùng để bỏ ly.<br><br>'+
  'Cà phê nóng được biểu thị bằng không thêm đá trong bản thử. Nước ép: chọn trái cây rồi chạm máy ép.<br><br>'+
@@ -6993,6 +6999,7 @@ function downloadSave(){
  toast("Đã xuất save. Giữ tệp JSON để chuyển thiết bị hoặc phục hồi.");
 }
 async function loadImportedSave(text){
+ if(COOP_MODE)throw Error("Không nhập save chơi một mình vào quán co-op.");
  const candidate=migrateSave(JSON.parse(text));
  const old=saveBlocked&&protectedRaw?protectedRaw:JSON.stringify(networkOwner(state));
  if(saveDatabase)await databasePut(KEY+".before-import",{payload:old,revision:saveRevision});else localStorage.setItem(KEY+".before-import",old);
@@ -7000,6 +7007,7 @@ async function loadImportedSave(text){
  if(state.phase==="open")menuSheet();toast("Đã nhập save; bản trước được sao lưu.");
 }
 async function actV7(action,key){
+ if(COOP_MODE&&window.BeanAroundCoop.intercept(action,key))return;
  try{
   if(decorationPreview){if(action==="decorPreviewExit")endDecorationPreview();return}
   if(action==="start"&&state.phase==="prep"){if(saveBlocked)throw Error("Hãy phục hồi save trước.");prepareOpenUI();return}
@@ -7141,7 +7149,27 @@ $("saveFile").addEventListener("change",async event=>{
  try{if(file.size>64*1024*1024)throw Error("Tệp save quá lớn.");await loadImportedSave(await file.text())}catch(e){toast("Không nhập được: "+e.message)}
  event.target.value="";
 });
-restoreDatabaseSave().then(()=>{
+(COOP_MODE?Promise.resolve():restoreDatabaseSave()).then(()=>{
+if(COOP_MODE){
+ storageBooting=false;
+ window.BeanAroundCoop.init({
+  apply(snapshot){
+   const previous=state.phase;state=networkBind(snapshot);
+   if(previous!==state.phase){closeSheet();managementVisible=state.phase==="prep";if(state.phase==="report")reportSheet()}
+   paint();if(document.getElementById("bootNotice"))document.getElementById("bootNotice").hidden=true;
+  },
+  message:toast,
+  cart:()=>JSON.parse(JSON.stringify(cart)),
+  clearCart:()=>{cart={}},
+  done(action,result){
+   if(!["ingredient","iceMode","topping","extraShot","cup","tasteStop","espressoStop"].includes(action))closeSheet();
+   if(action==="openConfirm"||action==="takeOnline"){managementVisible=false;paint()}
+   if(action==="serve"){if(state.order?.recovery)complaintSheet();else toast("Đã giao · Quầy và tiền đã đồng bộ.")}
+   if(state.phase==="report")reportSheet();
+  }
+ });return;
+}
+
 const initialDecorationPreview=requestedDecorationPreview(window.location.search);
 if(initialDecorationPreview&&!saveBlocked)beginDecorationPreview(initialDecorationPreview);
 if(state.phase==="prep"&&!decorationPreview)prepareMorning(state);

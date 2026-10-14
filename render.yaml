@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: bean-around-coop
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    plan: starter
+    numInstances: 1
+    healthCheckPath: /api/coop/health
+    disk:
+      name: coop-progress
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: COOP_DB
+        value: /data/coop.sqlite
+      - key: COOP_ORIGINS
+        value: https://beanaround.vercel.app
